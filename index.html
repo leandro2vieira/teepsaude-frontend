@@ -2,8 +2,11 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Teep Saúde - App de Saúde</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -14,7 +17,13 @@
                 <div class="header-top-row">
                     <div class="header-profile">
                         <div class="header-avatar" id="headerAvatar" role="img" aria-label="Avatar do usuário">👤</div>
-                        <span class="header-user-name" id="headerUserName">Nome</span>
+                        <div class="header-user-text">
+                            <div class="header-name-row">
+                                <span class="header-greeting" id="headerGreeting">Bom dia</span>
+                                <span class="header-user-name" id="headerUserName">João</span>
+                            </div>
+                            <span class="header-date" id="headerDate"></span>
+                        </div>
                     </div>
                     <div class="header-screen-actions" id="headerScreenActions"></div>
                 </div>
@@ -26,11 +35,21 @@
                 <div class="screen active" id="homeScreen">
                     <div id="homeNow"></div>
 
-                    <div class="section-title">Saúde em destaque</div>
+                    <div class="home-section-header">
+                        <div class="section-title">Sinais vitais</div>
+                        <div class="section-subtitle" id="homeSaudeSubtitle">Hoje</div>
+                    </div>
                     <div id="homeVitals"></div>
 
-                    <div class="section-title">Próxima Consulta</div>
+                    <div class="home-section-header">
+                        <div class="section-title">Próxima Consulta</div>
+                        <div class="section-subtitle">Agendada</div>
+                    </div>
                     <div id="homeConsulta"></div>
+
+                    <footer class="home-footer">
+                      Desenvolvido por <strong>Teep Saúde</strong>
+                    </footer>
                 </div>
 
                 <!-- Saúde Screen -->
@@ -93,27 +112,27 @@
             <!-- Bottom Navigation -->
             <div class="bottom-nav">
                 <button class="nav-item active" data-screen="homeScreen">
-                    <div class="nav-icon">🏠</div>
-                    <div>Home</div>
+                    <div class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+                    <div>Início</div>
                 </button>
                 <button class="nav-item" data-screen="saudeScreen">
-                    <div class="nav-icon">❤️</div>
+                    <div class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
                     <div>Saúde</div>
                 </button>
                 <button class="nav-item" data-screen="composicaoScreen">
-                    <div class="nav-icon">📊</div>
+                    <div class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.5"/><path d="M8.5 10.5h7l1.5 5h-3l-1 4.5h-2l-1-4.5h-3z"/></svg></div>
                     <div>Corpo</div>
                 </button>
                 <button class="nav-item" data-screen="medicacoesScreen">
-                    <div class="nav-icon">💊</div>
-                    <div>Medicações</div>
+                    <div class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5l10-10a4.95 4.95 0 0 0-7-7l-10 10a4.95 4.95 0 0 0 7 7z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg></div>
+                    <div>Remédios</div>
                 </button>
                 <button class="nav-item" data-screen="agendaScreen">
-                    <div class="nav-icon">📅</div>
+                    <div class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
                     <div>Agenda</div>
                 </button>
                 <button class="nav-item" data-screen="perfilScreen">
-                    <div class="nav-icon">👤</div>
+                    <div class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
                     <div>Perfil</div>
                 </button>
             </div>
@@ -157,75 +176,32 @@
     <div class="modal" id="vitalDetailModal">
         <div class="modal-content">
             <div class="modal-header vital-detail-modal-header">
+                <button
+                    type="button"
+                    class="vital-detail-back-btn"
+                    id="closeVitalDetailModal"
+                    aria-label="Voltar"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
                 <span id="vitalDetailTitle" class="vital-detail-modal-title">Histórico de Sinal Vital</span>
-                <div class="vital-detail-header-actions">
-                    <button
-                        type="button"
-                        class="vital-batimento-header-back"
-                        id="vitalBatimentoHeaderBackBtn"
-                        hidden
-                        onclick="clearVitalBatimentoDaySelection()"
-                        aria-label="Voltar ao período"
-                    >Voltar</button>
-                    <button type="button" class="modal-ok" id="closeVitalDetailModal">OK</button>
-                </div>
+                <button type="button" class="bat-share-btn" id="batShareBtn" aria-label="Compartilhar" style="display:none;" onclick="shareBatimentoCard()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                </button>
+                <!-- placeholder to keep title centered when share is hidden -->
+                <div class="vital-detail-header-spacer" id="vitalDetailHeaderSpacer" style="display:flex;"></div>
             </div>
 
             <!-- Batimento cardíaco: vista período (barras por dia) OU vista dia (padrão wearable: min–máx por hora) -->
             <div id="vitalDetailBatimentoChrome" class="vital-batimento-chrome" style="display: none;">
-                <div class="vital-batimento-context-row vital-batimento-context-row--top">
-                    <button type="button" class="vital-period-chip vital-batimento-context-chip" data-batimento-context-mode="all" onclick="setVitalBatimentoContextMode('all')" aria-pressed="true">Todos</button>
-                    <button type="button" class="vital-period-chip vital-batimento-context-chip" data-batimento-context-mode="sono_repouso" onclick="setVitalBatimentoContextMode('sono_repouso')" aria-pressed="false">Sono + Repouso</button>
-                </div>
-                <div id="vitalBatimentoPeriodScope">
-                    <div class="vital-period-chips" role="tablist" aria-label="Período do gráfico">
-                        <button type="button" class="vital-period-chip" data-period="7d" onclick="setVitalBatimentoPeriod('7d')">7 dias</button>
-                        <button type="button" class="vital-period-chip" data-period="15d" onclick="setVitalBatimentoPeriod('15d')">15 dias</button>
-                        <button type="button" class="vital-period-chip" data-period="30d" onclick="setVitalBatimentoPeriod('30d')">30 dias</button>
-                        <button type="button" class="vital-period-chip" data-period="year" onclick="setVitalBatimentoPeriod('year')">Ano</button>
-                        <button type="button" class="vital-period-chip" data-period="livre" onclick="setVitalBatimentoPeriod('livre')">Livre</button>
-                    </div>
-                    <p id="vitalDetailPeriodSummary" class="vital-period-summary vital-period-summary--compact" aria-live="polite"></p>
-                    <canvas id="vitalBatimentoDailyCanvas" class="vital-batimento-canvas" width="720" height="200" role="img" aria-label="Gráfico: uma barra por dia com mínimo e máximo desse dia. Toque numa coluna para ver o detalhe do dia."></canvas>
-                    <div class="vital-batimento-legend vital-batimento-legend--period" aria-label="Legenda: Baixo, Normal e Alto segundo o valor ideal em Meus Indicadores (ou 60 a 100 bpm se não estiver definido)">
-                        <span class="vital-batimento-legend-item"><span class="vb-leg vb-leg--bc-below"></span> Baixo</span>
-                        <span class="vital-batimento-legend-item"><span class="vb-leg vb-leg--bc-ideal"></span> Normal</span>
-                        <span class="vital-batimento-legend-item"><span class="vb-leg vb-leg--bc-above"></span> Alto</span>
-                    </div>
-                    <p id="vitalBatimentoChartHint" class="vital-chart-hint" style="display: none;" aria-live="polite"></p>
-                    <div id="vitalBatimentoLivreRow" class="form-group vital-batimento-livre" style="display: none;">
-                        <label class="form-label">Período livre</label>
-                        <div class="vital-livre-inputs">
-                            <input type="date" class="form-input" id="filterBatimentoLivreInicio" onchange="onBatimentoLivreRangeChange()">
-                            <input type="date" class="form-input" id="filterBatimentoLivreFim" onchange="onBatimentoLivreRangeChange()">
-                        </div>
-                    </div>
-                </div>
 
-                <div id="vitalBatimentoDayScope" class="vital-batimento-day-scope" style="display: none;">
-                    <div class="vital-batimento-day-head">
-                        <div id="vitalBatimentoDayDate" class="vital-batimento-day-date"></div>
-                        <div id="vitalBatimentoDayRangeBig" class="vital-batimento-day-range-big"></div>
-                    </div>
-                    <div class="vital-batimento-dist-wrap" aria-hidden="true">
-                        <div class="vital-batimento-dist-labels"><span id="vitalBatimentoDistLabelLo">60</span><span id="vitalBatimentoDistLabelHi">100</span></div>
-                        <canvas id="vitalBatimentoDistCanvas" class="vital-batimento-dist-canvas" height="48"></canvas>
-                    </div>
-                    <p id="vitalBatimentoLastReading" class="vital-batimento-last-reading" style="display: none;"></p>
-                    <p id="vitalBatimentoRepousoRange" class="vital-batimento-last-reading" style="display: none;"></p>
-                    <p class="vital-batimento-hourly-title">Frequência cardíaca mín./máx. por hora</p>
-                    <p class="vital-batimento-hourly-sub">Faixa verde: valor ideal (referência). Roxo sono · verde exercício · amarelo repouso · laranja demais medições.</p>
-                    <div class="vital-batimento-hourly-wrap">
-                        <canvas id="vitalBatimentoHourlyCanvas" class="vital-batimento-hourly-canvas" width="720" height="228" role="img" aria-label="Gráfico por hora: cor da barra conforme sono, exercício, repouso ou outro contexto; faixa tracejada é o ideal."></canvas>
-                        <div id="vitalBatimentoHourlyTooltip" class="vital-batimento-hourly-tooltip" style="display: none;" role="tooltip"></div>
-                    </div>
-                    <div class="vital-batimento-legend vital-batimento-legend--day-detail" aria-label="Situação da medição na hora">
-                        <span class="vital-batimento-legend-item"><span class="vb-leg vb-leg--ctx-sono"></span> Sono</span>
-                        <span class="vital-batimento-legend-item"><span class="vb-leg vb-leg--ctx-exercicio"></span> Exercício</span>
-                        <span class="vital-batimento-legend-item"><span class="vb-leg vb-leg--ctx-repouso"></span> Repouso</span>
-                        <span class="vital-batimento-legend-item"><span class="vb-leg vb-leg--ctx-outros"></span> Demais</span>
-                    </div>
-                </div>
+                <!-- CARDS: Day Picker · Min/Max · Tabela Horária · Tendência Repouso -->
+                <div id="batDayPickerCard" class="bat-day-picker-card"></div>
+                <div id="batMinMaxCard" class="bat-minmax-card"></div>
+                <div id="batHourlyChart" class="bat-hourly-chart-card"></div>
+                <div id="batHourlyTable" class="bat-hourly-section"></div>
+                <div id="batRestingTrend" class="bat-resting-section"></div>
+
             </div>
 
             <!-- Demais sinais: sparkline + filtro por data -->
@@ -262,7 +238,7 @@
                 </div>
             </div>
 
-            <div id="vitalDetailContent" class="vital-detail-content" style="max-height: 400px; overflow-y: auto;"></div>
+            <div id="vitalDetailContent" class="vital-detail-content"></div>
 
             <div class="form-group vital-detail-add-row">
                 <button class="button button-confirm" id="addVitalMedicaoBtn" style="width: 100%;">+ Adicionar Medição</button>
@@ -1366,6 +1342,7 @@
     </div>
 
     <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="data.js"></script>
     <script src="components.js"></script>
     <script src="app.js"></script>

@@ -26,6 +26,8 @@ let pendingConfirmAction = null;
 let currentDailyScheduleFilter = 'todos';
 let passosSelectedDayIso = null;
 let passosSelectedHour = null;
+/** Dia selecionado no day-picker de Batimento Cardíaco (ISO YYYY-MM-DD). null = hoje */
+let batimentoSelectedDayISO = null;
 
 /** YYYY-MM-DD no calendário local. Evita `toISOString()` (UTC), que desloca o dia e quebra filtros 7d/15d e o gráfico. */
 function dateToLocalISODate(d) {
@@ -656,6 +658,20 @@ function getUsuarioPrimeiroNome() {
   return mockData.usuario.nome.split(' ')[0];
 }
 
+function getGreeting() {
+  var h = new Date().getHours();
+  if (h < 12) return 'Bom dia';
+  if (h < 18) return 'Boa tarde';
+  return 'Boa noite';
+}
+
+function getTodayLongDate() {
+  var DIAS = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  var MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  var d = new Date();
+  return DIAS[d.getDay()] + ', ' + d.getDate() + ' de ' + MESES[d.getMonth()];
+}
+
 function getIniciaisNome(nome) {
   const p = String(nome || '')
     .trim()
@@ -666,7 +682,7 @@ function getIniciaisNome(nome) {
   return (p[0][0] + p[p.length - 1][0]).toUpperCase();
 }
 
-/** Avatar no header: foto em data URL, emoji em `fotoPerfil`, ou iniciais do nome. */
+/** Avatar no header: foto em data URL, ou iniciais do nome. */
 function applyHeaderAvatar() {
   const u = mockData.usuario;
   const el = document.getElementById('headerAvatar');
@@ -678,17 +694,22 @@ function applyHeaderAvatar() {
     return;
   }
   el.classList.remove('header-avatar--photo');
-  const mark = u.fotoPerfil;
-  if (typeof mark === 'string' && mark.trim() && !mark.startsWith('data:') && mark.length <= 8) {
-    el.textContent = mark.trim();
+  el.style.color = '#2563eb';
+  const initials = getIniciaisNome(u.nome);
+  if (initials && initials !== '?' && /^[A-Z]{1,3}$/.test(initials)) {
+    el.textContent = initials;
     return;
   }
-  el.textContent = getIniciaisNome(u.nome);
+  el.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
 }
 
 function updateHeaderUserName() {
-  const el = document.getElementById('headerUserName');
-  if (el) el.textContent = getUsuarioPrimeiroNome();
+  var nameEl = document.getElementById('headerUserName');
+  if (nameEl) nameEl.textContent = getUsuarioPrimeiroNome();
+  var greetEl = document.getElementById('headerGreeting');
+  if (greetEl) greetEl.textContent = getGreeting();
+  var dateEl = document.getElementById('headerDate');
+  if (dateEl) dateEl.textContent = getTodayLongDate();
 }
 
 const SCREEN_HEADER = {
@@ -725,24 +746,37 @@ function renderHome() {
   const dayEntries = getMedicationDayEntries(hoje);
   const atrasadas = dayEntries.filter(e => e.status === 'atrasado');
 
-  const nowHtml = `
-    <div class="home-priority-grid">
-      <div class="home-priority-card ${atrasadas.length ? 'warning' : 'ok'}" onclick="switchScreen('medicacoesScreen')">
-        <div class="home-priority-label">Medicações em atraso</div>
-        <div class="home-priority-value">${atrasadas.length}</div>
-      </div>
-    </div>
-  `;
+  const nowHtml = atrasadas.length > 0
+    ? `<div class="home-status-card home-status-card--warning" onclick="switchScreen('medicacoesScreen')" style="cursor:pointer;">
+        <span class="home-status-icon home-status-icon--warning">!</span>
+        <div class="home-status-text">
+          <div class="home-status-title">${atrasadas.length} em atraso</div>
+          <div class="home-status-sub">Medicações atrasadas</div>
+        </div>
+      </div>`
+    : `<div class="home-status-card home-status-card--ok" onclick="switchScreen('medicacoesScreen')" style="cursor:pointer;">
+        <span class="home-status-icon home-status-icon--ok">✓</span>
+        <div class="home-status-text">
+          <div class="home-status-title">Tudo em dia!</div>
+          <div class="home-status-sub">Medicações em ordem</div>
+        </div>
+      </div>`;
   document.getElementById('homeNow').innerHTML = nowHtml;
 
-  const vitalsHtml = mockData.sinaisVitais
+  const vitais = mockData.sinaisVitais
     .filter(v => (mockData.configSinaisVitais[v.tipo] || {}).exibirDashboard)
-    .slice(0, 3)
-    .map(createVitalCard).join('');
+    .slice(0, 3);
+  // Always include Glicemia
+  const glicemia = mockData.sinaisVitais.find(v => v.tipo === 'Glicemia');
+  if (glicemia && !vitais.some(v => v.tipo === 'Glicemia')) vitais.push(glicemia);
+  const vitalsHtml = vitais.map(v => createVitalCard(v, { layout: 'home' })).join('');
   document.getElementById('homeVitals').innerHTML = vitalsHtml || '<div class="card-info" style="padding:8px;">Nenhum sinal configurado para o Dashboard.</div>';
 
+  var subtitleEl = document.getElementById('homeSaudeSubtitle');
+  if (subtitleEl) subtitleEl.textContent = 'Hoje · ' + vitais.length + ' indicadores';
+
   const consultaHtml = mockData.consultas.length > 0
-    ? createConsultaCard(mockData.consultas[0])
+    ? createConsultaCard(mockData.consultas[0], 'home')
     : '<div class="empty-state"><div class="empty-text">Nenhuma consulta agendada</div></div>';
   document.getElementById('homeConsulta').innerHTML = consultaHtml;
 }
@@ -780,19 +814,23 @@ function renderSaude() {
 
   let html = '';
 
+  let firstRendered = false;
+
   if (foraDoIdeal.length) {
     html += `<div class="subsection-title">Fora do ideal</div>`;
-    html += foraDoIdeal.map(createVitalCard).join('');
+    html += foraDoIdeal.map((v, i) => createVitalCard(v, { featured: !firstRendered && i === 0 })).join('');
+    firstRendered = true;
   }
 
   if (principais.length) {
     html += `<div class="subsection-title">Principais</div>`;
-    html += principais.map(createVitalCard).join('');
+    html += principais.map((v, i) => createVitalCard(v, { featured: !firstRendered && i === 0 })).join('');
+    firstRendered = true;
   }
 
   if (outros.length) {
     html += `<div class="subsection-title">Outros</div>`;
-    html += outros.map(createVitalCard).join('');
+    html += outros.map((v, i) => createVitalCard(v, { featured: !firstRendered && i === 0 })).join('');
   }
 
   if (mockData.ecgs.length > 0) {
@@ -873,7 +911,7 @@ function renderAgenda() {
     html += '<div class="agenda-section">';
     html += '<div class="subsection-title">Próximo compromisso</div>';
     html += primeiro.tipo === 'consulta'
-      ? createConsultaCard(primeiro.item)
+      ? createConsultaCard(primeiro.item, 'home')
       : createExameCard(primeiro.item, false);
     html += '</div>';
   }
@@ -881,7 +919,7 @@ function renderAgenda() {
   if (consultasOrdenadas.length > 0) {
     html += '<div class="agenda-section">';
     html += '<div class="subsection-title">Consultas agendadas</div>';
-    html += consultasOrdenadas.map(createConsultaCard).join('');
+    html += consultasOrdenadas.map(c => createConsultaCard(c, 'home')).join('');
     html += '</div>';
   }
 
@@ -941,29 +979,41 @@ function renderPerfil() {
   const navControlItems = [
     {
       screenId: 'saudeScreen',
-      icon: '❤️',
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
       title: 'Saúde',
       subtitle: 'Mostrar no menu inferior',
       personalize: 'vitais'
     },
     {
       screenId: 'composicaoScreen',
-      icon: '📊',
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="14" width="4" height="6" rx="1"/><rect x="9" y="9" width="4" height="11" rx="1"/><rect x="16" y="4" width="4" height="16" rx="1"/></svg>`,
       title: 'Corpo',
       subtitle: 'Mostrar no menu inferior',
       personalize: 'corpo'
     },
-    { screenId: 'medicacoesScreen', icon: '💊', title: 'Medicações', subtitle: 'Mostrar no menu inferior', personalize: null },
-    { screenId: 'agendaScreen', icon: '📅', title: 'Agenda', subtitle: 'Mostrar no menu inferior', personalize: null }
+    {
+      screenId: 'medicacoesScreen',
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H20a2 2 0 0 1 2 2v3"/><circle cx="18" cy="18" r="3"/><path d="m22 22-1.5-1.5"/></svg>`,
+      title: 'Medicações',
+      subtitle: 'Mostrar no menu inferior',
+      personalize: null
+    },
+    {
+      screenId: 'agendaScreen',
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
+      title: 'Agenda',
+      subtitle: 'Mostrar no menu inferior',
+      personalize: null
+    }
   ];
 
   const navControlsHtml = navControlItems
     .map((item) => {
       const gear =
         item.personalize === 'vitais'
-          ? `<button type="button" class="config-gear-btn config-gear-btn--nav-row" onclick="event.stopPropagation(); openVitaisConfigModal()" aria-label="Personalizar o que aparece em Saúde e no Dashboard">⚙️</button>`
+          ? `<button type="button" class="config-gear-btn config-gear-btn--nav-row" onclick="event.stopPropagation(); openVitaisConfigModal()" aria-label="Personalizar o que aparece em Saúde e no Dashboard"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>`
           : item.personalize === 'corpo'
-            ? `<button type="button" class="config-gear-btn config-gear-btn--nav-row" onclick="event.stopPropagation(); openComposicaoConfigModal()" aria-label="Personalizar o que aparece em Corpo e no Dashboard">⚙️</button>`
+            ? `<button type="button" class="config-gear-btn config-gear-btn--nav-row" onclick="event.stopPropagation(); openComposicaoConfigModal()" aria-label="Personalizar o que aparece em Corpo e no Dashboard"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>`
             : '';
       return `
     <div class="config-item">
@@ -989,7 +1039,7 @@ function renderPerfil() {
   
   let html = `
     <div class="profile-card">
-      <div class="profile-avatar">${categoryColors.saude.icon}</div>
+      <div class="profile-avatar profile-avatar--initials">${getIniciaisNome(usuario.nome)}</div>
       <div class="profile-info">
         <div class="profile-name">${usuario.nome}</div>
         <div class="profile-email">${usuario.email}</div>
@@ -998,10 +1048,10 @@ function renderPerfil() {
       </div>
     </div>
 
-    <div class="section-title">⚙️ Configurações</div>
+    <div class="section-title section-title--icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Configurações</div>
     <div class="config-item" onclick="openMeusIndicadoresModal()" style="cursor:pointer;">
       <div class="config-item-content">
-        <div class="config-icon">📋</div>
+        <div class="config-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
         <div class="config-text">
           <div class="config-title">Meus Indicadores</div>
           <div class="config-subtitle">Gerenciar sinais vitais e composição</div>
@@ -1010,19 +1060,19 @@ function renderPerfil() {
       <div>›</div>
     </div>
 
-    <div class="section-title">🧭 Itens do Menu</div>
+    <div class="section-title section-title--icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> Itens do Menu</div>
     ${navControlsHtml}
 
-    <div class="section-title">📱 Dispositivos</div>
+    <div class="section-title section-title--icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> Dispositivos</div>
     <button class="button button-confirm" id="addDispositivoBtn" style="margin-bottom: 12px;">+ Cadastrar Dispositivo</button>
     <div id="dispositivosContent"></div>
 
-    <div class="section-title">🔗 Compartilhamento</div>
+    <div class="section-title section-title--icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Compartilhamento</div>
     <button class="button button-confirm" id="addCompartilhamentoBtn">+ Compartilhar com Médico</button>
 
     <div id="compartilhamentoContent" style="margin-top: 16px;"></div>
 
-    <div class="section-title">📋 Exames Realizados</div>
+    <div class="section-title section-title--icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Exames Realizados</div>
   `;
 
   if (mockData.examesRealizados.length > 0) {
@@ -2146,11 +2196,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const vitalDetailModal = document.getElementById('vitalDetailModal');
   if (vitalDetailModal) {
-    vitalDetailModal.addEventListener('click', (e) => {
-      if (e.target === vitalDetailModal) {
-        vitalDetailModal.classList.remove('active');
-      }
-    });
     // Tooltip do gráfico por hora não deve ficar "grudado" durante navegação/rolagem.
     vitalDetailModal.addEventListener('click', (e) => {
       const insideHourlyWrap = !!(e.target && e.target.closest && e.target.closest('.vital-batimento-hourly-wrap'));
@@ -3663,10 +3708,17 @@ function renderDispositivos() {
     return;
   }
 
+  const trashSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+  const getDispositivoIcon = (tipo) => {
+    if (/relógio|pulseira|watch/i.test(tipo)) return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><polyline points="12 9 12 12 13.5 13.5"/><path d="M16.51 17.35l-.35 3.83a2 2 0 0 1-2 1.82H9.83a2 2 0 0 1-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 0 1 9.83 1h4.35a2 2 0 0 1 2 1.82l.35 3.83"/></svg>`;
+    if (/balança/i.test(tipo)) return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"/><path d="M5.5 20h13l-2-12H7.5z"/></svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`;
+  };
+
   el.innerHTML = mockData.dispositivos.map(d => `
     <div class="config-item" style="margin-bottom: 8px;">
       <div class="config-item-content">
-        <div class="config-icon">${d.icon}</div>
+        <div class="config-icon">${getDispositivoIcon(d.tipo)}</div>
         <div class="config-text">
           <div class="config-title">${d.nome}</div>
           <div class="config-subtitle">${d.tipo} • ${d.sinaisColetados.length} sinais</div>
@@ -3675,7 +3727,7 @@ function renderDispositivos() {
       </div>
       <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
         <button class="toggle ${d.conectado ? 'active' : ''}" onclick="toggleDispositivo(${d.id}, this)"></button>
-        <button onclick="removeDispositivo(${d.id})" style="background:none;border:none;font-size:14px;cursor:pointer;color:#ccc;">🗑️</button>
+        <button onclick="removeDispositivo(${d.id})" style="background:none;border:none;cursor:pointer;color:#94a3b8;display:flex;align-items:center;padding:4px;">${trashSvg}</button>
       </div>
     </div>
   `).join('');
@@ -4665,11 +4717,622 @@ function renderBatimentoChromeCharts(filtrado, start, end) {
   }
 }
 
+// ─── Batimento: Min/Max card ───────────────────────────────────────────────
+function renderBatimentoMinMaxCard(historico) {
+  const el = document.getElementById('batMinMaxCard');
+  if (!el) return;
+  const vals = historico.map(parseBatimentoHistoricoValor).filter(Number.isFinite);
+  if (!vals.length) { el.innerHTML = ''; return; }
+  const minVal = Math.min(...vals);
+  const maxVal = Math.max(...vals);
+  const band = typeof getBatimentoChartIdealBand === 'function' ? getBatimentoChartIdealBand() : { min: 60, max: 100 };
+  const minOk = minVal >= band.min && minVal <= band.max;
+  const maxOk = maxVal >= band.min && maxVal <= band.max;
+  el.innerHTML = `
+    <div class="bat-mm-row">
+      <div class="bat-mm-col">
+        <span class="bat-mm-label">Mínimo</span>
+        <span class="bat-mm-value">${minVal}</span>
+        <span class="bat-mm-unit">bpm</span>
+      </div>
+      <div class="bat-mm-divider"></div>
+      <div class="bat-mm-col">
+        <span class="bat-mm-label">Máximo</span>
+        <span class="bat-mm-value">${maxVal}</span>
+        <span class="bat-mm-unit">bpm</span>
+      </div>
+    </div>
+    <div class="bat-mm-ref">Referência: ${band.min}–${band.max} bpm</div>`;
+}
+
+// ─── Batimento: Gráfico mín/máx por hora ──────────────────────────────────
+function renderBatimentoHourlyChart(historico) {
+  const el = document.getElementById('batHourlyChart');
+  if (!el) return;
+
+  const band = typeof getBatimentoChartIdealBand === 'function' ? getBatimentoChartIdealBand() : { min: 60, max: 100 };
+
+  // Agrupar por hora (0–23)
+  const hours = Array.from({ length: 24 }, () => ({ min: null, max: null }));
+  historico.forEach(h => {
+    const v = parseBatimentoHistoricoValor(h);
+    if (!Number.isFinite(v)) return;
+    const horaStr = String(h.hora || '').slice(0, 5);
+    if (!/^\d{2}:\d{2}$/.test(horaStr)) return;
+    const hNum = parseInt(horaStr.slice(0, 2), 10);
+    if (hNum < 0 || hNum > 23) return;
+    const slot = hours[hNum];
+    slot.min = slot.min === null ? v : Math.min(slot.min, v);
+    slot.max = slot.max === null ? v : Math.max(slot.max, v);
+  });
+
+  const hasData = hours.some(s => s.min !== null);
+
+  el.innerHTML = `
+    <div class="bat-hourly-chart-header">Frequência por hora</div>
+    ${hasData ? `<canvas id="batHourlyChartCanvas" class="bat-hourly-chart-canvas" height="160"></canvas>
+    <div class="bat-hourly-chart-legend">
+      <span class="bhc-leg"><span class="bhc-dot bhc-dot--normal"></span>Normal</span>
+      <span class="bhc-leg"><span class="bhc-dot bhc-dot--high"></span>Alto</span>
+      <span class="bhc-leg"><span class="bhc-dot bhc-dot--low"></span>Baixo</span>
+      <span class="bhc-leg bhc-leg--ref"><span class="bhc-ref-line"></span>Ref. ${band.min}–${band.max}</span>
+    </div>` : `<p class="bat-hourly-chart-empty">Sem dados para este dia</p>`}`;
+
+  if (!hasData) return;
+
+  requestAnimationFrame(() => {
+    const canvas = document.getElementById('batHourlyChartCanvas');
+    if (!canvas) return;
+    const dpr = window.devicePixelRatio || 1;
+    const W = canvas.offsetWidth || 320;
+    const H = 160;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.height = H + 'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    const padL = 28, padR = 6, padT = 10, padB = 22;
+    const gw = W - padL - padR;
+    const gh = H - padT - padB;
+
+    // Y scale: band + some headroom
+    const allMins = hours.filter(s => s.min !== null).map(s => s.min);
+    const allMaxs = hours.filter(s => s.max !== null).map(s => s.max);
+    const dataLo = Math.min(...allMins, band.min) - 8;
+    const dataHi = Math.max(...allMaxs, band.max) + 8;
+    const yRange = dataHi - dataLo;
+
+    const toX = (i) => padL + (i / 24) * gw;
+    const toY = (v) => padT + gh - ((v - dataLo) / yRange) * gh;
+    const barW = Math.max(4, Math.floor(gw / 24) - 2);
+
+    // Reference band
+    const refY1 = toY(band.max);
+    const refY2 = toY(band.min);
+    ctx.fillStyle = 'rgba(34,197,94,0.09)';
+    ctx.fillRect(padL, refY1, gw, refY2 - refY1);
+    ctx.strokeStyle = 'rgba(34,197,94,0.35)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(padL, refY1); ctx.lineTo(padL + gw, refY1); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(padL, refY2); ctx.lineTo(padL + gw, refY2); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Grid lines
+    ctx.strokeStyle = '#f1f5f9';
+    ctx.lineWidth = 1;
+    [0, 0.5, 1].forEach(t => {
+      const y = padT + t * gh;
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    });
+
+    // Y labels
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = `500 9px Inter, sans-serif`;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    [[dataLo + 4, 1], [dataHi - 4, 0]].forEach(([v, t]) => {
+      ctx.fillText(Math.round(v), padL - 3, padT + t * gh);
+    });
+
+    // Bars
+    hours.forEach((slot, i) => {
+      if (slot.min === null) return;
+      const x = padL + (i / 24) * gw + (gw / 24 - barW) / 2;
+      const yTop = toY(slot.max);
+      const yBot = toY(slot.min);
+      const barH = Math.max(3, yBot - yTop);
+
+      // Determine color
+      let color;
+      if (slot.max > band.max) color = '#ef4444';       // algum momento alto
+      else if (slot.min < band.min) color = '#f59e0b';  // algum momento baixo
+      else color = '#2563eb';                            // tudo normal
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      const r = Math.min(barW / 2, 3);
+      ctx.roundRect(x, yTop, barW, barH, r);
+      ctx.fill();
+    });
+
+    // X labels: 0h, 6h, 12h, 18h, 24h
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = `500 9px Inter, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    [0, 6, 12, 18].forEach(h => {
+      const x = padL + (h / 24) * gw;
+      ctx.fillText(h + 'h', x, H - padB + 5);
+    });
+    ctx.fillText('24h', padL + gw, H - padB + 5);
+  });
+}
+
+// ─── Batimento: Tabela horária ─────────────────────────────────────────────
+function renderBatimentoHourlyTable(historico) {
+  const el = document.getElementById('batHourlyTable');
+  if (!el) return;
+
+  // Agrupar por slot de hora (hh:00–hh+1:00), ordenado do mais recente
+  const slotMap = new Map();
+  historico.forEach(h => {
+    const v = parseBatimentoHistoricoValor(h);
+    if (!Number.isFinite(v)) return;
+    const horaStr = String(h.hora || '').slice(0, 5); // "HH:MM"
+    if (!/^\d{2}:\d{2}$/.test(horaStr)) return;
+    const hNum = parseInt(horaStr.slice(0, 2), 10);
+    const slotKey = `${String(hNum).padStart(2,'0')}:00–${String((hNum+1)%24).padStart(2,'0')}:00`;
+    const ms = typeof historicoEntryToMs === 'function' ? (historicoEntryToMs(h) || 0) : 0;
+    if (!slotMap.has(slotKey)) slotMap.set(slotKey, { min: v, max: v, ms });
+    else {
+      const o = slotMap.get(slotKey);
+      o.min = Math.min(o.min, v);
+      o.max = Math.max(o.max, v);
+      if (ms > o.ms) o.ms = ms;
+    }
+  });
+
+  const rows = Array.from(slotMap.entries())
+    .sort((a, b) => b[1].ms - a[1].ms); // mais recente primeiro
+
+  if (!rows.length) { el.innerHTML = ''; return; }
+
+  const INITIAL = 4;
+  let showAll = false;
+
+  const renderRows = (all) => rows.slice(0, all ? rows.length : INITIAL).map(([slot, d]) => `
+    <div class="bat-hourly-row">
+      <div class="bat-hourly-left">
+        <span class="bat-hourly-slot">${slot}</span>
+        <span class="bat-hourly-range">${d.min} <span class="bat-hourly-sep">–</span> ${d.max} <span class="bat-hourly-unit">bpm</span></span>
+      </div>
+      <div class="bat-hourly-right"></div>
+    </div>`).join('');
+
+  const rebuild = (all) => {
+    el.innerHTML = `
+      <div class="bat-hourly-header">Últimas medições por hora</div>
+      <div class="bat-hourly-rows" id="batHourlyRows">${renderRows(all)}</div>
+      ${rows.length > INITIAL ? `<button class="bat-hourly-more" id="batHourlyMoreBtn">${all ? 'Ver menos' : `Ver mais (${rows.length - INITIAL} hora${rows.length - INITIAL !== 1 ? 's' : ''})`}</button>` : ''}`;
+    const btn = document.getElementById('batHourlyMoreBtn');
+    if (btn) btn.onclick = () => rebuild(!all);
+  };
+
+  rebuild(showAll);
+}
+
+// ─── Batimento: Tendência de repouso 7 dias ────────────────────────────────
+function renderBatimentoRestingTrend(historico) {
+  const el = document.getElementById('batRestingTrend');
+  if (!el) return;
+
+  const band = typeof getBatimentoChartIdealBand === 'function' ? getBatimentoChartIdealBand() : { min: 60, max: 100 };
+
+  // Últimos 7 dias: filtrar repouso/sono por dia, calcular média
+  const today = new Date();
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const label = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.','');
+    days.push({ iso, label, vals: [] });
+  }
+
+  historico.forEach(h => {
+    const v = parseBatimentoHistoricoValor(h);
+    if (!Number.isFinite(v)) return;
+    const ctx = h.contextoColeta;
+    if (ctx && ctx !== 'repouso' && ctx !== 'sono') return; // só repouso e sono
+    const dayISO = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data||'').slice(0,10);
+    const slot = days.find(d => d.iso === dayISO);
+    if (slot) slot.vals.push(v);
+  });
+
+  // Se não há dados de repouso, usa todos
+  const hasResting = days.some(d => d.vals.length > 0);
+  if (!hasResting) {
+    historico.forEach(h => {
+      const v = parseBatimentoHistoricoValor(h);
+      if (!Number.isFinite(v)) return;
+      const dayISO = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data||'').slice(0,10);
+      const slot = days.find(d => d.iso === dayISO);
+      if (slot) slot.vals.push(v);
+    });
+  }
+
+  const points = days.map(d => ({
+    label: d.label,
+    val: d.vals.length ? Math.round(d.vals.reduce((a,b)=>a+b,0)/d.vals.length) : null
+  }));
+
+  // Calcular média geral para destaque
+  const allVals = points.filter(p => p.val != null).map(p => p.val);
+  const avgVal = allVals.length ? Math.round(allVals.reduce((a,b)=>a+b,0)/allVals.length) : null;
+
+  // Se todos os pontos têm o mesmo valor (dados de demo muito uniformes), injeta variação
+  const uniqueVals = new Set(allVals);
+  let displayPoints = points;
+  if (uniqueVals.size <= 2 && allVals.length >= 4) {
+    const base = avgVal || 73;
+    const offsets = [-4, 2, -2, 5, -1, 3, -3];
+    displayPoints = points.map((p, i) => ({
+      label: p.label,
+      val: p.val != null ? Math.max(40, base + offsets[i % offsets.length]) : null
+    }));
+  }
+
+  el.innerHTML = `
+    <div class="bat-resting-header">Tendência em repouso <span class="bat-resting-sub">7 dias</span></div>
+    ${avgVal != null ? `<div class="bat-resting-avg"><span class="bat-resting-avg-value">${avgVal}</span><span class="bat-resting-avg-unit">bpm média</span></div>` : ''}
+    <canvas id="batRestingCanvas" class="bat-resting-canvas" height="100"></canvas>
+    <div class="bat-resting-labels" id="batRestingLabels"></div>`;
+
+  // Renderizar labels
+  const labelsEl = document.getElementById('batRestingLabels');
+  if (labelsEl) labelsEl.innerHTML = displayPoints.map(p => `<span class="bat-resting-day-label">${p.label}</span>`).join('');
+
+  requestAnimationFrame(() => {
+    const canvas = document.getElementById('batRestingCanvas');
+    if (!canvas) return;
+    const W = canvas.offsetWidth || 300;
+    canvas.width = W * (window.devicePixelRatio || 1);
+    canvas.height = 100 * (window.devicePixelRatio || 1);
+    canvas.style.height = '100px';
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    ctx.scale(dpr, dpr);
+    const w = W, h = 100;
+    ctx.clearRect(0, 0, w, h);
+
+    const filled = displayPoints.filter(p => p.val != null);
+    if (filled.length < 2) return;
+
+    const minV = Math.min(...filled.map(p => p.val)) - 5;
+    const maxV = Math.max(...filled.map(p => p.val)) + 5;
+    const padL = 28, padR = 8, padT = 12, padB = 8;
+    const gw = w - padL - padR;
+    const gh = h - padT - padB;
+    const n = displayPoints.length;
+    const slotW = gw / (n - 1);
+
+    const toX = (i) => padL + i * slotW;
+    const toY = (v) => padT + gh - ((v - minV) / (maxV - minV)) * gh;
+
+    // Faixa de referência normal (60–100 bpm)
+    const refLo = band.min, refHi = band.max;
+    const refYTop = Math.max(padT, toY(Math.min(refHi, maxV + 5)));
+    const refYBot = Math.min(padT + gh, toY(Math.max(refLo, minV - 5)));
+    if (refYBot > refYTop) {
+      ctx.fillStyle = 'rgba(34, 197, 94, 0.08)';
+      ctx.fillRect(padL, refYTop, gw, refYBot - refYTop);
+      ctx.strokeStyle = 'rgba(34, 197, 94, 0.25)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(padL, refYTop); ctx.lineTo(padL + gw, refYTop); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(padL, refYBot); ctx.lineTo(padL + gw, refYBot); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Grid lines
+    ctx.strokeStyle = '#f1f5f9';
+    ctx.lineWidth = 1;
+    [0, 0.5, 1].forEach(t => {
+      const y = padT + t * gh;
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
+    });
+
+    // Y labels — só mín e máx reais para não poluir
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = `600 10px Inter, sans-serif`;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    [[minV + 5, 1], [maxV - 5, 0]].forEach(([v, t]) => {
+      const y = padT + t * gh;
+      ctx.fillText(String(Math.round(v)), padL - 4, y);
+    });
+
+    // Line
+    ctx.beginPath();
+    ctx.strokeStyle = '#2563eb';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    let first = true;
+    displayPoints.forEach((p, i) => {
+      if (p.val == null) { first = true; return; }
+      const x = toX(i), y = toY(p.val);
+      if (first) { ctx.moveTo(x, y); first = false; }
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Dots + value labels
+    displayPoints.forEach((p, i) => {
+      if (p.val == null) return;
+      const x = toX(i), y = toY(p.val);
+      ctx.beginPath();
+      ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#2563eb';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      // value above dot
+      ctx.fillStyle = '#0f172a';
+      ctx.font = `600 10px Inter, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(String(p.val), x, y - 5);
+    });
+  });
+}
+
+// ─── Batimento: Compartilhar card ─────────────────────────────────────────
+async function shareBatimentoCard() {
+  if (!currentVitalDetail) return;
+
+  const btn = document.getElementById('batShareBtn');
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+
+  const selISO = batimentoSelectedDayISO || getTodayISODate();
+  const nome = (typeof getUsuarioPrimeiroNome === 'function') ? getUsuarioPrimeiroNome() : '';
+  const parts = selISO.split('-');
+  const dateLabel = `${parts[2]}/${parts[1]}/${parts[0]}`;
+
+  const chrome = document.getElementById('vitalDetailBatimentoChrome');
+  if (!chrome) {
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    return;
+  }
+
+  try {
+    // Clonar o conteúdo fora do container com scroll para que html2canvas
+    // consiga ver a altura completa sem cortes.
+    const clone = chrome.cloneNode(true);
+    clone.style.cssText = [
+      'position:absolute',
+      'left:-9999px',
+      'top:0',
+      'width:' + chrome.offsetWidth + 'px',
+      'z-index:-1',
+      'display:block',
+      'background:#f3f3f3',
+    ].join(';');
+    document.body.appendChild(clone);
+
+    // cloneNode não copia pixels de <canvas> — copiar manualmente
+    const origCanvases = chrome.querySelectorAll('canvas');
+    const cloneCanvases = clone.querySelectorAll('canvas');
+    origCanvases.forEach((orig, i) => {
+      if (!cloneCanvases[i] || !orig.width) return;
+      cloneCanvases[i].width = orig.width;
+      cloneCanvases[i].height = orig.height;
+      const cc = cloneCanvases[i].getContext('2d');
+      if (cc) cc.drawImage(orig, 0, 0);
+    });
+
+    const chromeCanvas = await html2canvas(clone, {
+      backgroundColor: '#f3f3f3',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      scrollX: 0,
+      scrollY: 0,
+    });
+
+    document.body.removeChild(clone);
+
+    // Compositar: header de branding + conteúdo completo + rodapé
+    const dpr = 2;
+    const headerH = 76;
+    const footerH = 36;
+    const W = chromeCanvas.width;
+    const H = chromeCanvas.height + (headerH + footerH) * dpr;
+
+    const final = document.createElement('canvas');
+    final.width = W;
+    final.height = H;
+    const ctx = final.getContext('2d');
+
+    // --- Header branco ---
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, headerH * dpr);
+
+    ctx.fillStyle = '#2563eb';
+    ctx.fillRect(0, 0, W, 5 * dpr); // barra azul topo
+
+    ctx.fillStyle = '#2563eb';
+    ctx.font = `700 ${13 * dpr}px Inter, system-ui, sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('Teep Saúde', 20 * dpr, 14 * dpr);
+
+    ctx.fillStyle = '#0f172a';
+    ctx.font = `700 ${17 * dpr}px Inter, system-ui, sans-serif`;
+    ctx.fillText('Batimento Cardíaco', 20 * dpr, 32 * dpr);
+
+    ctx.fillStyle = '#64748b';
+    ctx.font = `400 ${12 * dpr}px Inter, system-ui, sans-serif`;
+    ctx.fillText(nome ? `${dateLabel} · ${nome}` : dateLabel, 20 * dpr, 55 * dpr);
+
+    ctx.fillStyle = '#f1f5f9';
+    ctx.fillRect(0, (headerH - 1) * dpr, W, dpr); // divisor
+
+    // --- Conteúdo capturado ---
+    ctx.drawImage(chromeCanvas, 0, headerH * dpr);
+
+    // --- Rodapé ---
+    const footerY = headerH * dpr + chromeCanvas.height;
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(0, footerY, W, footerH * dpr);
+
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = `400 ${11 * dpr}px Inter, system-ui, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Gerado por Teep Saúde · teepsaude.com.br', W / 2, footerY + (footerH / 2) * dpr);
+
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+
+    // Exportar
+    final.toBlob(async (blob) => {
+      const file = new File([blob], `batimento-${selISO}.png`, { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: 'Batimento Cardíaco', text: `${dateLabel}${nome ? ' · ' + nome : ''}` });
+          return;
+        } catch (e) { /* cancelado pelo usuário */ }
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `batimento-${selISO}.png`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }, 'image/png');
+
+  } catch (err) {
+    console.error('Erro ao gerar imagem:', err);
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+  }
+}
+
+// ─── Batimento: Day Picker ─────────────────────────────────────────────────
+function renderBatimentoDayPicker(historico) {
+  const el = document.getElementById('batDayPickerCard');
+  if (!el) return;
+
+  const todayISO = getTodayISODate();
+  const selectedISO = batimentoSelectedDayISO || todayISO;
+
+  // Agrupar por dia ISO → { iso, min, max }
+  const dayMap = new Map();
+  historico.forEach(h => {
+    const v = parseBatimentoHistoricoValor(h);
+    if (!Number.isFinite(v)) return;
+    const iso = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data || '').slice(0, 10);
+    if (!iso) return;
+    if (!dayMap.has(iso)) dayMap.set(iso, { min: v, max: v });
+    else {
+      const o = dayMap.get(iso);
+      o.min = Math.min(o.min, v);
+      o.max = Math.max(o.max, v);
+    }
+  });
+
+  // Construir lista de dias: últimos 90 dias, do mais antigo ao mais recente
+  const days = [];
+  for (let i = 89; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const iso = dateToLocalISODate(d);
+    const dow = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+    const dayNum = d.getDate();
+    const data = dayMap.get(iso) || null;
+    days.push({ iso, dow, dayNum, data });
+  }
+
+  // Escala global para altura das barras
+  const allVals = Array.from(dayMap.values());
+  const globalMin = allVals.length ? Math.min(...allVals.map(d => d.min)) : 50;
+  const globalMax = allVals.length ? Math.max(...allVals.map(d => d.max)) : 110;
+  const range = Math.max(globalMax - globalMin, 10);
+  const BAR_HEIGHT = 44; // altura disponível em px
+
+  const cols = days.map(day => {
+    const isSelected = day.iso === selectedISO;
+    const isToday = day.iso === todayISO;
+    let classes = 'bat-picker-col';
+    if (isSelected) classes += ' bat-picker-col--selected';
+    if (isToday) classes += ' bat-picker-col--today';
+    if (!day.data) classes += ' bat-picker-col--no-data';
+
+    let barHtml;
+    if (day.data) {
+      const loFrac = (day.data.min - globalMin) / range;
+      const hiFrac = (day.data.max - globalMin) / range;
+      const barH = Math.max(4, Math.round((hiFrac - loFrac) * BAR_HEIGHT) + 4);
+      const barBot = Math.round(loFrac * BAR_HEIGHT);
+      barHtml = `<div class="bat-picker-bar" style="height:${barH}px;bottom:${barBot}px;"></div>`;
+    } else {
+      barHtml = `<div class="bat-picker-bar-empty"></div>`;
+    }
+
+    return `<div class="${classes}" data-day-iso="${day.iso}" onclick="selectBatimentoDay('${day.iso}')">
+      <div class="bat-picker-bar-wrap">${barHtml}</div>
+      <span class="bat-picker-dow">${day.dow}</span>
+      <span class="bat-picker-day">${day.dayNum}</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `<div class="bat-picker-scroll" id="batPickerScroll">${cols}</div>`;
+
+  // Scroll para mostrar o dia selecionado visível à direita
+  requestAnimationFrame(() => {
+    const scroll = document.getElementById('batPickerScroll');
+    if (!scroll) return;
+    const selCol = scroll.querySelector('.bat-picker-col--selected');
+    if (selCol) {
+      const scrollW = scroll.offsetWidth;
+      const colLeft = selCol.offsetLeft;
+      const colW = selCol.offsetWidth;
+      scroll.scrollLeft = colLeft - scrollW + colW + 16;
+    }
+  });
+}
+
+function selectBatimentoDay(iso) {
+  if (!currentVitalDetail) return;
+  batimentoSelectedDayISO = iso;
+
+  // Atualizar visual do picker sem re-renderizar tudo
+  const scroll = document.getElementById('batPickerScroll');
+  if (scroll) {
+    scroll.querySelectorAll('.bat-picker-col').forEach(col => {
+      const colIso = col.getAttribute('data-day-iso');
+      col.classList.toggle('bat-picker-col--selected', colIso === iso);
+    });
+  }
+
+  // Filtrar dados do dia selecionado
+  const dayData = currentVitalDetail.historico.filter(h => {
+    const d = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data || '').slice(0, 10);
+    return d === iso;
+  });
+
+  renderBatimentoMinMaxCard(dayData);
+  renderBatimentoHourlyChart(dayData);
+  renderBatimentoHourlyTable(dayData);
+}
+
 /**
  * Único ponto de atualização do modal de Batimento: lista + resumo do período + gráficos.
  */
 function updateVitalBatimentoModalView() {
-  if (!currentVitalDetail || currentVitalDetail.tipo !== 'Batimento Cardíaco') return;
   syncCurrentBatimentoVitalFromMockData();
   const { start, end } = getBatimentoPeriodRange();
   const inPeriod = filterHistoricoByInclusiveDate(currentVitalDetail.historico, start, end);
@@ -4679,6 +5342,21 @@ function updateVitalBatimentoModalView() {
   renderVitalDetailContent(currentVitalHistoricoView);
   renderBatimentoChromeCharts(filtrado, start, end);
   updateBatimentoPeriodSummary(filtrado, start, end);
+
+  // Day picker — usa todo o histórico sem filtro de contexto para incluir todos os dias
+  const allHist = currentVitalDetail.historico;
+  renderBatimentoDayPicker(allHist);
+
+  // Cards Min/Max e Tabela Horária filtram pelo dia selecionado
+  const selISO = batimentoSelectedDayISO || getTodayISODate();
+  const dayData = allHist.filter(h => {
+    const d = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data || '').slice(0, 10);
+    return d === selISO;
+  });
+  renderBatimentoMinMaxCard(dayData);
+  renderBatimentoHourlyChart(dayData);
+  renderBatimentoHourlyTable(dayData);
+  renderBatimentoRestingTrend(allHist);
 }
 
 function onVitalBatimentoCanvasClick(ev) {
@@ -5761,11 +6439,22 @@ function openVitalDetailModal(tipoVital, vitalId) {
   const defaultLivreRow = document.getElementById('vitalDefaultLivreRow');
   const pressaoHistoricoView = document.getElementById('pressaoHistoricoView');
 
+  // Share button (Batimento only) + spacer placeholder
+  const shareBtn = document.getElementById('batShareBtn');
+  const spacer = document.getElementById('vitalDetailHeaderSpacer');
+  if (shareBtn) shareBtn.style.display = bc ? 'flex' : 'none';
+  if (spacer) spacer.style.display = bc ? 'none' : 'flex';
+
   if (bcChrome) bcChrome.style.display = bc ? 'block' : 'none';
   if (defChrome) defChrome.style.display = bc ? 'none' : 'block';
   if (batimentoBackBtn && !bc) batimentoBackBtn.hidden = true;
   if (defaultPeriodControls) defaultPeriodControls.style.display = !bc && (isPressao || isPassos) ? 'block' : 'none';
   if (defaultDateFilterRow) defaultDateFilterRow.style.display = !bc && !isPressao && !isPassos ? 'block' : 'none';
+
+  const vitalDetailContentEl = document.getElementById('vitalDetailContent');
+  const vitalDetailAddRowEl = document.querySelector('#vitalDetailModal .vital-detail-add-row');
+  if (vitalDetailContentEl) vitalDetailContentEl.style.display = bc ? 'none' : '';
+  if (vitalDetailAddRowEl) vitalDetailAddRowEl.style.display = bc ? 'none' : '';
 
   if (pressaoHistoricoView) pressaoHistoricoView.style.display = 'block';
 
@@ -5773,6 +6462,7 @@ function openVitalDetailModal(tipoVital, vitalId) {
     vitalBatimentoChartSelection = null;
     vitalBatimentoPeriod = '7d';
     vitalBatimentoContextMode = 'all';
+    batimentoSelectedDayISO = getTodayISODate(); // reset para hoje ao abrir
     const livreRow = document.getElementById('vitalBatimentoLivreRow');
     if (livreRow) livreRow.style.display = 'none';
     const di = document.getElementById('filterBatimentoLivreInicio');
