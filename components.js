@@ -368,10 +368,19 @@ function createVitalCard(vital, options) {
     const current = parseFloat(rawVal);
     const numHtml = Number.isNaN(current) ? '—' : String(Math.round(current));
     const unit = vital.unidade || 'mg/dL';
-    const idealTxt = String(vital.ideal || '');
-    const idealMatch = idealTxt.match(/(\d+(?:[.,]\d+)?)\s*-\s*(\d+(?:[.,]\d+)?)/);
-    const idealMin = idealMatch ? Number(String(idealMatch[1]).replace(',', '.')) : null;
-    const idealMax = idealMatch ? Number(String(idealMatch[2]).replace(',', '.')) : null;
+    const idealVal = vital.ideal;
+    let idealMin = null, idealMax = null;
+    if (idealVal && typeof idealVal === 'object' && idealVal.type === 'range') {
+      idealMin = idealVal.min != null ? Number(idealVal.min) : null;
+      idealMax = idealVal.max != null ? Number(idealVal.max) : null;
+    } else {
+      const idealTxt = String(idealVal || '');
+      const idealMatch = idealTxt.match(/(\d+(?:[.,]\d+)?)\s*-\s*(\d+(?:[.,]\d+)?)/);
+      if (idealMatch) {
+        idealMin = Number(String(idealMatch[1]).replace(',', '.'));
+        idealMax = Number(String(idealMatch[2]).replace(',', '.'));
+      }
+    }
 
     const glicSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="10" y1="11" x2="14" y2="11"/></svg>`;
 
@@ -396,12 +405,15 @@ function createVitalCard(vital, options) {
         markerColor = '#ef4444'; badgeClass = 'badge--red';        // hipoglicemia ou diabetes
       }
 
-      const barMin = histMin != null ? histMin : idealMin;
-      const barMax = histMax != null ? histMax : idealMax;
+      // Escala clínica fixa: 40 (hipoglicemia severa) a 160 (acima do limiar de diabetes)
+      const displayMin = 40;
+      const displayMax = 160;
+      const badgeMin = idealMin != null ? idealMin : (histMin != null ? histMin : null);
+      const badgeMax = idealMax != null ? idealMax : (histMax != null ? histMax : null);
 
-      if (barMin != null && barMax != null && barMax > barMin) {
-        const barPct = Math.max(2, Math.min(98, ((current - barMin) / (barMax - barMin)) * 100));
-        const badgeText = `${barMin} – ${barMax} ${unit}`;
+      if (badgeMin != null && badgeMax != null) {
+        const barPct = Math.max(2, Math.min(98, ((current - displayMin) / (displayMax - displayMin)) * 100));
+        const badgeText = `${badgeMin} – ${badgeMax} ${unit}`;
         glicRightHtml = `
           <div class="vital-batimento-home-right">
             <span class="vital-home-badge ${badgeClass}">${badgeText}</span>

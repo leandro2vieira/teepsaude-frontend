@@ -31,14 +31,14 @@ const mockData = {
   usuario: {
     id: '1',
     tipo: 'paciente',
-    nome: 'João Silva',
+    nome: 'Maria Silva',
     email: 'joao@email.com',
     cpf: '123.456.789-00',
     dataNascimento: '1985-05-15',
     telefone: '(11) 98765-4321',
     /** Emoji ou texto curto; se `fotoPerfilUrl` for data:image/…, o header usa a foto. */
     fotoPerfil: '👤',
-    fotoPerfilUrl: '',
+    fotoPerfilUrl: 'Foto_Paciente.jpeg',
     dataCadastro: '2024-01-01',
     ativo: true
   },
@@ -104,7 +104,7 @@ const mockData = {
       tipo: 'Batimento Cardíaco', 
       valor: 76, 
       unidade: 'bpm', 
-      ideal: '60-100', 
+      ideal: '50-100', 
       fonte: 'Pulseira', 
       tempo: 'Há 2 horas', 
       categoria: 'saude', 
@@ -626,10 +626,10 @@ const mockData = {
   consultas: [
     { 
       id: 1, 
-      medico: 'Dr. Carlos Silva', 
+      medico: 'Dr. Carlos Costa', 
       especialidade: 'Cardiologia', 
       data: '10/02/2024', 
-      hora: '14:30', 
+      hora: '14:30',
       tipo: 'Presencial', 
       status: 'Agendado',
       local: 'Clínica Central',

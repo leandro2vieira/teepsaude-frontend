@@ -200,7 +200,76 @@
                 <div id="batMinMaxCard" class="bat-minmax-card"></div>
                 <div id="batHourlyChart" class="bat-hourly-chart-card"></div>
                 <div id="batHourlyTable" class="bat-hourly-section"></div>
-                <div id="batRestingTrend" class="bat-resting-section"></div>
+                <div id="batRestingTrend" class="bat-resting-section" onclick="openBatRestingDetail()"></div>
+
+                <!-- Detalhe de uma hora específica -->
+                <div id="batHourlyDetailView" style="display:none;">
+                  <div class="bat-hd-header">
+                    <button type="button" class="bat-hd-back-btn" onclick="closeBatHourlyDetail()">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <span id="batHdSlotLabel" class="bat-hd-slot-label"></span>
+                  </div>
+                  <div id="batHdMinMax" class="bat-hd-minmax-card"></div>
+                  <div class="bat-hd-chart-card" style="position:relative;">
+                    <div class="bat-hd-chart-title">Batimentos por minuto</div>
+                    <canvas id="batHdChartCanvas" class="bat-hd-chart-canvas" height="160"></canvas>
+                    <div id="batHdTooltip" class="bat-hd-tooltip" style="display:none;"></div>
+                  </div>
+                </div>
+
+                <!-- Detalhe: tendência em repouso -->
+                <div id="batRestingDetailView" style="display:none;">
+                  <div class="brd-header">
+                    <button type="button" class="brd-back-btn" onclick="closeBatRestingDetail()">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <span class="brd-title">Batimento em repouso</span>
+                  </div>
+                  <div class="brd-period-row">
+                    <button type="button" class="brd-chip brd-chip-active" data-period="7d" onclick="switchBatRestingPeriod('7d')">7 dias</button>
+                    <button type="button" class="brd-chip" data-period="30d" onclick="switchBatRestingPeriod('30d')">30 dias</button>
+                    <button type="button" class="brd-chip" data-period="3m" onclick="switchBatRestingPeriod('3m')">3 meses</button>
+                    <button type="button" class="brd-chip" data-period="1y" onclick="switchBatRestingPeriod('1y')">1 ano</button>
+                  </div>
+                  <div class="brd-summary-card">
+                    <div class="brd-summary-top">
+                      <div class="brd-summary-avg">
+                        <span id="brdAvgValue">—</span>
+                        <span class="brd-summary-unit">bpm</span>
+                      </div>
+                      <div id="brdStatusBadge" class="brd-status-badge brd-status-green">Normal</div>
+                    </div>
+                    <p id="brdStatusText" class="brd-status-text"></p>
+                  </div>
+                  <div class="brd-chart-card">
+                    <div class="brd-chart-header">
+                      <span class="brd-chart-title">Evolução</span>
+                      <span id="brdChartRange" class="brd-chart-range"></span>
+                    </div>
+                    <canvas id="brdChartCanvas" class="brd-chart-canvas" height="180"></canvas>
+                    <div id="brdChartLabels" class="brd-chart-labels"></div>
+                  </div>
+                  <div class="brd-stats-row">
+                    <div class="brd-stat-item">
+                      <span class="brd-stat-label">Mínimo</span>
+                      <span id="brdStatMin" class="brd-stat-value">—</span>
+                      <span class="brd-stat-unit">bpm</span>
+                    </div>
+                    <div class="brd-stat-divider"></div>
+                    <div class="brd-stat-item">
+                      <span class="brd-stat-label">Máximo</span>
+                      <span id="brdStatMax" class="brd-stat-value">—</span>
+                      <span class="brd-stat-unit">bpm</span>
+                    </div>
+                    <div class="brd-stat-divider"></div>
+                    <div class="brd-stat-item">
+                      <span class="brd-stat-label">Variação</span>
+                      <span id="brdStatVar" class="brd-stat-value">—</span>
+                      <span class="brd-stat-unit">bpm</span>
+                    </div>
+                  </div>
+                </div>
 
             </div>
 

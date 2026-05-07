@@ -3130,6 +3130,9 @@ body {
 
 .bat-hourly-right {
   min-width: 24px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 .bat-hourly-slot {
@@ -3142,7 +3145,7 @@ body {
 .bat-hourly-range {
   font-size: 14px;
   font-weight: 700;
-  color: #0f172a;
+  color: #334155;
   font-variant-numeric: tabular-nums;
 }
 
@@ -3174,7 +3177,106 @@ body {
 
 .bat-hourly-more:hover { background: #eff6ff; }
 
-/* ── Batimento: tendência repouso ────────────────────────── */
+/* ── Batimento: detalhe por hora ────────────────────────── */
+.bat-hourly-row { cursor: pointer; }
+.bat-hourly-row:hover { background: #f1f5f9; }
+
+.bat-hd-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0 12px;
+}
+.bat-hd-back-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+}
+.bat-hd-back-btn:hover { background: #e2e8f0; }
+.bat-hd-slot-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.bat-hd-minmax-card {
+  background: #ffffff;
+  border: var(--border-card-soft);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-card);
+  padding: 16px 18px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+.bat-hd-mm-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.bat-hd-mm-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.bat-hd-mm-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+.bat-hd-mm-unit {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+.bat-hd-mm-divider {
+  width: 1px;
+  height: 48px;
+  background: #e2e8f0;
+}
+.bat-hd-chart-card {
+  background: #ffffff;
+  border: var(--border-card-soft);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-card);
+  padding: 14px 14px 10px;
+  margin-bottom: 12px;
+}
+.bat-hd-chart-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 10px;
+}
+.bat-hd-tooltip {
+  position: absolute;
+  background: #1e293b;
+  color: #f8fafc;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 20px;
+  pointer-events: none;
+  transform: translate(-50%, -130%);
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  z-index: 10;
+}
+.bat-hd-chart-canvas {
+  width: 100%;
+  display: block;
+}
+
+
 .bat-resting-section {
   background: #ffffff;
   border: var(--border-card-soft);
@@ -3241,6 +3343,205 @@ body {
   text-align: center;
   flex: 1;
   text-transform: capitalize;
+}
+
+.bat-resting-section {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.bat-resting-section:hover {
+  background: #fafbff;
+}
+
+/* ─── Batimento: Detalhe Repouso (brd-*) ────────────────────────────────── */
+.brd-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0 16px;
+}
+.brd-back-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  transition: background 0.15s;
+}
+.brd-back-btn:hover { background: #e2e8f0; }
+.brd-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.brd-period-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.brd-chip {
+  flex: 1;
+  padding: 8px 0;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.brd-chip:hover { border-color: #93c5fd; color: #2563eb; }
+.brd-chip.brd-chip-active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+.brd-summary-card {
+  background: #fff;
+  border: var(--border-card-soft);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 18px 18px 16px;
+  margin-bottom: 12px;
+}
+.brd-summary-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.brd-summary-avg {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.brd-summary-avg #brdAvgValue {
+  font-size: 52px;
+  font-weight: 800;
+  color: #2563eb;
+  line-height: 1;
+  letter-spacing: -2px;
+  font-variant-numeric: tabular-nums;
+}
+.brd-summary-unit {
+  font-size: 16px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+.brd-status-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 13px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+.brd-status-green  { background: #dcfce7; color: #15803d; }
+.brd-status-yellow { background: #fef9c3; color: #a16207; }
+.brd-status-red    { background: #fee2e2; color: #dc2626; }
+.brd-status-blue   { background: #dbeafe; color: #1d4ed8; }
+.brd-status-text {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.55;
+  margin: 0;
+}
+.brd-tip {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f172a;
+  background: #f1f5f9;
+  border-left: 3px solid #2563eb;
+  border-radius: 0 6px 6px 0;
+  padding: 6px 10px;
+}
+.brd-chart-card {
+  background: #fff;
+  border: var(--border-card-soft);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 14px 14px 10px;
+  margin-bottom: 12px;
+}
+.brd-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.brd-chart-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.brd-chart-range {
+  font-size: 11px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+.brd-chart-canvas {
+  display: block;
+  width: 100%;
+}
+.brd-chart-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  padding: 0 36px 0 36px;
+}
+.brd-chart-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-align: center;
+  flex: 1;
+  text-transform: capitalize;
+}
+.brd-stats-row {
+  background: #fff;
+  border: var(--border-card-soft);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin-bottom: 12px;
+}
+.brd-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.brd-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.brd-stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+}
+.brd-stat-unit {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+.brd-stat-divider {
+  width: 1px;
+  height: 48px;
+  background: #e2e8f0;
 }
 
 /* ─── Hourly Bar Chart Card ──────────────────────────────────────────────── */

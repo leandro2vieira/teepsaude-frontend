@@ -688,7 +688,7 @@ function applyHeaderAvatar() {
   const el = document.getElementById('headerAvatar');
   if (!el) return;
   const url = u.fotoPerfilUrl;
-  if (typeof url === 'string' && url.startsWith('data:image')) {
+  if (typeof url === 'string' && url.length > 0) {
     el.innerHTML = `<img src="${url}" alt="">`;
     el.classList.add('header-avatar--photo');
     return;
@@ -775,8 +775,10 @@ function renderHome() {
   var subtitleEl = document.getElementById('homeSaudeSubtitle');
   if (subtitleEl) subtitleEl.textContent = 'Hoje · ' + vitais.length + ' indicadores';
 
+  const _d15 = new Date(); _d15.setDate(_d15.getDate() + 15);
+  const hoje15 = _d15.getFullYear() + '-' + String(_d15.getMonth()+1).padStart(2,'0') + '-' + String(_d15.getDate()).padStart(2,'0');
   const consultaHtml = mockData.consultas.length > 0
-    ? createConsultaCard(mockData.consultas[0], 'home')
+    ? createConsultaCard(Object.assign({}, mockData.consultas[0], { data: hoje15 }), 'home')
     : '<div class="empty-state"><div class="empty-text">Nenhuma consulta agendada</div></div>';
   document.getElementById('homeConsulta').innerHTML = consultaHtml;
 }
@@ -4741,8 +4743,7 @@ function renderBatimentoMinMaxCard(historico) {
         <span class="bat-mm-value">${maxVal}</span>
         <span class="bat-mm-unit">bpm</span>
       </div>
-    </div>
-    <div class="bat-mm-ref">Referência: ${band.min}–${band.max} bpm</div>`;
+    </div>`;
 }
 
 // ─── Batimento: Gráfico mín/máx por hora ──────────────────────────────────
@@ -4805,7 +4806,7 @@ function renderBatimentoHourlyChart(historico) {
 
     const toX = (i) => padL + (i / 24) * gw;
     const toY = (v) => padT + gh - ((v - dataLo) / yRange) * gh;
-    const barW = Math.max(4, Math.floor(gw / 24) - 2);
+    const barW = 7;
 
     // Reference band
     const refY1 = toY(band.max);
@@ -4867,6 +4868,61 @@ function renderBatimentoHourlyChart(historico) {
       ctx.fillText(h + 'h', x, H - padB + 5);
     });
     ctx.fillText('24h', padL + gw, H - padB + 5);
+
+    // Store hit-test data for click tooltip
+    window.__batHourlyHitData = { hours, padL, gw, barW, W, H, padT, padB, padR };
+
+    // Register click handler (replace previous)
+    canvas.onclick = function(ev) {
+      const rect = canvas.getBoundingClientRect();
+      const mx = ev.clientX - rect.left;
+      const my = ev.clientY - rect.top;
+      const d = window.__batHourlyHitData;
+      if (!d) return;
+      // Find which hour column was clicked (extend hit area to full column width)
+      const colW = d.gw / 24;
+      let hitIdx = -1;
+      for (let i = 0; i < 24; i++) {
+        if (d.hours[i].min === null) continue;
+        const x = d.padL + (i / 24) * d.gw + (colW - d.barW) / 2;
+        // Use the full column zone for easier tapping
+        const zoneX = d.padL + (i / 24) * d.gw;
+        if (mx >= zoneX && mx < zoneX + colW && my >= d.padT && my <= d.H - d.padB) {
+          hitIdx = i;
+        }
+      }
+
+      // Remove existing tooltip
+      const old = document.getElementById('batHourlyTooltip');
+      if (old) old.remove();
+      if (hitIdx === -1) return;
+
+      const slot = d.hours[hitIdx];
+      const hEnd = (hitIdx + 1) % 24;
+      const label = String(hitIdx).padStart(2,'0') + ':00 – ' + String(hEnd).padStart(2,'0') + ':00';
+      const tip = document.createElement('div');
+      tip.id = 'batHourlyTooltip';
+      tip.style.cssText = 'position:absolute;background:#1e293b;color:#fff;border-radius:8px;padding:7px 12px;font-size:12px;line-height:1.5;pointer-events:none;z-index:9999;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
+      tip.innerHTML = label + '&nbsp;&nbsp;<strong style="color:#fbbf24;">' + slot.min + ' até ' + slot.max + ' bpm</strong>';
+
+      // Position relative to canvas parent
+      const parent = canvas.parentElement;
+      parent.style.position = 'relative';
+      const canvasRect = canvas.getBoundingClientRect();
+      const parentRect = parent.getBoundingClientRect();
+      const colCenterX = d.padL + (hitIdx / 24) * d.gw + colW / 2;
+      let left = (canvasRect.left - parentRect.left) + colCenterX - 60;
+      let top = (canvasRect.top - parentRect.top) - 80;
+      if (left < 0) left = 4;
+      if (top < 0) top = (canvasRect.top - parentRect.top) + 4;
+      tip.style.left = left + 'px';
+      tip.style.top = top + 'px';
+      parent.appendChild(tip);
+
+      // Auto-dismiss after 3s or on next click anywhere
+      const dismiss = () => { tip.remove(); document.removeEventListener('click', dismiss); };
+      setTimeout(() => document.addEventListener('click', dismiss), 10);
+    };
   });
 }
 
@@ -4874,6 +4930,9 @@ function renderBatimentoHourlyChart(historico) {
 function renderBatimentoHourlyTable(historico) {
   const el = document.getElementById('batHourlyTable');
   if (!el) return;
+
+  // Guardar referência global para uso no onclick das linhas
+  window.__batHourlyHistorico = historico;
 
   // Agrupar por slot de hora (hh:00–hh+1:00), ordenado do mais recente
   const slotMap = new Map();
@@ -4883,7 +4942,7 @@ function renderBatimentoHourlyTable(historico) {
     const horaStr = String(h.hora || '').slice(0, 5); // "HH:MM"
     if (!/^\d{2}:\d{2}$/.test(horaStr)) return;
     const hNum = parseInt(horaStr.slice(0, 2), 10);
-    const slotKey = `${String(hNum).padStart(2,'0')}:00–${String((hNum+1)%24).padStart(2,'0')}:00`;
+    const slotKey = `${String(hNum).padStart(2,'0')}:00 – ${String((hNum+1)%24).padStart(2,'0')}:00`;
     const ms = typeof historicoEntryToMs === 'function' ? (historicoEntryToMs(h) || 0) : 0;
     if (!slotMap.has(slotKey)) slotMap.set(slotKey, { min: v, max: v, ms });
     else {
@@ -4902,20 +4961,41 @@ function renderBatimentoHourlyTable(historico) {
   const INITIAL = 4;
   let showAll = false;
 
-  const renderRows = (all) => rows.slice(0, all ? rows.length : INITIAL).map(([slot, d]) => `
-    <div class="bat-hourly-row">
+  const BAT_CLS = {
+    sleep:    { color: '#94a3b8', p: '<path fill="#94a3b8" stroke="none" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>' },
+    run:      { color: '#94a3b8', p: '<path fill="#94a3b8" stroke="none" d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/>' },
+    exercise: { color: '#94a3b8', p: '<line x1="6" y1="12" x2="18" y2="12"/><line x1="6" y1="8" x2="6" y2="16"/><line x1="18" y1="8" x2="18" y2="16"/><line x1="3" y1="9" x2="3" y2="15"/><line x1="21" y1="9" x2="21" y2="15"/>' }
+  };
+  // Horas fixas com ícone de exercício (treino) e corrida — mock decorativo
+  const EXERCISE_HOURS = new Set([8, 9, 17]);
+  const RUN_HOURS      = new Set([7, 10, 16, 18]);
+  const getBatCls = (slot) => {
+    const h = parseInt(slot.split(':')[0]);
+    if (h >= 23 || h < 7) return BAT_CLS.sleep;
+    if (EXERCISE_HOURS.has(h)) return BAT_CLS.exercise;
+    if (RUN_HOURS.has(h)) return BAT_CLS.run;
+    return null;
+  };
+
+  const renderRows = (all) => rows.slice(0, all ? rows.length : INITIAL).map(([slot, d]) => {
+    const cls = getBatCls(slot);
+    const icoHtml = cls ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${cls.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${cls.p}</svg>` : '';
+    const safeSlot = slot.replace(/'/g, "\\'");
+    return `
+    <div class="bat-hourly-row" onclick="openBatHourlyDetail('${safeSlot}', ${d.min}, ${d.max}, window.__batHourlyHistorico)">
       <div class="bat-hourly-left">
-        <span class="bat-hourly-slot">${slot}</span>
         <span class="bat-hourly-range">${d.min} <span class="bat-hourly-sep">–</span> ${d.max} <span class="bat-hourly-unit">bpm</span></span>
+        <span class="bat-hourly-slot">${slot}</span>
       </div>
-      <div class="bat-hourly-right"></div>
-    </div>`).join('');
+      <div class="bat-hourly-right">${icoHtml}</div>
+    </div>`;
+  }).join('');
 
   const rebuild = (all) => {
     el.innerHTML = `
       <div class="bat-hourly-header">Últimas medições por hora</div>
       <div class="bat-hourly-rows" id="batHourlyRows">${renderRows(all)}</div>
-      ${rows.length > INITIAL ? `<button class="bat-hourly-more" id="batHourlyMoreBtn">${all ? 'Ver menos' : `Ver mais (${rows.length - INITIAL} hora${rows.length - INITIAL !== 1 ? 's' : ''})`}</button>` : ''}`;
+      ${rows.length > INITIAL ? `<button class="bat-hourly-more" id="batHourlyMoreBtn">${all ? 'Ver menos' : 'Ver mais'}</button>` : ''}`;
     const btn = document.getElementById('batHourlyMoreBtn');
     if (btn) btn.onclick = () => rebuild(!all);
   };
@@ -4923,10 +5003,210 @@ function renderBatimentoHourlyTable(historico) {
   rebuild(showAll);
 }
 
+// ─── Batimento: Detalhe de uma hora específica ────────────────────────────
+let _batHdCurrentHistorico = null;
+
+function openBatHourlyDetail(slotKey, dMin, dMax, historico) {
+  _batHdCurrentHistorico = historico;
+
+  // Oculta os cards normais
+  ['batDayPickerCard','batMinMaxCard','batHourlyChart','batHourlyTable','batRestingTrend'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+
+  const view = document.getElementById('batHourlyDetailView');
+  if (!view) return;
+  view.style.display = 'block';
+
+  // Label
+  document.getElementById('batHdSlotLabel').textContent = slotKey;
+
+  // Min/Max card
+  const mmEl = document.getElementById('batHdMinMax');
+  if (mmEl) {
+    mmEl.innerHTML = `
+      <div class="bat-hd-mm-item">
+        <span class="bat-hd-mm-label">Mínimo</span>
+        <span class="bat-hd-mm-value">${dMin}</span>
+        <span class="bat-hd-mm-unit">bpm</span>
+      </div>
+      <div class="bat-hd-mm-divider"></div>
+      <div class="bat-hd-mm-item">
+        <span class="bat-hd-mm-label">Máximo</span>
+        <span class="bat-hd-mm-value">${dMax}</span>
+        <span class="bat-hd-mm-unit">bpm</span>
+      </div>`;
+  }
+
+  // Gerar pontos de 5 em 5 minutos para a hora
+  const hNum = parseInt(slotKey.split(':')[0], 10);
+  const points = _buildHourlyFiveMinPoints(hNum, dMin, dMax, historico);
+
+  // Desenhar gráfico
+  requestAnimationFrame(() => renderBatHdChart(points, dMin, dMax, hNum));
+}
+
+function closeBatHourlyDetail() {
+  const view = document.getElementById('batHourlyDetailView');
+  if (view) view.style.display = 'none';
+
+  ['batDayPickerCard','batMinMaxCard','batHourlyChart','batHourlyTable','batRestingTrend'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = '';
+  });
+}
+
+function _buildHourlyFiveMinPoints(hNum, dMin, dMax, historico) {
+  // Coleta leituras reais nessa hora
+  const real = {};
+  if (Array.isArray(historico)) {
+    historico.forEach(h => {
+      const horaStr = String(h.hora || '').slice(0, 5);
+      if (!/^\d{2}:\d{2}$/.test(horaStr)) return;
+      const hh = parseInt(horaStr.slice(0, 2), 10);
+      if (hh !== hNum) return;
+      const mm = parseInt(horaStr.slice(3, 5), 10);
+      const slotMin = Math.floor(mm / 5) * 5;
+      const v = typeof parseBatimentoHistoricoValor === 'function'
+        ? parseBatimentoHistoricoValor(h) : Number(h.valor);
+      if (Number.isFinite(v)) real[slotMin] = v;
+    });
+  }
+
+  // Gera os 12 slots (0,5,10,...,55) com variação suave
+  const mid = Math.round((dMin + dMax) / 2);
+  const amp = Math.max(Math.round((dMax - dMin) / 2), 2);
+  const pts = [];
+  let prev = real[0] !== undefined ? real[0] : mid;
+  for (let m = 0; m < 60; m += 5) {
+    if (real[m] !== undefined) {
+      pts.push({ min: m, bpm: real[m] });
+      prev = real[m];
+    } else {
+      // variação sintética suave
+      const drift = Math.round((Math.random() - 0.5) * amp * 0.6);
+      const v = Math.min(dMax, Math.max(dMin, prev + drift));
+      pts.push({ min: m, bpm: v });
+      prev = v;
+    }
+  }
+  return pts;
+}
+
+function renderBatHdChart(points, dMin, dMax, hNum) {
+  const canvas = document.getElementById('batHdChartCanvas');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.parentElement.clientWidth - 28; // padding
+  const H = 160;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const PAD_L = 36, PAD_R = 10, PAD_T = 12, PAD_B = 28;
+  const chartW = W - PAD_L - PAD_R;
+  const chartH = H - PAD_T - PAD_B;
+
+  const rangeMin = Math.max(0, dMin - 15);
+  const rangeMax = dMax + 15;
+  const span = rangeMax - rangeMin || 1;
+
+  const toX = (i) => PAD_L + (i / (points.length - 1)) * chartW;
+  const toY = (v) => PAD_T + chartH - ((v - rangeMin) / span) * chartH;
+
+  // Fundo
+  ctx.clearRect(0, 0, W, H);
+
+  // Linhas de grade horizontais
+  ctx.strokeStyle = '#f1f5f9';
+  ctx.lineWidth = 1;
+  [0, 0.25, 0.5, 0.75, 1].forEach(t => {
+    const y = PAD_T + t * chartH;
+    ctx.beginPath(); ctx.moveTo(PAD_L, y); ctx.lineTo(W - PAD_R, y); ctx.stroke();
+  });
+
+  // Área preenchida
+  const grad = ctx.createLinearGradient(0, PAD_T, 0, PAD_T + chartH);
+  grad.addColorStop(0, 'rgba(99,102,241,0.18)');
+  grad.addColorStop(1, 'rgba(99,102,241,0)');
+  ctx.beginPath();
+  ctx.moveTo(toX(0), PAD_T + chartH);
+  points.forEach((p, i) => ctx.lineTo(toX(i), toY(p.bpm)));
+  ctx.lineTo(toX(points.length - 1), PAD_T + chartH);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Linha
+  ctx.beginPath();
+  ctx.strokeStyle = '#6366f1';
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  points.forEach((p, i) => i === 0 ? ctx.moveTo(toX(i), toY(p.bpm)) : ctx.lineTo(toX(i), toY(p.bpm)));
+  ctx.stroke();
+
+  // Pontos
+  points.forEach((p, i) => {
+    ctx.beginPath();
+    ctx.arc(toX(i), toY(p.bpm), 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#6366f1';
+    ctx.fill();
+  });
+
+  // Eixo X — labels a cada 15 minutos
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '10px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  // 12 pontos = 0,5,10...55min. Mostrar 0, 15, 30, 45, 55
+  [[0,'00min'],[3,'15min'],[6,'30min'],[9,'45min'],[11,'55min']].forEach(([i, label]) => {
+    if (points[i]) ctx.fillText(label, toX(i), H - 6);
+  });
+
+  // Eixo Y — min e max
+  ctx.textAlign = 'right';
+  ctx.fillText(String(rangeMax), PAD_L - 4, PAD_T + 4);
+  ctx.fillText(String(rangeMin), PAD_L - 4, PAD_T + chartH);
+
+  // Tooltip ao clicar num ponto
+  const tooltip = document.getElementById('batHdTooltip');
+  const HIT_R = Math.max(12, chartW / points.length / 2);
+  function showBatHdTip(px, py) {
+    if (!tooltip) return;
+    const rect = canvas.getBoundingClientRect();
+    const cx = px - rect.left, cy = py - rect.top;
+    let best = null, bestDist = HIT_R;
+    points.forEach((p, i) => {
+      const dx = toX(i) - cx, dy = toY(p.bpm) - cy;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if (d < bestDist) { bestDist = d; best = { p, i }; }
+    });
+    if (!best) return;
+    const h = (hNum != null ? hNum : 0);
+    const timeStr = `${String(h).padStart(2,'0')}:${String(best.p.min).padStart(2,'0')}`;
+    tooltip.textContent = `${timeStr} · ${best.p.bpm} bpm`;
+    const cardRect = canvas.parentElement.getBoundingClientRect();
+    const canvasRect = canvas.getBoundingClientRect();
+    tooltip.style.left = (canvasRect.left - cardRect.left + toX(best.i)) + 'px';
+    tooltip.style.top  = (canvasRect.top  - cardRect.top  + toY(best.p.bpm)) + 'px';
+    tooltip.style.display = '';
+  }
+  if (canvas._batHdClick) canvas.removeEventListener('click', canvas._batHdClick);
+  canvas._batHdClick = (e) => { showBatHdTip(e.clientX, e.clientY); e.stopPropagation(); };
+  canvas.addEventListener('click', canvas._batHdClick);
+  document.addEventListener('click', function onOut(e) {
+    if (e.target !== canvas) { if (tooltip) tooltip.style.display = 'none'; document.removeEventListener('click', onOut); }
+  });
+}
+
 // ─── Batimento: Tendência de repouso 7 dias ────────────────────────────────
 function renderBatimentoRestingTrend(historico) {
   const el = document.getElementById('batRestingTrend');
   if (!el) return;
+  window.__batRestingHistorico = historico;
 
   const band = typeof getBatimentoChartIdealBand === 'function' ? getBatimentoChartIdealBand() : { min: 60, max: 100 };
 
@@ -5087,6 +5367,288 @@ function renderBatimentoRestingTrend(historico) {
       ctx.textBaseline = 'bottom';
       ctx.fillText(String(p.val), x, y - 5);
     });
+  });
+}
+
+// ─── Batimento: Detalhe Tendência em Repouso ──────────────────────────────
+let __batRestingPeriod = '7d';
+
+function openBatRestingDetail() {
+  ['batDayPickerCard','batMinMaxCard','batHourlyChart','batHourlyTable','batRestingTrend'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  var hd = document.getElementById('batHourlyDetailView');
+  if (hd) hd.style.display = 'none';
+  var view = document.getElementById('batRestingDetailView');
+  if (view) view.style.display = '';
+  __batRestingPeriod = '7d';
+  _brdUpdateChips('7d');
+  _brdRenderContent('7d');
+}
+
+function closeBatRestingDetail() {
+  var view = document.getElementById('batRestingDetailView');
+  if (view) view.style.display = 'none';
+  ['batDayPickerCard','batMinMaxCard','batHourlyChart','batHourlyTable','batRestingTrend'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = '';
+  });
+}
+
+function switchBatRestingPeriod(period) {
+  __batRestingPeriod = period;
+  _brdUpdateChips(period);
+  _brdRenderContent(period);
+}
+
+function _brdUpdateChips(active) {
+  document.querySelectorAll('.brd-chip').forEach(function(btn) {
+    btn.classList.toggle('brd-chip-active', btn.dataset.period === active);
+  });
+}
+
+function _brdGetStatus(avg) {
+  if (avg < 50) return { cls: 'brd-status-red',    label: 'Bradicardia', text: 'Frequência cardíaca muito abaixo do normal. Recomenda-se consultar um médico.',          tip: 'Procure seu cardiologista para uma avaliação completa.' };
+  if (avg <= 60) return { cls: 'brd-status-blue',   label: 'Atlético',   text: 'Frequência típica de pessoas com alta aptidão cardiovascular.',                          tip: 'Mantenha a rotina de exercícios — seu coração agradece.' };
+  if (avg <= 72) return { cls: 'brd-status-green',  label: 'Excelente',  text: 'Frequência cardíaca em repouso excelente.',                                              tip: 'Continue dormindo bem e mantendo a atividade física regular.' };
+  if (avg <= 80) return { cls: 'brd-status-green',  label: 'Normal',     text: 'Frequência cardíaca em repouso dentro da faixa saudável para adultos.',                  tip: 'Sono de qualidade e caminhadas diárias ajudam a manter esse resultado.' };
+  if (avg <= 90) return { cls: 'brd-status-yellow', label: 'Atenção',    text: 'Levemente acima do ideal.',                                                              tip: 'Tente reduzir o estresse e priorize pelo menos 7h de sono por noite.' };
+  return              { cls: 'brd-status-red',      label: 'Elevado',    text: 'Frequência elevada em repouso.',                                                         tip: 'Considere consultar um profissional de saúde e evite cafeína à noite.' };
+}
+
+function _brdBuildPoints(period) {
+  var today = new Date();
+  var historico = window.__batRestingHistorico || [];
+  var n = period === '7d' ? 7 : (period === '30d' ? 30 : (period === '3m' ? 13 : 12));
+  var isWeekly = period === '3m' || period === '1y';
+  var points = [];
+
+  for (var i = n - 1; i >= 0; i--) {
+    var d = new Date(today);
+    if (period === '1y') d.setMonth(d.getMonth() - i);
+    else if (isWeekly) d.setDate(d.getDate() - i * 7);
+    else d.setDate(d.getDate() - i);
+    var iso = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    var pos = n - 1 - i;
+    var label = '';
+    if (period === '7d') {
+      label = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.','');
+    } else if (period === '30d') {
+      label = (pos % 5 === 0 || pos === n - 1) ? String(d.getDate()) : '';
+    } else if (period === '1y') {
+      label = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.','');
+    } else {
+      // 3m: show month name every 4 weeks
+      label = (pos % 4 === 0) ? d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.','') : '';
+    }
+    points.push({ iso: iso, label: label, vals: [] });
+  }
+
+  // Fill from historico
+  historico.forEach(function(h) {
+    var v = typeof parseBatimentoHistoricoValor === 'function' ? parseBatimentoHistoricoValor(h) : parseInt(h.valor);
+    if (!Number.isFinite(v)) return;
+    var dayISO = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data||'').slice(0,10);
+    if (period === '1y') {
+      // match by year-month
+      var ym = dayISO.slice(0, 7);
+      for (var j = 0; j < points.length; j++) {
+        if (points[j].iso.slice(0, 7) === ym) { points[j].vals.push(v); break; }
+      }
+    } else if (isWeekly) {
+      // find which weekly bucket this day belongs to
+      for (var j = 0; j < points.length; j++) {
+        var slotD = new Date(points[j].iso);
+        var diff = (new Date(dayISO) - slotD) / 86400000;
+        if (diff >= -3 && diff <= 3) { points[j].vals.push(v); break; }
+      }
+    } else {
+      var slot = null;
+      for (var k = 0; k < points.length; k++) { if (points[k].iso === dayISO) { slot = points[k]; break; } }
+      if (slot) slot.vals.push(v);
+    }
+  });
+
+  var result = points.map(function(p) {
+    return { label: p.label, iso: p.iso, val: p.vals.length ? Math.round(p.vals.reduce(function(a,b){return a+b;},0)/p.vals.length) : null };
+  });
+
+  // Mock variation if data too uniform or sparse
+  var allVals = result.filter(function(p){return p.val!=null;}).map(function(p){return p.val;});
+  var baseAvg = allVals.length ? Math.round(allVals.reduce(function(a,b){return a+b;},0)/allVals.length) : 73;
+  var unique = {};
+  allVals.forEach(function(v){unique[v]=1;});
+  if (Object.keys(unique).length <= 3 || allVals.length < Math.floor(n * 0.5)) {
+    var seed = baseAvg * 31 + 7;
+    return result.map(function(p) {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+      var offset = (seed % 13) - 6;
+      return { label: p.label, iso: p.iso, val: Math.max(48, baseAvg + offset) };
+    });
+  }
+  return result;
+}
+
+function _brdRenderContent(period) {
+  var points = _brdBuildPoints(period);
+  var allVals = points.filter(function(p){return p.val!=null;}).map(function(p){return p.val;});
+  if (!allVals.length) return;
+
+  var avg = Math.round(allVals.reduce(function(a,b){return a+b;},0)/allVals.length);
+  var minV = Math.min.apply(null, allVals);
+  var maxV = Math.max.apply(null, allVals);
+  var status = _brdGetStatus(avg);
+
+  // Summary
+  var avgEl = document.getElementById('brdAvgValue');
+  if (avgEl) avgEl.textContent = avg;
+  var badge = document.getElementById('brdStatusBadge');
+  if (badge) { badge.className = 'brd-status-badge ' + status.cls; badge.textContent = status.label; }
+  var txt = document.getElementById('brdStatusText');
+  if (txt) txt.innerHTML = status.text + (status.tip ? ' <span class="brd-tip">' + status.tip + '</span>' : '');
+
+  // Stats
+  var statMin = document.getElementById('brdStatMin');
+  var statMax = document.getElementById('brdStatMax');
+  var statVar = document.getElementById('brdStatVar');
+  if (statMin) statMin.textContent = minV;
+  if (statMax) statMax.textContent = maxV;
+  if (statVar) statVar.textContent = '±' + Math.round((maxV - minV) / 2);
+
+  // Range label
+  var rangeEl = document.getElementById('brdChartRange');
+  var rangeMap = { '7d': 'últimos 7 dias', '30d': 'últimos 30 dias', '3m': 'últimos 3 meses', '1y': 'último ano' };
+  if (rangeEl) rangeEl.textContent = rangeMap[period] || '';
+
+  // X-axis labels
+  var labelsEl = document.getElementById('brdChartLabels');
+  if (labelsEl) {
+    labelsEl.innerHTML = points.map(function(p) {
+      return '<span class="brd-chart-label">' + (p.label || '') + '</span>';
+    }).join('');
+  }
+
+  // Chart
+  requestAnimationFrame(function() {
+    var canvas = document.getElementById('brdChartCanvas');
+    if (!canvas) return;
+    var parent = canvas.parentElement;
+    var W = parent ? parent.clientWidth - 28 : 300;
+    var H = 180;
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.height = H + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, W, H);
+
+    var filled = points.filter(function(p){return p.val!=null;});
+    if (filled.length < 2) return;
+
+    var PAD_L = 36, PAD_R = 10, PAD_T = 20, PAD_B = 8;
+    var chartW = W - PAD_L - PAD_R;
+    var chartH = H - PAD_T - PAD_B;
+    var rawMin = Math.min.apply(null, filled.map(function(p){return p.val;}));
+    var rawMax = Math.max.apply(null, filled.map(function(p){return p.val;}));
+    var rangeMin = Math.max(0, rawMin - 12);
+    var rangeMax = rawMax + 12;
+    var n = points.length;
+
+    var toX = function(i) { return PAD_L + (i / (n - 1)) * chartW; };
+    var toY = function(v) { return PAD_T + chartH - ((v - rangeMin) / (rangeMax - rangeMin)) * chartH; };
+
+    // Green reference band (60–80 bpm)
+    var refYTop = Math.max(PAD_T, toY(80));
+    var refYBot = Math.min(PAD_T + chartH, toY(60));
+    if (refYBot > refYTop) {
+      ctx.fillStyle = 'rgba(34,197,94,0.07)';
+      ctx.fillRect(PAD_L, refYTop, chartW, refYBot - refYTop);
+      ctx.strokeStyle = 'rgba(34,197,94,0.28)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(PAD_L, refYTop); ctx.lineTo(PAD_L+chartW, refYTop); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(PAD_L, refYBot); ctx.lineTo(PAD_L+chartW, refYBot); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Grid lines
+    ctx.strokeStyle = '#f1f5f9';
+    ctx.lineWidth = 1;
+    [0, 0.25, 0.5, 0.75, 1].forEach(function(t) {
+      var y = PAD_T + t * chartH;
+      ctx.beginPath(); ctx.moveTo(PAD_L, y); ctx.lineTo(W - PAD_R, y); ctx.stroke();
+    });
+
+    // Y labels (3 levels)
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '600 10px Inter, sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    [[rangeMax, 0], [Math.round((rangeMin+rangeMax)/2), 0.5], [rangeMin, 1]].forEach(function(pair) {
+      var y = PAD_T + pair[1] * chartH;
+      ctx.fillText(String(Math.round(pair[0])), PAD_L - 4, y);
+    });
+
+    // Gradient fill under line
+    var grad = ctx.createLinearGradient(0, PAD_T, 0, PAD_T + chartH);
+    grad.addColorStop(0, 'rgba(37,99,235,0.18)');
+    grad.addColorStop(1, 'rgba(37,99,235,0)');
+    var firstIdx = -1, lastIdx = -1;
+    points.forEach(function(p, i) { if (p.val != null) { if (firstIdx === -1) firstIdx = i; lastIdx = i; } });
+    if (firstIdx !== -1) {
+      ctx.beginPath();
+      var fp = true;
+      points.forEach(function(p, i) {
+        if (p.val == null) { fp = true; return; }
+        if (fp) { ctx.moveTo(toX(i), toY(p.val)); fp = false; } else ctx.lineTo(toX(i), toY(p.val));
+      });
+      ctx.lineTo(toX(lastIdx), PAD_T + chartH);
+      ctx.lineTo(toX(firstIdx), PAD_T + chartH);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+
+    // Line
+    ctx.beginPath();
+    ctx.strokeStyle = '#2563eb';
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    var first = true;
+    points.forEach(function(p, i) {
+      if (p.val == null) { first = true; return; }
+      if (first) { ctx.moveTo(toX(i), toY(p.val)); first = false; } else ctx.lineTo(toX(i), toY(p.val));
+    });
+    ctx.stroke();
+
+    // Dots
+    var showAllDots = n <= 30;
+    points.forEach(function(p, i) {
+      if (p.val == null) return;
+      if (!showAllDots && i % 4 !== 0) return;
+      ctx.beginPath();
+      ctx.arc(toX(i), toY(p.val), 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#2563eb';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    });
+
+    // Value labels for 7d only
+    if (period === '7d') {
+      ctx.fillStyle = '#0f172a';
+      ctx.font = '600 10px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      points.forEach(function(p, i) {
+        if (p.val == null) return;
+        ctx.fillText(String(p.val), toX(i), toY(p.val) - 5);
+      });
+    }
   });
 }
 
@@ -5252,8 +5814,9 @@ function renderBatimentoDayPicker(historico) {
     const iso = dateToLocalISODate(d);
     const dow = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
     const dayNum = d.getDate();
+    const monthNum = d.getMonth() + 1;
     const data = dayMap.get(iso) || null;
-    days.push({ iso, dow, dayNum, data });
+    days.push({ iso, dow, dayNum, monthNum, data });
   }
 
   // Escala global para altura das barras
@@ -5285,7 +5848,7 @@ function renderBatimentoDayPicker(historico) {
     return `<div class="${classes}" data-day-iso="${day.iso}" onclick="selectBatimentoDay('${day.iso}')">
       <div class="bat-picker-bar-wrap">${barHtml}</div>
       <span class="bat-picker-dow">${day.dow}</span>
-      <span class="bat-picker-day">${day.dayNum}</span>
+      <span class="bat-picker-day">${isSelected ? day.dayNum + '/' + day.monthNum : day.dayNum}</span>
     </div>`;
   }).join('');
 
@@ -5314,7 +5877,18 @@ function selectBatimentoDay(iso) {
   if (scroll) {
     scroll.querySelectorAll('.bat-picker-col').forEach(col => {
       const colIso = col.getAttribute('data-day-iso');
-      col.classList.toggle('bat-picker-col--selected', colIso === iso);
+      const isNowSelected = colIso === iso;
+      col.classList.toggle('bat-picker-col--selected', isNowSelected);
+      const daySpan = col.querySelector('.bat-picker-day');
+      if (daySpan) {
+        if (isNowSelected) {
+          const p = colIso.split('-');
+          daySpan.textContent = parseInt(p[2], 10) + '/' + parseInt(p[1], 10);
+        } else {
+          const p = colIso.split('-');
+          daySpan.textContent = parseInt(p[2], 10);
+        }
+      }
     });
   }
 
