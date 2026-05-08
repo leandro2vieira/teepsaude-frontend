@@ -212,7 +212,7 @@
                   </div>
                   <div id="batHdMinMax" class="bat-hd-minmax-card"></div>
                   <div class="bat-hd-chart-card" style="position:relative;">
-                    <div class="bat-hd-chart-title">Batimentos por minuto</div>
+                    <div class="bat-hd-chart-title">Intervalo de batimentos</div>
                     <canvas id="batHdChartCanvas" class="bat-hd-chart-canvas" height="160"></canvas>
                     <div id="batHdTooltip" class="bat-hd-tooltip" style="display:none;"></div>
                   </div>
@@ -235,6 +235,7 @@
                   <div class="brd-summary-card">
                     <div class="brd-summary-top">
                       <div class="brd-summary-avg">
+                                                <span class="brd-summary-label">Média</span>
                         <span id="brdAvgValue">—</span>
                         <span class="brd-summary-unit">bpm</span>
                       </div>
@@ -248,26 +249,8 @@
                       <span id="brdChartRange" class="brd-chart-range"></span>
                     </div>
                     <canvas id="brdChartCanvas" class="brd-chart-canvas" height="180"></canvas>
+                                        <div id="brdChartTooltip" class="brd-chart-tooltip" style="display:none;"></div>
                     <div id="brdChartLabels" class="brd-chart-labels"></div>
-                  </div>
-                  <div class="brd-stats-row">
-                    <div class="brd-stat-item">
-                      <span class="brd-stat-label">Mínimo</span>
-                      <span id="brdStatMin" class="brd-stat-value">—</span>
-                      <span class="brd-stat-unit">bpm</span>
-                    </div>
-                    <div class="brd-stat-divider"></div>
-                    <div class="brd-stat-item">
-                      <span class="brd-stat-label">Máximo</span>
-                      <span id="brdStatMax" class="brd-stat-value">—</span>
-                      <span class="brd-stat-unit">bpm</span>
-                    </div>
-                    <div class="brd-stat-divider"></div>
-                    <div class="brd-stat-item">
-                      <span class="brd-stat-label">Variação</span>
-                      <span id="brdStatVar" class="brd-stat-value">—</span>
-                      <span class="brd-stat-unit">bpm</span>
-                    </div>
                   </div>
                 </div>
 
@@ -283,14 +266,6 @@
                         <button type="button" class="vital-period-chip" data-default-period="15d" onclick="setVitalDefaultPeriod('15d')">15 dias</button>
                         <button type="button" class="vital-period-chip" data-default-period="30d" onclick="setVitalDefaultPeriod('30d')">30 dias</button>
                         <button type="button" class="vital-period-chip" data-default-period="year" onclick="setVitalDefaultPeriod('year')">Ano</button>
-                        <button type="button" class="vital-period-chip" data-default-period="livre" onclick="setVitalDefaultPeriod('livre')">Livre</button>
-                    </div>
-                    <div id="vitalDefaultLivreRow" class="form-group vital-batimento-livre" style="display: none;">
-                        <label class="form-label">Período livre</label>
-                        <div class="vital-livre-inputs">
-                            <input type="date" class="form-input" id="filterVitalLivreInicio" onchange="onVitalDefaultLivreRangeChange()">
-                            <input type="date" class="form-input" id="filterVitalLivreFim" onchange="onVitalDefaultLivreRangeChange()">
-                        </div>
                     </div>
                 </div>
                 <div class="form-group" id="vitalDefaultDateFilterRow">
@@ -304,6 +279,32 @@
                 <!-- Gráfico abaixo dos filtros -->
                 <div id="pressaoHistoricoView">
                     <canvas id="sparklineChart" width="720" height="220" style="width: 100%; border-radius: 10px; display: block; margin-bottom: 8px;"></canvas>
+                </div>
+
+                <!-- Detalhe de um dia específico de pressão arterial -->
+                <div id="pressaoDiaDetailView" style="display:none;">
+                  <div class="pressao-dia-det-header">
+                    <button type="button" class="pressao-dia-det-back-btn" onclick="closePressaoDiaDetail()">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <span id="pressaoDiaDetailLabel" class="pressao-dia-det-label"></span>
+                  </div>
+                  <div id="pressaoDiaMinMax" class="bat-hd-minmax-card"></div>
+                  <div class="pressao-dia-det-list-card">
+                    <div id="pressaoDiaReadingsList"></div>
+                  </div>
+                  <button type="button" class="pressao-inserir-btn" onclick="openPressaoInsertForm()">+ Inserir dados</button>
+                </div>
+
+                <!-- Detalhe de uma coleta específica de pressão arterial -->
+                <div id="pressaoColetaDetailView" style="display:none;">
+                  <div class="pressao-dia-det-header">
+                    <button type="button" class="pressao-dia-det-back-btn" onclick="closePressaoColetaDetail()">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <span id="pressaoColetaDetailLabel" class="pressao-dia-det-label"></span>
+                  </div>
+                  <div id="pressaoColetaDetailContent"></div>
                 </div>
             </div>
 

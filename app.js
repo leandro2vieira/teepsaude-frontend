@@ -26,6 +26,10 @@ let pendingConfirmAction = null;
 let currentDailyScheduleFilter = 'todos';
 let passosSelectedDayIso = null;
 let passosSelectedHour = null;
+let pressaoSelectedDay = null; // ISO date of selected day in the pressure sparkline
+let pressaoColetaEntries = []; // sorted entries of the currently open day detail
+let pressaoColetaDayIso = null; // ISO date of the currently open day detail
+let pressaoDiaShowAll = false; // whether the reading list is fully expanded
 /** Dia selecionado no day-picker de Batimento Cardíaco (ISO YYYY-MM-DD). null = hoje */
 let batimentoSelectedDayISO = null;
 
@@ -155,18 +159,29 @@ function renderPassosHourlyCanvas(dayIso, dayEntries, goal) {
   values.forEach((v, h) => {
     const cx = padL + h * slot + slot / 2;
     const x = cx - barW / 2;
-    hourHits.push({ x0: padL + h * slot, x1: padL + (h + 1) * slot, hour: h });
+    hourHits.push({ x0: padL + h * slot, x1: padL + (h + 1) * slot, hour: h, cx });
     if (v > 0) {
       const y = toY(v);
       const hb = Math.max(1, toY(0) - y);
       const isSelected = Number.isInteger(passosSelectedHour) && passosSelectedHour === h;
-      ctx.fillStyle = isSelected ? '#16a34a' : '#67d38f';
+      ctx.fillStyle = isSelected ? '#2563eb' : '#67d38f'; // azul forte para selecionada
       if (typeof ctx.roundRect === 'function') {
         ctx.beginPath();
         ctx.roundRect(x, y, barW, hb, 2);
         ctx.fill();
       } else {
         ctx.fillRect(x, y, barW, hb);
+      }
+      // Se selecionada, desenha linha vertical centralizada
+      if (isSelected) {
+        ctx.save();
+        ctx.strokeStyle = '#2563eb';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx, padT);
+        ctx.lineTo(cx, height - padB);
+        ctx.stroke();
+        ctx.restore();
       }
     }
   });
@@ -202,6 +217,7 @@ function setPassosDayFromChart(dayIso) {
   if (!currentVitalDetail || currentVitalDetail.tipo !== 'Passos') return;
   passosSelectedDayIso = dayIso;
   passosSelectedHour = null;
+  batHourlySelectedHour = null;
   renderVitalDetailContent(currentVitalHistoricoView);
   renderSparklineChart(currentVitalHistoricoView);
 }
@@ -211,6 +227,7 @@ function setPassosDayFromList(dayIso) {
   if (!currentVitalDetail || currentVitalDetail.tipo !== 'Passos') return;
   passosSelectedDayIso = dayIso;
   passosSelectedHour = null;
+  batHourlySelectedHour = null;
   renderVitalDetailContent(currentVitalHistoricoView);
   renderSparklineChart(currentVitalHistoricoView);
 }
@@ -4746,6 +4763,8 @@ function renderBatimentoMinMaxCard(historico) {
     </div>`;
 }
 
+let batHourlySelectedHour = null;
+let batHdSelectedSlot = null;
 // ─── Batimento: Gráfico mín/máx por hora ──────────────────────────────────
 function renderBatimentoHourlyChart(historico) {
   const el = document.getElementById('batHourlyChart');
@@ -4779,7 +4798,10 @@ function renderBatimentoHourlyChart(historico) {
       <span class="bhc-leg bhc-leg--ref"><span class="bhc-ref-line"></span>Ref. ${band.min}–${band.max}</span>
     </div>` : `<p class="bat-hourly-chart-empty">Sem dados para este dia</p>`}`;
 
-  if (!hasData) return;
+  if (!hasData) {
+    batHourlySelectedHour = null;
+    return;
+  }
 
   requestAnimationFrame(() => {
     const canvas = document.getElementById('batHourlyChartCanvas');
@@ -4790,136 +4812,151 @@ function renderBatimentoHourlyChart(historico) {
     canvas.width = W * dpr;
     canvas.height = H * dpr;
     canvas.style.height = H + 'px';
-    const ctx = canvas.getContext('2d');
-    ctx.scale(dpr, dpr);
-
     const padL = 28, padR = 6, padT = 10, padB = 22;
     const gw = W - padL - padR;
     const gh = H - padT - padB;
+    const colW = gw / 24;
+    const barW = 7;
 
-    // Y scale: band + some headroom
     const allMins = hours.filter(s => s.min !== null).map(s => s.min);
     const allMaxs = hours.filter(s => s.max !== null).map(s => s.max);
     const dataLo = Math.min(...allMins, band.min) - 8;
     const dataHi = Math.max(...allMaxs, band.max) + 8;
     const yRange = dataHi - dataLo;
-
-    const toX = (i) => padL + (i / 24) * gw;
     const toY = (v) => padT + gh - ((v - dataLo) / yRange) * gh;
-    const barW = 7;
 
-    // Reference band
-    const refY1 = toY(band.max);
-    const refY2 = toY(band.min);
-    ctx.fillStyle = 'rgba(34,197,94,0.09)';
-    ctx.fillRect(padL, refY1, gw, refY2 - refY1);
-    ctx.strokeStyle = 'rgba(34,197,94,0.35)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([3, 3]);
-    ctx.beginPath(); ctx.moveTo(padL, refY1); ctx.lineTo(padL + gw, refY1); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(padL, refY2); ctx.lineTo(padL + gw, refY2); ctx.stroke();
-    ctx.setLineDash([]);
+    // Função de desenho reutilizável — não reconstrói o DOM
+    function drawBatHourly() {
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
 
-    // Grid lines
-    ctx.strokeStyle = '#f1f5f9';
-    ctx.lineWidth = 1;
-    [0, 0.5, 1].forEach(t => {
-      const y = padT + t * gh;
-      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
-    });
+      // Reference band
+      const refY1 = toY(band.max);
+      const refY2 = toY(band.min);
+      ctx.fillStyle = 'rgba(34,197,94,0.09)';
+      ctx.fillRect(padL, refY1, gw, refY2 - refY1);
+      ctx.strokeStyle = 'rgba(34,197,94,0.35)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath(); ctx.moveTo(padL, refY1); ctx.lineTo(padL + gw, refY1); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(padL, refY2); ctx.lineTo(padL + gw, refY2); ctx.stroke();
+      ctx.setLineDash([]);
 
-    // Y labels
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = `500 9px Inter, sans-serif`;
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'middle';
-    [[dataLo + 4, 1], [dataHi - 4, 0]].forEach(([v, t]) => {
-      ctx.fillText(Math.round(v), padL - 3, padT + t * gh);
-    });
+      // Grid lines
+      ctx.strokeStyle = '#f1f5f9';
+      ctx.lineWidth = 1;
+      [0, 0.5, 1].forEach(t => {
+        const y = padT + t * gh;
+        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+      });
 
-    // Bars
-    hours.forEach((slot, i) => {
-      if (slot.min === null) return;
-      const x = padL + (i / 24) * gw + (gw / 24 - barW) / 2;
-      const yTop = toY(slot.max);
-      const yBot = toY(slot.min);
-      const barH = Math.max(3, yBot - yTop);
+      // Y labels
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = `500 9px Inter, sans-serif`;
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      [[dataLo + 4, 1], [dataHi - 4, 0]].forEach(([v, t]) => {
+        ctx.fillText(Math.round(v), padL - 3, padT + t * gh);
+      });
 
-      // Determine color
-      let color;
-      if (slot.max > band.max) color = '#ef4444';       // algum momento alto
-      else if (slot.min < band.min) color = '#f59e0b';  // algum momento baixo
-      else color = '#2563eb';                            // tudo normal
+      // Barras — não selecionadas ficam apagadas quando há seleção ativa
+      const hasSel = Number.isInteger(batHourlySelectedHour);
+      hours.forEach((slot, i) => {
+        if (slot.min === null) return;
+        const x = padL + (i / 24) * gw + (colW - barW) / 2;
+        const yTop = toY(slot.max);
+        const yBot = toY(slot.min);
+        const barH = Math.max(3, yBot - yTop);
+        const isSelected = hasSel && batHourlySelectedHour === i;
 
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      const r = Math.min(barW / 2, 3);
-      ctx.roundRect(x, yTop, barW, barH, r);
-      ctx.fill();
-    });
+        let color;
+        if (slot.max > band.max) color = '#ef4444';
+        else if (slot.min < band.min) color = '#f59e0b';
+        else color = '#2563eb';
 
-    // X labels: 0h, 6h, 12h, 18h, 24h
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = `500 9px Inter, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    [0, 6, 12, 18].forEach(h => {
-      const x = padL + (h / 24) * gw;
-      ctx.fillText(h + 'h', x, H - padB + 5);
-    });
-    ctx.fillText('24h', padL + gw, H - padB + 5);
+        ctx.globalAlpha = hasSel && !isSelected ? 0.2 : 1;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.roundRect(x, yTop, barW, barH, Math.min(barW / 2, 3));
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      });
 
-    // Store hit-test data for click tooltip
-    window.__batHourlyHitData = { hours, padL, gw, barW, W, H, padT, padB, padR };
+      // Linha vertical sobre a barra selecionada (desenhada depois das barras)
+      if (Number.isInteger(batHourlySelectedHour)) {
+        const cx = padL + (batHourlySelectedHour + 0.5) * colW;
+        ctx.save();
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 3]);
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath();
+        ctx.moveTo(cx, padT);
+        ctx.lineTo(cx, H - padB);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
 
-    // Register click handler (replace previous)
+      // X labels
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = `500 9px Inter, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      [0, 6, 12, 18].forEach(h => {
+        ctx.fillText(h + 'h', padL + (h / 24) * gw, H - padB + 5);
+      });
+      ctx.fillText('24h', padL + gw, H - padB + 5);
+    }
+
+    drawBatHourly();
+
+    canvas.style.cursor = 'pointer';
     canvas.onclick = function(ev) {
       const rect = canvas.getBoundingClientRect();
       const mx = ev.clientX - rect.left;
       const my = ev.clientY - rect.top;
-      const d = window.__batHourlyHitData;
-      if (!d) return;
-      // Find which hour column was clicked (extend hit area to full column width)
-      const colW = d.gw / 24;
       let hitIdx = -1;
       for (let i = 0; i < 24; i++) {
-        if (d.hours[i].min === null) continue;
-        const x = d.padL + (i / 24) * d.gw + (colW - d.barW) / 2;
-        // Use the full column zone for easier tapping
-        const zoneX = d.padL + (i / 24) * d.gw;
-        if (mx >= zoneX && mx < zoneX + colW && my >= d.padT && my <= d.H - d.padB) {
+        if (hours[i].min === null) continue;
+        const zoneX = padL + (i / 24) * gw;
+        if (mx >= zoneX && mx < zoneX + colW && my >= padT && my <= H - padB) {
           hitIdx = i;
         }
       }
 
-      // Remove existing tooltip
+      // Atualiza seleção e redesenha o canvas diretamente (sem reconstruir o DOM)
+      batHourlySelectedHour = batHourlySelectedHour === hitIdx ? null : hitIdx;
+      drawBatHourly();
+
+      // Remove tooltip existente
       const old = document.getElementById('batHourlyTooltip');
       if (old) old.remove();
-      if (hitIdx === -1) return;
+      if (hitIdx === -1 || batHourlySelectedHour === null) return;
 
-      const slot = d.hours[hitIdx];
+      const slot = hours[hitIdx];
       const hEnd = (hitIdx + 1) % 24;
       const label = String(hitIdx).padStart(2,'0') + ':00 – ' + String(hEnd).padStart(2,'0') + ':00';
       const tip = document.createElement('div');
       tip.id = 'batHourlyTooltip';
       tip.style.cssText = 'position:absolute;background:#1e293b;color:#fff;border-radius:8px;padding:7px 12px;font-size:12px;line-height:1.5;pointer-events:none;z-index:9999;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
-      tip.innerHTML = label + '&nbsp;&nbsp;<strong style="color:#fbbf24;">' + slot.min + ' até ' + slot.max + ' bpm</strong>';
+      tip.innerHTML = label + '&nbsp;&nbsp;<strong style="color:#fbbf24;"><span style="font-size:1.2em;">' + slot.min + '</span> até <span style="font-size:1.2em;">' + slot.max + '</span> bpm</strong>';
 
-      // Position relative to canvas parent
       const parent = canvas.parentElement;
       parent.style.position = 'relative';
       const canvasRect = canvas.getBoundingClientRect();
       const parentRect = parent.getBoundingClientRect();
-      const colCenterX = d.padL + (hitIdx / 24) * d.gw + colW / 2;
-      let left = (canvasRect.left - parentRect.left) + colCenterX - 60;
-      let top = (canvasRect.top - parentRect.top) - 80;
+      const cx = padL + (hitIdx + 0.5) * colW;
+      let left = (canvasRect.left - parentRect.left) + cx - 60;
+      let top = (canvasRect.top - parentRect.top) - 44;
       if (left < 0) left = 4;
+      if (left + 200 > parentRect.width) left = parentRect.width - 204;
       if (top < 0) top = (canvasRect.top - parentRect.top) + 4;
       tip.style.left = left + 'px';
       tip.style.top = top + 'px';
       parent.appendChild(tip);
 
-      // Auto-dismiss after 3s or on next click anywhere
       const dismiss = () => { tip.remove(); document.removeEventListener('click', dismiss); };
       setTimeout(() => document.addEventListener('click', dismiss), 10);
     };
@@ -5019,8 +5056,15 @@ function openBatHourlyDetail(slotKey, dMin, dMax, historico) {
   if (!view) return;
   view.style.display = 'block';
 
-  // Label
-  document.getElementById('batHdSlotLabel').textContent = slotKey;
+  // Label com horário + data e dia da semana
+  const _selISO = batimentoSelectedDayISO || getTodayISODate();
+  const [_y, _m, _d] = _selISO.split('-').map(Number);
+  const _dateObj = new Date(_y, _m - 1, _d);
+  const _diasSem = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const _meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  const _dateLabel = `${_diasSem[_dateObj.getDay()]}, ${String(_d).padStart(2,'0')} ${_meses[_m - 1]}`;
+  document.getElementById('batHdSlotLabel').innerHTML =
+    `${slotKey} <span style="font-size:13px;font-weight:400;color:#94a3b8;">· ${_dateLabel}</span>`;
 
   // Min/Max card
   const mmEl = document.getElementById('batHdMinMax');
@@ -5058,7 +5102,7 @@ function closeBatHourlyDetail() {
 }
 
 function _buildHourlyFiveMinPoints(hNum, dMin, dMax, historico) {
-  // Coleta leituras reais nessa hora
+  // Coleta leituras reais nessa hora agrupadas por slot de 5 minutos
   const real = {};
   if (Array.isArray(historico)) {
     historico.forEach(h => {
@@ -5070,24 +5114,41 @@ function _buildHourlyFiveMinPoints(hNum, dMin, dMax, historico) {
       const slotMin = Math.floor(mm / 5) * 5;
       const v = typeof parseBatimentoHistoricoValor === 'function'
         ? parseBatimentoHistoricoValor(h) : Number(h.valor);
-      if (Number.isFinite(v)) real[slotMin] = v;
+      if (!Number.isFinite(v)) return;
+      if (!real[slotMin]) real[slotMin] = [];
+      real[slotMin].push(v);
     });
   }
 
-  // Gera os 12 slots (0,5,10,...,55) com variação suave
+  // Gera os 12 slots (0,5,10,...,55) com min/max por slot
+  // Quando há apenas um valor real no slot, aplica pequena faixa para manter a leitura visual da barra.
   const mid = Math.round((dMin + dMax) / 2);
   const amp = Math.max(Math.round((dMax - dMin) / 2), 2);
   const pts = [];
-  let prev = real[0] !== undefined ? real[0] : mid;
+  let prev = Array.isArray(real[0]) && real[0].length ? real[0][real[0].length - 1] : mid;
+  const spreadPad = Math.max(5, Math.min(9, Math.round((dMax - dMin) * 0.35)));
   for (let m = 0; m < 60; m += 5) {
-    if (real[m] !== undefined) {
-      pts.push({ min: m, bpm: real[m] });
-      prev = real[m];
+    if (Array.isArray(real[m]) && real[m].length) {
+      const vals = real[m];
+      let slotMin = Math.min(...vals);
+      let slotMax = Math.max(...vals);
+      const anchor = Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+      const localPad = Math.max(4, Math.min(11, spreadPad + Math.round(Math.abs(anchor - prev) * 0.35)));
+      if (slotMax <= slotMin) {
+        slotMin = Math.max(dMin, slotMin - localPad);
+        slotMax = Math.min(dMax, slotMax + localPad);
+      }
+      const center = Math.round((slotMin + slotMax) / 2);
+      pts.push({ min: m, bpm: center, minBpm: slotMin, maxBpm: slotMax });
+      prev = center;
     } else {
       // variação sintética suave
       const drift = Math.round((Math.random() - 0.5) * amp * 0.6);
       const v = Math.min(dMax, Math.max(dMin, prev + drift));
-      pts.push({ min: m, bpm: v });
+      const localPad = Math.max(4, Math.min(11, spreadPad + Math.round(Math.abs(v - prev) * 0.45)));
+      const sMin = Math.max(dMin, v - localPad);
+      const sMax = Math.min(dMax, v + localPad);
+      pts.push({ min: m, bpm: v, minBpm: sMin, maxBpm: sMax });
       prev = v;
     }
   }
@@ -5105,101 +5166,193 @@ function renderBatHdChart(points, dMin, dMax, hNum) {
   canvas.style.width = W + 'px';
   canvas.style.height = H + 'px';
   const ctx = canvas.getContext('2d');
-  ctx.scale(dpr, dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-  const PAD_L = 36, PAD_R = 10, PAD_T = 12, PAD_B = 28;
+  const PAD_L = 30, PAD_R = 6, PAD_T = 6, PAD_B = 22;
   const chartW = W - PAD_L - PAD_R;
   const chartH = H - PAD_T - PAD_B;
 
-  const rangeMin = Math.max(0, dMin - 15);
-  const rangeMax = dMax + 15;
-  const span = rangeMax - rangeMin || 1;
+  const idealHr = getBatimentoChartIdealBand();
+  const bounds = getBatimentoPlotYBoundsFromDataRange(dMin, dMax);
+  const yLo = bounds.yLow;
+  const yHi = bounds.yHigh;
+  const ySpan = yHi - yLo || 1;
 
-  const toX = (i) => PAD_L + (i / (points.length - 1)) * chartW;
-  const toY = (v) => PAD_T + chartH - ((v - rangeMin) / span) * chartH;
+  const slot = chartW / points.length;
+  const toX = (i) => PAD_L + (i + 0.5) * slot;
+  const toY = (v) => PAD_T + ((yHi - v) / ySpan) * chartH;
 
   // Fundo
   ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
 
-  // Linhas de grade horizontais
-  ctx.strokeStyle = '#f1f5f9';
+  drawBatimentoChartIdealBackground(ctx, PAD_L, chartW, toY, yLo, yHi, idealHr.min, idealHr.max);
+
+  // Linhas e labels do eixo Y
+  ctx.strokeStyle = 'rgba(0,0,0,0.06)';
   ctx.lineWidth = 1;
-  [0, 0.25, 0.5, 0.75, 1].forEach(t => {
-    const y = PAD_T + t * chartH;
+  [yHi, yLo].forEach(v => {
+    const y = toY(v);
     ctx.beginPath(); ctx.moveTo(PAD_L, y); ctx.lineTo(W - PAD_R, y); ctx.stroke();
+    ctx.fillStyle = '#8e8e8e';
+    ctx.font = '8px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(Math.round(v)), PAD_L - 2, y + 3);
   });
 
-  // Área preenchida
-  const grad = ctx.createLinearGradient(0, PAD_T, 0, PAD_T + chartH);
-  grad.addColorStop(0, 'rgba(99,102,241,0.18)');
-  grad.addColorStop(1, 'rgba(99,102,241,0)');
+  // Barras min/max por slot de 5 minutos
+  ctx.save();
   ctx.beginPath();
-  ctx.moveTo(toX(0), PAD_T + chartH);
-  points.forEach((p, i) => ctx.lineTo(toX(i), toY(p.bpm)));
-  ctx.lineTo(toX(points.length - 1), PAD_T + chartH);
-  ctx.closePath();
-  ctx.fillStyle = grad;
-  ctx.fill();
+  ctx.rect(PAD_L, PAD_T, chartW, chartH);
+  ctx.clip();
 
-  // Linha
-  ctx.beginPath();
-  ctx.strokeStyle = '#6366f1';
-  ctx.lineWidth = 2;
-  ctx.lineJoin = 'round';
-  points.forEach((p, i) => i === 0 ? ctx.moveTo(toX(i), toY(p.bpm)) : ctx.lineTo(toX(i), toY(p.bpm)));
-  ctx.stroke();
+  // Usa min/max já preparados por slot; fallback mantém compatibilidade com formato antigo ({min,bpm})
+  const slotData = points.map(p => ({
+    min: p.min,
+    minBpm: p.minBpm !== undefined ? p.minBpm : (p.bpm !== undefined ? p.bpm : dMin),
+    maxBpm: p.maxBpm !== undefined ? p.maxBpm : (p.bpm !== undefined ? p.bpm : dMax)
+  }));
 
-  // Pontos
-  points.forEach((p, i) => {
+  // Barras finas, arredondadas, espaçamento igual ao gráfico de frequência por hora
+  const barW = 7; // igual ao gráfico de frequência por hora
+  const barR = 3; // igual ao gráfico de frequência por hora
+  const n = slotData.length;
+  const barSlot = chartW / n;
+
+  // Função de desenho reutilizável (não reconstrói o DOM)
+  function drawBatHd() {
+    const hasSel = Number.isInteger(batHdSelectedSlot);
+    ctx.save();
     ctx.beginPath();
-    ctx.arc(toX(i), toY(p.bpm), 3, 0, Math.PI * 2);
-    ctx.fillStyle = '#6366f1';
-    ctx.fill();
-  });
+    ctx.rect(PAD_L, PAD_T, chartW, chartH);
+    ctx.clip();
 
-  // Eixo X — labels a cada 15 minutos
-  ctx.fillStyle = '#94a3b8';
-  ctx.font = '10px Inter, sans-serif';
-  ctx.textAlign = 'center';
-  // 12 pontos = 0,5,10...55min. Mostrar 0, 15, 30, 45, 55
-  [[0,'00min'],[3,'15min'],[6,'30min'],[9,'45min'],[11,'55min']].forEach(([i, label]) => {
-    if (points[i]) ctx.fillText(label, toX(i), H - 6);
-  });
+    // Fundo + ideal band (redraw limpo)
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
 
-  // Eixo Y — min e max
-  ctx.textAlign = 'right';
-  ctx.fillText(String(rangeMax), PAD_L - 4, PAD_T + 4);
-  ctx.fillText(String(rangeMin), PAD_L - 4, PAD_T + chartH);
+    drawBatimentoChartIdealBackground(ctx, PAD_L, chartW, toY, yLo, yHi, idealHr.min, idealHr.max);
 
-  // Tooltip ao clicar num ponto
-  const tooltip = document.getElementById('batHdTooltip');
-  const HIT_R = Math.max(12, chartW / points.length / 2);
-  function showBatHdTip(px, py) {
-    if (!tooltip) return;
-    const rect = canvas.getBoundingClientRect();
-    const cx = px - rect.left, cy = py - rect.top;
-    let best = null, bestDist = HIT_R;
-    points.forEach((p, i) => {
-      const dx = toX(i) - cx, dy = toY(p.bpm) - cy;
-      const d = Math.sqrt(dx*dx + dy*dy);
-      if (d < bestDist) { bestDist = d; best = { p, i }; }
+    ctx.restore();
+
+    // Linhas e labels eixo Y
+    ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+    ctx.lineWidth = 1;
+    [yHi, yLo].forEach(v => {
+      const y = toY(v);
+      ctx.beginPath(); ctx.moveTo(PAD_L, y); ctx.lineTo(W - PAD_R, y); ctx.stroke();
+      ctx.fillStyle = '#8e8e8e';
+      ctx.font = '8px sans-serif';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(String(Math.round(v)), PAD_L - 2, y + 3);
     });
-    if (!best) return;
+
+    // Barras
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(PAD_L, PAD_T, chartW, chartH);
+    ctx.clip();
+    slotData.forEach((p, i) => {
+      const x = PAD_L + i * barSlot + (barSlot - barW) / 2;
+      const lo = Math.min(p.minBpm, p.maxBpm);
+      const hi = Math.max(p.minBpm, p.maxBpm);
+      const isSelected = hasSel && batHdSelectedSlot === i;
+      let color;
+      if (hi > idealHr.max) color = '#ef4444';
+      else if (lo < idealHr.min) color = '#f59e0b';
+      else color = '#2563eb';
+      ctx.globalAlpha = hasSel && !isSelected ? 0.2 : 1;
+      ctx.fillStyle = color;
+      if (typeof ctx.roundRect === 'function') {
+        ctx.beginPath();
+        ctx.roundRect(x, toY(hi), barW, Math.max(3, toY(lo) - toY(hi)), barR);
+        ctx.fill();
+      } else {
+        ctx.fillRect(x, toY(hi), barW, Math.max(3, toY(lo) - toY(hi)));
+      }
+      ctx.globalAlpha = 1;
+    });
+
+    // Linha vertical sobre a barra selecionada
+    if (Number.isInteger(batHdSelectedSlot)) {
+      const cx = toX(batHdSelectedSlot);
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 3]);
+      ctx.globalAlpha = 0.7;
+      ctx.beginPath();
+      ctx.moveTo(cx, PAD_T);
+      ctx.lineTo(cx, H - PAD_B);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+
+    // Eixo X
+    ctx.fillStyle = '#666666';
+    ctx.font = '8px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    [[0,'00min'],[3,'15min'],[6,'30min'],[9,'45min'],[11,'55min']].forEach(([i, label]) => {
+      if (points[i]) ctx.fillText(label, toX(i), H - 6);
+    });
+  }
+
+  batHdSelectedSlot = null;
+  drawBatHd();
+
+  // Tooltip ao clicar numa barra
+  const tooltip = document.getElementById('batHdTooltip');
+  function showBatHdTip(i) {
+    if (!tooltip) return;
+    const p = slotData[i];
     const h = (hNum != null ? hNum : 0);
-    const timeStr = `${String(h).padStart(2,'0')}:${String(best.p.min).padStart(2,'0')}`;
-    tooltip.textContent = `${timeStr} · ${best.p.bpm} bpm`;
+    const startMin = String(p.min).padStart(2,'0');
+    const endMin = String(Math.min(p.min + 4, 59)).padStart(2, '0');
+    tooltip.innerHTML = `${String(h).padStart(2,'0')}:${startMin} – ${String(h).padStart(2,'0')}:${endMin}&nbsp;&nbsp;<strong><span style="font-size:1.2em;">${p.minBpm}</span> até <span style="font-size:1.2em;">${p.maxBpm}</span> bpm</strong>`;
+    tooltip.style.display = 'block';
     const cardRect = canvas.parentElement.getBoundingClientRect();
     const canvasRect = canvas.getBoundingClientRect();
-    tooltip.style.left = (canvasRect.left - cardRect.left + toX(best.i)) + 'px';
-    tooltip.style.top  = (canvasRect.top  - cardRect.top  + toY(best.p.bpm)) + 'px';
-    tooltip.style.display = '';
+    const tw = tooltip.offsetWidth || 150;
+    const th = tooltip.offsetHeight || 44;
+    let left = (canvasRect.left - cardRect.left) + toX(i) - tw / 2;
+    left = Math.max(4, Math.min(left, cardRect.width - tw - 4));
+    let top = (canvasRect.top - cardRect.top) - th - 8;
+    if (top < 4) top = 4;
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top  = `${top}px`;
   }
   if (canvas._batHdClick) canvas.removeEventListener('click', canvas._batHdClick);
-  canvas._batHdClick = (e) => { showBatHdTip(e.clientX, e.clientY); e.stopPropagation(); };
+  canvas._batHdClick = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    // Encontra o slot mais próximo no eixo X
+    let best = -1;
+    let bestDist = Infinity;
+    slotData.forEach((p, i) => {
+      const dist = Math.abs(toX(i) - cx);
+      if (dist < bestDist) { bestDist = dist; best = i; }
+    });
+    batHdSelectedSlot = batHdSelectedSlot === best ? null : best;
+    drawBatHd();
+    if (tooltip) tooltip.style.display = 'none';
+    if (batHdSelectedSlot !== null) showBatHdTip(batHdSelectedSlot);
+    e.stopPropagation();
+  };
   canvas.addEventListener('click', canvas._batHdClick);
-  document.addEventListener('click', function onOut(e) {
-    if (e.target !== canvas) { if (tooltip) tooltip.style.display = 'none'; document.removeEventListener('click', onOut); }
-  });
+  if (document._batHdOutsideClick) document.removeEventListener('click', document._batHdOutsideClick);
+  document._batHdOutsideClick = function(e) {
+    if (e.target !== canvas) {
+      if (tooltip) tooltip.style.display = 'none';
+      if (batHdSelectedSlot !== null) { batHdSelectedSlot = null; drawBatHd(); }
+    }
+  };
+  document.addEventListener('click', document._batHdOutsideClick);
 }
 
 // ─── Batimento: Tendência de repouso 7 dias ────────────────────────────────
@@ -5409,12 +5562,12 @@ function _brdUpdateChips(active) {
 }
 
 function _brdGetStatus(avg) {
-  if (avg < 50) return { cls: 'brd-status-red',    label: 'Bradicardia', text: 'Frequência cardíaca muito abaixo do normal. Recomenda-se consultar um médico.',          tip: 'Procure seu cardiologista para uma avaliação completa.' };
-  if (avg <= 60) return { cls: 'brd-status-blue',   label: 'Atlético',   text: 'Frequência típica de pessoas com alta aptidão cardiovascular.',                          tip: 'Mantenha a rotina de exercícios — seu coração agradece.' };
-  if (avg <= 72) return { cls: 'brd-status-green',  label: 'Excelente',  text: 'Frequência cardíaca em repouso excelente.',                                              tip: 'Continue dormindo bem e mantendo a atividade física regular.' };
-  if (avg <= 80) return { cls: 'brd-status-green',  label: 'Normal',     text: 'Frequência cardíaca em repouso dentro da faixa saudável para adultos.',                  tip: 'Sono de qualidade e caminhadas diárias ajudam a manter esse resultado.' };
-  if (avg <= 90) return { cls: 'brd-status-yellow', label: 'Atenção',    text: 'Levemente acima do ideal.',                                                              tip: 'Tente reduzir o estresse e priorize pelo menos 7h de sono por noite.' };
-  return              { cls: 'brd-status-red',      label: 'Elevado',    text: 'Frequência elevada em repouso.',                                                         tip: 'Considere consultar um profissional de saúde e evite cafeína à noite.' };
+  if (avg < 50) return { cls: 'brd-status-red',    label: 'Bradicardia', text: 'Frequência cardíaca em repouso muito abaixo do normal. Recomenda-se consultar um médico.', tip: 'Procure seu cardiologista para uma avaliação completa.' };
+  if (avg <= 60) return { cls: 'brd-status-blue',   label: 'Atlético',   text: 'Frequência típica de pessoas com alta aptidão cardiovascular.',                             tip: 'Mantenha a rotina de exercícios — seu coração agradece.' };
+  if (avg <= 72) return { cls: 'brd-status-green',  label: 'Excelente',  text: 'Frequência cardíaca em repouso em nível excelente.',                                         tip: 'Continue dormindo bem e mantendo a atividade física regular.' };
+  if (avg <= 80) return { cls: 'brd-status-green',  label: 'Normal',     text: 'Frequência cardíaca em repouso dentro da faixa saudável para adultos.',                     tip: 'Sono de qualidade e caminhadas diárias ajudam a manter esse resultado.' };
+  if (avg <= 90) return { cls: 'brd-status-yellow', label: 'Atenção',    text: 'Frequência cardíaca em repouso levemente acima do ideal.',                                   tip: 'Tente reduzir o estresse e priorize pelo menos 7h de sono por noite.' };
+  return              { cls: 'brd-status-red',      label: 'Elevado',    text: 'Frequência cardíaca em repouso elevada.',                                                  tip: 'Considere consultar um profissional de saúde e evite cafeína à noite.' };
 }
 
 function _brdBuildPoints(period) {
@@ -5423,6 +5576,9 @@ function _brdBuildPoints(period) {
   var n = period === '7d' ? 7 : (period === '30d' ? 30 : (period === '3m' ? 13 : 12));
   var isWeekly = period === '3m' || period === '1y';
   var points = [];
+  var fmtDayMonth = function(date) {
+    return String(date.getDate()).padStart(2, '0') + '/' + String(date.getMonth() + 1).padStart(2, '0');
+  };
 
   for (var i = n - 1; i >= 0; i--) {
     var d = new Date(today);
@@ -5433,14 +5589,14 @@ function _brdBuildPoints(period) {
     var pos = n - 1 - i;
     var label = '';
     if (period === '7d') {
-      label = d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.','');
+      label = fmtDayMonth(d);
     } else if (period === '30d') {
-      label = (pos % 5 === 0 || pos === n - 1) ? String(d.getDate()) : '';
+      label = (pos % 5 === 0 || pos === n - 1) ? fmtDayMonth(d) : '';
     } else if (period === '1y') {
       label = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.','');
     } else {
-      // 3m: show month name every 4 weeks
-      label = (pos % 4 === 0) ? d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.','') : '';
+      // 3m: show day/month every 4 weeks
+      label = (pos % 4 === 0) ? fmtDayMonth(d) : '';
     }
     points.push({ iso: iso, label: label, vals: [] });
   }
@@ -5649,6 +5805,89 @@ function _brdRenderContent(period) {
         ctx.fillText(String(p.val), toX(i), toY(p.val) - 5);
       });
     }
+
+    var tooltip = document.getElementById('brdChartTooltip');
+    var card = canvas.parentElement;
+    var activeIndex = null;
+    var pinnedIndex = null;
+
+    function getNearestIndex(clientX) {
+      var rect = canvas.getBoundingClientRect();
+      var localX = clientX - rect.left;
+      var bestIdx = -1;
+      var bestDist = Infinity;
+      points.forEach(function(p, i) {
+        if (p.val == null) return;
+        var dist = Math.abs(toX(i) - localX);
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestIdx = i;
+        }
+      });
+      return bestIdx;
+    }
+
+    function showTooltip(i) {
+      if (!tooltip || !card || i == null || i < 0 || !points[i] || points[i].val == null) return;
+      activeIndex = i;
+      var point = points[i];
+      var canvasRect = canvas.getBoundingClientRect();
+      var cardRect = card.getBoundingClientRect();
+      var pointDate = new Date(point.iso + 'T12:00:00');
+      var dateLabel = '';
+      if (period === '1y') {
+        dateLabel = pointDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      } else {
+        var weekday = pointDate.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
+        var dayMonth = String(pointDate.getDate()).padStart(2, '0') + '/' + String(pointDate.getMonth() + 1).padStart(2, '0');
+        dateLabel = weekday + ' ' + dayMonth;
+      }
+      tooltip.innerHTML = '<span class="brd-chart-tooltip-date">' + dateLabel + '</span>' +
+        '<span class="brd-chart-tooltip-value">' + point.val + ' bpm</span>';
+      tooltip.style.left = (canvasRect.left - cardRect.left + toX(i)) + 'px';
+      tooltip.style.top = (canvasRect.top - cardRect.top + toY(point.val)) + 'px';
+      tooltip.style.display = '';
+    }
+
+    function hideTooltip() {
+      activeIndex = null;
+      pinnedIndex = null;
+      if (tooltip) tooltip.style.display = 'none';
+    }
+
+    if (canvas._brdMoveHandler) canvas.removeEventListener('mousemove', canvas._brdMoveHandler);
+    if (canvas._brdLeaveHandler) canvas.removeEventListener('mouseleave', canvas._brdLeaveHandler);
+    if (canvas._brdClickHandler) canvas.removeEventListener('click', canvas._brdClickHandler);
+
+    canvas._brdMoveHandler = function(e) {
+      if (pinnedIndex != null) return;
+      showTooltip(getNearestIndex(e.clientX));
+    };
+    canvas._brdLeaveHandler = function() {
+      if (pinnedIndex == null) hideTooltip();
+    };
+    canvas._brdClickHandler = function(e) {
+      e.stopPropagation();
+      var nextIndex = getNearestIndex(e.clientX);
+      if (pinnedIndex === nextIndex) {
+        hideTooltip();
+        return;
+      }
+      pinnedIndex = nextIndex;
+      showTooltip(nextIndex);
+    };
+
+    canvas.addEventListener('mousemove', canvas._brdMoveHandler);
+    canvas.addEventListener('mouseleave', canvas._brdLeaveHandler);
+    canvas.addEventListener('click', canvas._brdClickHandler);
+
+    if (document._brdChartOutsideClick) {
+      document.removeEventListener('click', document._brdChartOutsideClick);
+    }
+    document._brdChartOutsideClick = function(e) {
+      if (e.target !== canvas) hideTooltip();
+    };
+    document.addEventListener('click', document._brdChartOutsideClick);
   });
 }
 
@@ -7095,11 +7334,231 @@ function openVitalDetailModal(tipoVital, vitalId) {
   };
 }
 
+function openPressaoDiaDetail(dayIso, entries) {
+  const view = document.getElementById('pressaoDiaDetailView');
+  if (!view) return;
+
+  const contentEl = document.getElementById('vitalDetailContent');
+  if (contentEl) contentEl.style.display = 'none';
+  const addRow = document.querySelector('#vitalDetailModal .vital-detail-add-row');
+  if (addRow) addRow.style.display = 'none';
+  view.style.display = 'block';
+
+  // Date label
+  const [_y, _m, _d] = dayIso.split('-').map(Number);
+  const _dateObj = new Date(_y, _m - 1, _d);
+  const _dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  const _meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  const dateLabel = `${_dias[_dateObj.getDay()]}, ${String(_d).padStart(2, '0')} ${_meses[_m - 1]}`;
+  const labelEl = document.getElementById('pressaoDiaDetailLabel');
+  if (labelEl) labelEl.textContent = dateLabel;
+
+  const pares = entries.map(h => typeof parseHistoricoPressurePair === 'function' ? parseHistoricoPressurePair(h) : null).filter(Boolean);
+  const minS = pares.length ? Math.min(...pares.map(p => p.s)) : null;
+  const maxS = pares.length ? Math.max(...pares.map(p => p.s)) : null;
+  const minD = pares.length ? Math.min(...pares.map(p => p.d)) : null;
+  const maxD = pares.length ? Math.max(...pares.map(p => p.d)) : null;
+  const sRange = pares.length ? (minS === maxS ? String(maxS) : `${minS} – ${maxS}`) : '—';
+  const dRange = pares.length ? (minD === maxD ? String(minD) : `${minD} – ${maxD}`) : '—';
+
+  const mmEl = document.getElementById('pressaoDiaMinMax');
+  if (mmEl) {
+    mmEl.style.flexDirection = 'column';
+    mmEl.style.alignItems = 'center';
+    mmEl.style.justifyContent = 'center';
+    mmEl.style.gap = '12px';
+    mmEl.style.padding = '20px 24px';
+    mmEl.innerHTML = `
+      <div style="display:flex;align-items:baseline;gap:7px;">
+        <span style="color:#f59e0b;font-weight:700;font-size:14px;letter-spacing:0.06em;text-transform:uppercase;">SIS.</span>
+        <span style="color:#0f172a;font-weight:700;font-size:29px;line-height:1;">${sRange}</span>
+        <span style="color:#94a3b8;font-size:16px;">mmHg</span>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:7px;">
+        <span style="color:#3b82f6;font-weight:700;font-size:14px;letter-spacing:0.06em;text-transform:uppercase;">DIA.</span>
+        <span style="color:#0f172a;font-weight:700;font-size:29px;line-height:1;">${dRange}</span>
+        <span style="color:#94a3b8;font-size:16px;">mmHg</span>
+      </div>`;
+  }
+
+  const listEl = document.getElementById('pressaoDiaReadingsList');
+  if (listEl) {
+    const sorted = entries.slice().sort((a, b) => {
+      const ta = typeof historicoEntryToMs === 'function' ? historicoEntryToMs(a) : 0;
+      const tb = typeof historicoEntryToMs === 'function' ? historicoEntryToMs(b) : 0;
+      return tb - ta;
+    });
+    pressaoColetaEntries = sorted;
+    pressaoColetaDayIso = dayIso;
+    pressaoDiaShowAll = false;
+    _renderPressaoDiaColetaList();
+  }
+}
+
+function _renderPressaoDiaColetaList() {
+  const listEl = document.getElementById('pressaoDiaReadingsList');
+  if (!listEl || !pressaoColetaEntries.length) return;
+
+  const LIMIT = 3;
+  const toShow = pressaoDiaShowAll ? pressaoColetaEntries : pressaoColetaEntries.slice(0, LIMIT);
+  const hiddenCount = pressaoColetaEntries.length - LIMIT;
+  const hasMore = !pressaoDiaShowAll && hiddenCount > 0;
+
+  // SVG icon strings — small, gray, minimal
+  const _svgNote = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
+  const _svgMed = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7.07-7.07l-10 10a4.95 4.95 0 1 0 7.07 7.07Z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg>`;
+  const _svgSin = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>`;
+  const _svgChev = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
+
+  listEl.innerHTML = toShow.map((h, _idx) => {
+    const hora = h.hora ? String(h.hora).trim().slice(0, 5) : '--:--';
+    const valorFormatado = typeof formatHistoricValue === 'function' ? formatHistoricValue(currentVitalDetail?.tipo, h) : h.valor;
+    const hr = getHeartRateForPressureEntry(h);
+    const hrLabel = Number.isFinite(hr) ? `${Math.round(hr)} bpm` : '';
+
+    const hasNota = h.anotacao && String(h.anotacao).trim().length > 0;
+    const hasMed = h.medicamentoPressao && h.medicamentoPressao !== 'nenhum';
+    const hasSin = h.sintomas && String(h.sintomas).trim().length > 0;
+
+    const noteIcon = hasNota ? `<span class="pressao-icon" title="${String(h.anotacao).trim()}">${_svgNote}</span>` : '';
+    const medIcon = hasMed ? `<span class="pressao-icon" title="Medicação: ${h.medicamentoPressao}">${_svgMed}</span>` : '';
+    const sinIcon = hasSin ? `<span class="pressao-icon" title="Sintoma: ${String(h.sintomas).trim()}">${_svgSin}</span>` : '';
+
+    return `
+      <div class="pressao-coleta-item pressao-coleta-item--clickable" onclick="openPressaoColetaDetail(${_idx})">
+        <div class="pressao-coleta-main">
+          <div class="pressao-coleta-left">
+            <span class="pressao-coleta-valor">${valorFormatado} mmHg</span>${hrLabel ? `<span class="pressao-coleta-sep">·</span><span class="pressao-coleta-fc">${hrLabel}</span>` : ''}
+            <div class="pressao-coleta-hora">${hora}</div>
+          </div>
+          <div class="pressao-coleta-icons">${noteIcon}${medIcon}${sinIcon}<span class="pressao-coleta-chevron">${_svgChev}</span></div>
+        </div>
+      </div>`;
+  }).join('') + (hasMore
+    ? `<button class="pressao-ver-mais-btn" onclick="pressaoColetaShowMore()">Ver mais ${hiddenCount > 1 ? `(+${hiddenCount})` : ''}</button>`
+    : '');
+}
+
+function pressaoColetaShowMore() {
+  pressaoDiaShowAll = true;
+  _renderPressaoDiaColetaList();
+}
+
+function closePressaoDiaDetail() {
+  pressaoSelectedDay = null;
+  const _dCanvas = document.getElementById('sparklineChart');
+  if (_dCanvas && typeof _dCanvas.__drawPressao === 'function') _dCanvas.__drawPressao();
+  const view = document.getElementById('pressaoDiaDetailView');
+  if (view) view.style.display = 'none';
+  const contentEl = document.getElementById('vitalDetailContent');
+  if (contentEl) contentEl.style.display = '';
+  const addRow = document.querySelector('#vitalDetailModal .vital-detail-add-row');
+  if (addRow) addRow.style.display = '';
+}
+
+function openPressaoColetaDetail(idx) {
+  const h = pressaoColetaEntries[idx];
+  if (!h) return;
+
+  const diaView = document.getElementById('pressaoDiaDetailView');
+  if (diaView) diaView.style.display = 'none';
+  const coletaView = document.getElementById('pressaoColetaDetailView');
+  if (!coletaView) return;
+  coletaView.style.display = 'block';
+
+  // Hide chart + period filters while in reading detail
+  const _chartArea = document.getElementById('pressaoHistoricoView');
+  if (_chartArea) _chartArea.style.display = 'none';
+  const _periodControls = document.getElementById('vitalDefaultPeriodControls');
+  if (_periodControls) _periodControls.style.display = 'none';
+
+  // Label: "Sex, 08 mai · 18:15"
+  const hora = h.hora ? String(h.hora).trim().slice(0, 5) : '--:--';
+  const labelEl = document.getElementById('pressaoColetaDetailLabel');
+  if (labelEl && pressaoColetaDayIso) {
+    const [_y, _m, _d] = pressaoColetaDayIso.split('-').map(Number);
+    const _dateObj = new Date(_y, _m - 1, _d);
+    const _dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    const _meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+    labelEl.textContent = `${_dias[_dateObj.getDay()]}, ${String(_d).padStart(2, '0')} ${_meses[_m - 1]} · ${hora}`;
+  }
+
+  const pair = typeof parseHistoricoPressurePair === 'function' ? parseHistoricoPressurePair(h) : null;
+  const hr = getHeartRateForPressureEntry(h);
+  const hrLabel = Number.isFinite(hr) ? `${Math.round(hr)} bpm` : null;
+  const medTomado = h.medicamentoPressao === 'tomados';
+
+  // Simulate a note if none exists (for demo)
+  const nota = (h.anotacao && String(h.anotacao).trim().length > 0)
+    ? String(h.anotacao).trim()
+    : 'Medição realizada em repouso, após 5 minutos sentado.';
+
+  const medIconHtml = medTomado
+    ? `<span class="pressao-det-med-icon" title="Medicação tomada"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7.07-7.07l-10 10a4.95 4.95 0 1 0 7.07 7.07Z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg></span>`
+    : '';
+
+  const contentEl = document.getElementById('pressaoColetaDetailContent');
+  if (contentEl) {
+    contentEl.innerHTML = `
+      <div class="pressao-coleta-det-card">
+        <div class="pressao-coleta-det-row">
+          <div class="pressao-coleta-det-metric">
+            <span class="pressao-coleta-det-label pressao-coleta-det-label--sis">SIS.</span>
+            <span class="pressao-coleta-det-value">${pair ? pair.s : '—'}</span>
+          </div>
+          <div class="pressao-coleta-det-center">
+            <span class="pressao-coleta-det-unit">/</span>
+          </div>
+          <div class="pressao-coleta-det-metric">
+            <span class="pressao-coleta-det-label pressao-coleta-det-label--dia">DIA.</span>
+            <span class="pressao-coleta-det-value">${pair ? pair.d : '—'}</span>
+          </div>
+        </div>
+        <div class="pressao-coleta-det-unit-row">mmHg</div>
+        ${hrLabel ? `<div class="pressao-coleta-det-hr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>${hrLabel}</span>${medIconHtml}</div>` : ''}
+      </div>
+      <div class="pressao-nota-card">
+        <div class="pressao-nota-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span>Nota</span>
+        </div>
+        <p class="pressao-nota-text">${nota}</p>
+      </div>`;
+  }
+}
+
+function closePressaoColetaDetail() {
+  const coletaView = document.getElementById('pressaoColetaDetailView');
+  if (coletaView) coletaView.style.display = 'none';
+  // Restore chart + period filters
+  const _chartArea = document.getElementById('pressaoHistoricoView');
+  if (_chartArea) _chartArea.style.display = '';
+  const _periodControls = document.getElementById('vitalDefaultPeriodControls');
+  if (_periodControls) _periodControls.style.display = '';
+  const diaView = document.getElementById('pressaoDiaDetailView');
+  if (diaView) diaView.style.display = 'block';
+}
+
+function openPressaoInsertForm() {
+  // TODO: will be implemented when the user specifies the form fields
+}
+
 function renderSparklineChart(historico) {
   const canvas = document.getElementById('sparklineChart');
   if (!canvas) return;
   canvas.onclick = null;
   canvas.style.cursor = 'default';
+
+  // Reset to HTML defaults (pressure branch will override via rAF)
+  canvas.style.width = '100%';
+  canvas.style.height = '';
+  canvas.width = 720;
+  canvas.height = 220;
+  canvas.__drawPressao = null;
+  const _sparkView = document.getElementById('pressaoHistoricoView');
+  if (_sparkView) { _sparkView.style.overflowX = ''; _sparkView.style.overflowY = ''; }
+  const _oldPressLegend = document.getElementById('pressaoChartLegend');
+  if (_oldPressLegend) _oldPressLegend.remove();
 
   const ctx = canvas.getContext('2d');
   const width = canvas.width;
@@ -7107,13 +7566,36 @@ function renderSparklineChart(historico) {
   ctx.clearRect(0, 0, width, height);
 
   if (currentVitalDetail && currentVitalDetail.tipo === 'Pressão Arterial') {
-    const pressureRows = historico
-      .slice(0, 10)
-      .reverse()
-      .map((h) => ({ h, pair: typeof parseHistoricoPressurePair === 'function' ? parseHistoricoPressurePair(h) : null }))
-      .filter((row) => !!row.pair);
-    if (pressureRows.length === 0) return;
-    const pares = pressureRows.map((row) => row.pair);
+    pressaoSelectedDay = null;
+    const _oldTip = document.getElementById('pressaoChartTooltip');
+    if (_oldTip) _oldTip.remove();
+    closePressaoDiaDetail();
+
+    // Group readings by day — average systolic and diastolic per day
+    const _byDay = new Map();
+    historico.forEach((h) => {
+      const dayIso = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data || '').slice(0, 10);
+      if (!dayIso) return;
+      const pair = typeof parseHistoricoPressurePair === 'function' ? parseHistoricoPressurePair(h) : null;
+      if (!pair) return;
+      if (!_byDay.has(dayIso)) _byDay.set(dayIso, { entries: [], sumS: 0, sumD: 0, count: 0 });
+      const day = _byDay.get(dayIso);
+      day.entries.push(h);
+      day.sumS += pair.s;
+      day.sumD += pair.d;
+      day.count++;
+    });
+
+    const pressureDayRows = Array.from(_byDay.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([dayIso, data]) => ({
+        dayIso,
+        entries: data.entries,
+        avgS: Math.round(data.sumS / data.count),
+        avgD: Math.round(data.sumD / data.count),
+      }));
+
+    if (pressureDayRows.length === 0) return;
 
     let idealSys = 120;
     let idealDia = 80;
@@ -7126,78 +7608,339 @@ function renderSparklineChart(historico) {
       idealDia = Number(idealObj.diastolic);
     }
 
-    const minData = Math.min(...pares.map((p) => p.d));
-    const maxData = Math.max(...pares.map((p) => p.s));
-    let yLow = Math.floor((Math.min(minData, idealDia) - 6) / 5) * 5;
-    let yHigh = Math.ceil((Math.max(maxData, idealSys) + 6) / 5) * 5;
-    if (yHigh - yLow < 20) {
-      yLow -= 10;
-      yHigh += 10;
-    }
-    yLow = Math.max(40, yLow);
-    yHigh = Math.min(220, yHigh);
-    const span = yHigh - yLow || 1;
-
-    const padL = 26;
-    const padR = 8;
-    const padT = 8;
-    const padB = 20;
-    const gw = width - padL - padR;
-    const gh = height - padT - padB;
-    const toY = (v) => padT + ((yHigh - v) / span) * gh;
-
-    ctx.fillStyle = '#F8F9FA';
-    ctx.fillRect(0, 0, width, height);
-    drawBatimentoChartIdealBackground(ctx, padL, gw, toY, yLow, yHigh, idealDia, idealSys);
-
-    const n = pressureRows.length;
-    const slot = gw / Math.max(1, n);
-    const barW = Math.min(16, Math.max(5, slot * 0.66));
-    const barR = Math.min(6, barW / 2 - 0.5);
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(padL, padT, gw, gh);
-    ctx.clip();
-    pressureRows.forEach((row, i) => {
-      const p = row.pair;
-      const cx = padL + slot * i + slot / 2;
-      const x0 = cx - barW / 2;
-      drawBatimentoIdealSegmentedRangeBar(
-        ctx,
-        x0,
-        barW,
-        p.d,
-        p.s,
-        idealDia,
-        idealSys,
-        toY,
-        barR,
-        false
-      );
-    });
-    ctx.restore();
-
-    ctx.fillStyle = '#8e8e8e';
-    ctx.font = '8px sans-serif';
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(String(Math.round(yHigh)), padL - 4, toY(yHigh));
-    ctx.fillText(String(Math.round(yLow)), padL - 4, toY(yLow));
-    ctx.textBaseline = 'alphabetic';
-
-    const labelEvery = Math.max(1, Math.ceil(n / 5));
-    ctx.fillStyle = '#666';
-    ctx.textAlign = 'center';
-    pressureRows.forEach((row, i) => {
-        if (i % labelEvery !== 0 && i !== n - 1) return;
-        const cx = padL + slot * i + slot / 2;
-        const h = row.h;
-        const d = String(h.data || '');
-        const parts = d.split('-');
-        const short = parts.length === 3 ? String(Number(parts[2])) : '';
-        ctx.fillText(short, cx, height - 4);
+    // Year mode: group by month for the chart (X axis = months)
+    const _isYearView = typeof vitalDefaultPeriod !== 'undefined' && vitalDefaultPeriod === 'year';
+    const _mAbr = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    let renderRows = pressureDayRows;
+    if (_isYearView) {
+      const _byMonth = new Map();
+      pressureDayRows.forEach(row => {
+        const mk = row.dayIso.slice(0, 7); // YYYY-MM
+        if (!_byMonth.has(mk)) _byMonth.set(mk, { monthKey: mk, firstDayIso: row.dayIso, entries: [], sumS: 0, sumD: 0, count: 0 });
+        const mo = _byMonth.get(mk);
+        mo.entries.push(...row.entries);
+        mo.sumS += row.avgS * row.entries.length;
+        mo.sumD += row.avgD * row.entries.length;
+        mo.count += row.entries.length;
       });
+      renderRows = Array.from(_byMonth.values())
+        .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
+        .map(mo => ({
+          dayIso: mo.firstDayIso,
+          monthKey: mo.monthKey,
+          entries: mo.entries,
+          avgS: Math.round(mo.sumS / mo.count),
+          avgD: Math.round(mo.sumD / mo.count),
+        }));
+    }
+
+    // Scrollable container
+    const _chartView = document.getElementById('pressaoHistoricoView');
+    if (_chartView) {
+      _chartView.style.overflowX = 'auto';
+      _chartView.style.overflowY = 'hidden';
+      _chartView.style.webkitOverflowScrolling = 'touch';
+    }
+
+    // Legend
+    let _legend = document.getElementById('pressaoChartLegend');
+    if (!_legend) {
+      _legend = document.createElement('div');
+      _legend.id = 'pressaoChartLegend';
+      if (_chartView) _chartView.appendChild(_legend);
+    }
+    _legend.style.cssText = 'display:flex;gap:14px;justify-content:center;padding:4px 0 2px;font-size:11px;color:#64748b;';
+    _legend.innerHTML =
+      '<span style="display:flex;align-items:center;gap:4px;"><span style="width:14px;height:3px;background:#f59e0b;border-radius:2px;display:inline-block;vertical-align:middle;"></span> Sistólica</span>' +
+      '<span style="display:flex;align-items:center;gap:4px;"><span style="width:14px;height:3px;background:#3b82f6;border-radius:2px;display:inline-block;vertical-align:middle;"></span> Diastólica</span>';
+
+    requestAnimationFrame(() => {
+      const dpr = window.devicePixelRatio || 1;
+      const n = renderRows.length;
+      const containerW = _chartView ? _chartView.offsetWidth : (canvas.parentElement ? canvas.parentElement.offsetWidth : 320);
+      const minColW = _isYearView ? 30 : 44;
+      const colW = Math.max(minColW, containerW / n);
+      const W = Math.max(containerW, n * colW);
+      const H = 180;
+
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+
+      const padL = 30, padR = 10, padT = 12, padB = 22;
+      const gw = W - padL - padR;
+      const gh = H - padT - padB;
+
+      const allS = renderRows.map(r => r.avgS);
+      const allD = renderRows.map(r => r.avgD);
+      let yLow = Math.floor((Math.min(...allD, idealDia) - 10) / 5) * 5;
+      let yHigh = Math.ceil((Math.max(...allS, idealSys) + 10) / 5) * 5;
+      if (yHigh - yLow < 30) { yLow -= 10; yHigh += 10; }
+      yLow = Math.max(40, yLow);
+      yHigh = Math.min(220, yHigh);
+      const span = yHigh - yLow || 1;
+      const toY = (v) => padT + ((yHigh - v) / span) * gh;
+
+      function drawPressaoChart() {
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, W, H);
+
+        ctx.fillStyle = '#F8F9FA';
+        ctx.fillRect(0, 0, W, H);
+
+        // Ideal zone band
+        const bandY1 = toY(idealSys);
+        const bandY2 = toY(idealDia);
+        ctx.fillStyle = 'rgba(34, 197, 94, 0.07)';
+        ctx.fillRect(padL, bandY1, gw, bandY2 - bandY1);
+        ctx.strokeStyle = 'rgba(34, 197, 94, 0.3)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(padL, bandY1); ctx.lineTo(padL + gw, bandY1); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(padL, bandY2); ctx.lineTo(padL + gw, bandY2); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Horizontal grid lines
+        ctx.strokeStyle = '#f1f5f9';
+        ctx.lineWidth = 1;
+        [0, 0.5, 1].forEach(t => {
+          const y = padT + t * gh;
+          ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+        });
+
+        // Y labels
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '500 9px Inter, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(Math.round(yHigh)), padL - 4, padT);
+        ctx.fillText(String(Math.round(yLow)), padL - 4, H - padB);
+
+        const hasSel = pressaoSelectedDay !== null;
+
+        // Selected column highlight
+        if (hasSel) {
+          const selIdx = renderRows.findIndex(r => r.dayIso === pressaoSelectedDay);
+          if (selIdx >= 0) {
+            ctx.fillStyle = 'rgba(71, 85, 105, 0.08)';
+            ctx.fillRect(padL + colW * selIdx, padT, colW, gh);
+          }
+        }
+
+        // Connecting lines (under dots)
+        if (n > 1) {
+          ctx.lineWidth = 2;
+          ctx.lineJoin = 'round';
+          ctx.lineCap = 'round';
+          ctx.globalAlpha = 0.7;
+
+          ctx.strokeStyle = '#f59e0b';
+          ctx.beginPath();
+          renderRows.forEach((row, i) => {
+            const x = padL + colW * i + colW / 2;
+            if (i === 0) ctx.moveTo(x, toY(row.avgS)); else ctx.lineTo(x, toY(row.avgS));
+          });
+          ctx.stroke();
+
+          ctx.strokeStyle = '#3b82f6';
+          ctx.beginPath();
+          renderRows.forEach((row, i) => {
+            const x = padL + colW * i + colW / 2;
+            if (i === 0) ctx.moveTo(x, toY(row.avgD)); else ctx.lineTo(x, toY(row.avgD));
+          });
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+
+        // Dots
+        renderRows.forEach((row, i) => {
+          const isSelected = hasSel && pressaoSelectedDay === row.dayIso;
+          const x = padL + colW * i + colW / 2;
+          const dotR = isSelected ? 6 : 3.5;
+          ctx.globalAlpha = hasSel && !isSelected ? 0.25 : 1;
+
+          ctx.fillStyle = '#f59e0b';
+          ctx.beginPath();
+          ctx.arc(x, toY(row.avgS), dotR, 0, Math.PI * 2);
+          ctx.fill();
+          if (isSelected) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); }
+
+          ctx.fillStyle = '#3b82f6';
+          ctx.beginPath();
+          ctx.arc(x, toY(row.avgD), dotR, 0, Math.PI * 2);
+          ctx.fill();
+          if (isSelected) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); }
+        });
+
+        // Value labels on selected dot
+        if (hasSel) {
+          const selIdx = renderRows.findIndex(r => r.dayIso === pressaoSelectedDay);
+          if (selIdx >= 0) {
+            const selRow = renderRows[selIdx];
+            const x = padL + colW * selIdx + colW / 2;
+            ctx.globalAlpha = 1;
+            ctx.font = 'bold 10px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            const syY = toY(selRow.avgS);
+            const diaY = toY(selRow.avgD);
+            ctx.fillStyle = '#f59e0b';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(String(selRow.avgS), x, syY - 7);
+            ctx.fillStyle = '#3b82f6';
+            ctx.textBaseline = 'top';
+            ctx.fillText(String(selRow.avgD), x, diaY + 7);
+          }
+        }
+
+        // Vertical dashed line for selected column
+        ctx.globalAlpha = 1;
+        if (hasSel) {
+          const selIdx = renderRows.findIndex(r => r.dayIso === pressaoSelectedDay);
+          if (selIdx >= 0) {
+            const cx = padL + colW * selIdx + colW / 2;
+            ctx.save();
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([4, 3]);
+            ctx.globalAlpha = 0.7;
+            ctx.beginPath();
+            ctx.moveTo(cx, padT);
+            ctx.lineTo(cx, H - padB);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+          }
+        }
+
+        // X labels — day number for day-range views, month abbrev for year view
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '500 9px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        const labelEvery = Math.max(1, Math.ceil(n / 10));
+        renderRows.forEach((row, i) => {
+          if (i % labelEvery !== 0 && i !== n - 1) return;
+          const cx = padL + colW * i + colW / 2;
+          let xLbl;
+          if (_isYearView) {
+            const _mm = parseInt(row.monthKey.split('-')[1], 10);
+            xLbl = _mAbr[_mm - 1];
+          } else {
+            const parts = row.dayIso.split('-');
+            xLbl = parts.length === 3 ? String(Number(parts[2])) : '';
+          }
+          ctx.fillText(xLbl, cx, H - padB + 5);
+        });
+      }
+
+      drawPressaoChart();
+      canvas.__drawPressao = drawPressaoChart;
+
+      // Auto-select today (or the most recent available row) on first render
+      const _todayIso = new Date().toISOString().slice(0, 10);
+      let _autoIdx = -1;
+      if (_isYearView) {
+        const _todayMonth = _todayIso.slice(0, 7);
+        _autoIdx = renderRows.findIndex(r => r.monthKey === _todayMonth);
+      } else {
+        _autoIdx = renderRows.findIndex(r => r.dayIso === _todayIso);
+      }
+      if (_autoIdx === -1) _autoIdx = renderRows.length - 1;
+      if (_autoIdx >= 0) {
+        const _autoRow = renderRows[_autoIdx];
+        pressaoSelectedDay = _autoRow.dayIso;
+        drawPressaoChart();
+        openPressaoDiaDetail(pressaoSelectedDay, _autoRow.entries);
+        if (_isYearView) {
+          const [_aty, _atm] = _autoRow.monthKey.split('-').map(Number);
+          const _atEl = document.getElementById('pressaoDiaDetailLabel');
+          if (_atEl) _atEl.textContent = `${_mAbr[_atm - 1]} ${_aty}`;
+        }
+        // Scroll selected column into center of viewport
+        if (_chartView) {
+          const _selCx = padL + colW * _autoIdx;
+          _chartView.scrollLeft = Math.max(0, _selCx - containerW / 2);
+        }
+      }
+
+      canvas.style.cursor = 'pointer';
+      canvas.onclick = (ev) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = (ev.clientX - rect.left) * (W / rect.width);
+        const my = (ev.clientY - rect.top) * (H / rect.height);
+
+        const oldTip = document.getElementById('pressaoChartTooltip');
+        if (oldTip) oldTip.remove();
+
+        let hitIdx = -1;
+        renderRows.forEach((row, i) => {
+          const zoneX = padL + colW * i;
+          if (mx >= zoneX && mx < zoneX + colW && my >= padT && my <= H - padB) hitIdx = i;
+        });
+
+        // Clicking outside all columns or on the already-selected column: do nothing
+        if (hitIdx === -1) return;
+
+        const hitDay = renderRows[hitIdx].dayIso;
+        if (pressaoSelectedDay === hitDay) return;
+        pressaoSelectedDay = hitDay;
+        drawPressaoChart();
+
+        const row = renderRows[hitIdx];
+
+        // Build tooltip date label — month name for year view, day+weekday for day views
+        let dateLabel;
+        if (_isYearView) {
+          const [_ty, _tm] = row.monthKey.split('-').map(Number);
+          dateLabel = `${_mAbr[_tm - 1]} ${_ty}`;
+        } else {
+          const [_y, _m, _d] = row.dayIso.split('-').map(Number);
+          const _dateObj = new Date(_y, _m - 1, _d);
+          const _dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+          dateLabel = `${_dias[_dateObj.getDay()]}, ${String(_d).padStart(2, '0')} ${_mAbr[_m - 1]}`;
+        }
+
+        const tip = document.createElement('div');
+        tip.id = 'pressaoChartTooltip';
+        tip.style.cssText = 'position:absolute;background:#1e293b;color:#fff;border-radius:8px;padding:7px 12px;font-size:12px;line-height:1.5;pointer-events:none;z-index:9999;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
+        tip.innerHTML = `${dateLabel}&nbsp;&nbsp;<strong><span style="color:#f59e0b;font-size:1.2em;">${row.avgS}</span><span style="color:#94a3b8;"> / </span><span style="color:#3b82f6;font-size:1.2em;">${row.avgD}</span> mmHg</strong>`;
+
+        const tipParent = document.getElementById('vitalDetailDefaultChrome') || canvas.parentElement;
+        tipParent.style.position = 'relative';
+        const tipParentRect = tipParent.getBoundingClientRect();
+        const canvasRect = canvas.getBoundingClientRect();
+        const cxCanvas = padL + colW * hitIdx + colW / 2;
+        const cxViewport = canvasRect.left + cxCanvas * (canvasRect.width / W);
+        let left = cxViewport - tipParentRect.left - 90;
+        let top = canvasRect.top - tipParentRect.top - 48;
+        if (left < 0) left = 4;
+        if (left + 260 > tipParent.offsetWidth) left = tipParent.offsetWidth - 264;
+        if (top < 0) top = canvasRect.top - tipParentRect.top + 4;
+        tip.style.left = left + 'px';
+        tip.style.top = top + 'px';
+        tipParent.appendChild(tip);
+
+        openPressaoDiaDetail(pressaoSelectedDay, row.entries);
+
+        // Override detail-view header label for year view ("mai 2026" instead of a specific day)
+        if (_isYearView) {
+          const [_ty, _tm] = row.monthKey.split('-').map(Number);
+          const lEl = document.getElementById('pressaoDiaDetailLabel');
+          if (lEl) lEl.textContent = `${_mAbr[_tm - 1]} ${_ty}`;
+        }
+
+        const dismiss = () => {
+          const t = document.getElementById('pressaoChartTooltip');
+          if (t) t.remove();
+          document.removeEventListener('click', dismiss);
+        };
+        setTimeout(() => document.addEventListener('click', dismiss), 10);
+      };
+    });
     return;
   }
 

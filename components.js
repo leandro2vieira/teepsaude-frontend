@@ -165,11 +165,11 @@ function createVitalCard(vital, options) {
       pressaoRightHtml = `
         <div class="vital-pressao-home-right">
           <div class="vital-pressao-badge-row">
-            <span class="vital-pressao-badge-label">SIS</span>
+            <span class="vital-pressao-badge-label vital-pressao-badge-label--sis">SIS</span>
             <span class="vital-pressao-badge-val">${rangeText(sisMin, sisMax)}</span>
           </div>
           <div class="vital-pressao-badge-row">
-            <span class="vital-pressao-badge-label">DIA</span>
+            <span class="vital-pressao-badge-label vital-pressao-badge-label--dia">DIA</span>
             <span class="vital-pressao-badge-val">${rangeText(diaMin, diaMax)}</span>
           </div>
         </div>`;

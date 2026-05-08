@@ -1275,12 +1275,25 @@ function injectDemoMedicoesUltimas24h(data) {
       { ...atDaysAgo(14, 17, 45), valor: 80, status: 'normal' },
       ...gerarBatimentoDemoPorHora(now)
     ],
-    'Pressão Arterial': [
-      { ...at(0, 55), valor: { sistolica: 122, diastolica: 81 }, status: 'normal' },
-      { ...at(4, 0), valor: { sistolica: 118, diastolica: 76 }, status: 'normal' },
-      { ...at(11, 20), valor: { sistolica: 132, diastolica: 86 }, status: 'ligeiramente_alta' },
-      { ...at(21, 0), valor: { sistolica: 112, diastolica: 72 }, status: 'normal' }
-    ],
+    'Pressão Arterial': (() => {
+      const _morS = [122,118,132,125,130,119,138,124,116,131,127,121,135,120,128,141,117,126,133,119,124,136,118,129,122,130,115,127,134,121,125];
+      const _morD = [81, 76, 86, 82, 85, 79, 90, 81, 74, 87, 84, 80, 88, 78, 84, 92, 76, 83, 87, 78, 81, 89, 76, 84, 80, 85, 73, 82, 88, 79, 83];
+      // Mock annotations per day index
+      const _mockMed = ['tomados','tomados','nenhum','tomados','tomados','nenhum','tomados','tomados','nenhum','tomados','tomados','nenhum','tomados','tomados','nenhum','tomados','tomados','nenhum','tomados','tomados','nenhum','tomados','tomados','nenhum','tomados','tomados','nenhum','tomados','tomados','nenhum','tomados'];
+      const _mockAno = ['Acordei bem disposto','Após caminhada 30 min',undefined,undefined,'Dor de cabeça leve',undefined,undefined,'Medido após almoço',undefined,undefined,undefined,undefined,'Pressão subiu com estresse',undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined];
+      const _mockSin = [undefined,undefined,'cefaleia',undefined,undefined,undefined,'tontura',undefined,undefined,undefined,undefined,'cefaleia',undefined,undefined,undefined,undefined,undefined,undefined,undefined,'cansaço',undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined];
+      const _rows = [];
+      for (let _i = 0; _i < _morS.length; _i++) {
+        const _s = _morS[_i], _d = _morD[_i];
+        const _st = _s >= 140 ? 'alta' : _s >= 130 ? 'ligeiramente_alta' : 'normal';
+        const _st2 = (_s-5) >= 130 ? 'ligeiramente_alta' : 'normal';
+        _rows.push({ ...atDaysAgo(_i, 7, 30), valor: { sistolica: _s, diastolica: _d }, status: _st, medicamentoPressao: _mockMed[_i], anotacao: _mockAno[_i], sintomas: _mockSin[_i] });
+        _rows.push({ ...atDaysAgo(_i, 18, 15), valor: { sistolica: _s - 5, diastolica: _d - 3 }, status: _st2 });
+        if (_i % 3 === 0) _rows.push({ ...atDaysAgo(_i, 13, 0), valor: { sistolica: _s + 3, diastolica: _d + 2 }, status: (_s+3) >= 140 ? 'alta' : _st });
+        if (_i % 6 === 0) _rows.push({ ...atDaysAgo(_i, 15, 30), valor: { sistolica: _s - 2, diastolica: _d - 1 }, status: _st, sintomas: _i === 0 ? 'tontura' : undefined });
+      }
+      return _rows;
+    })(),
     Temperatura: [
       { ...at(1, 0), valor: 36.9, status: 'normal' },
       { ...at(7, 0), valor: 36.4, status: 'normal' },
