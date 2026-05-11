@@ -60,6 +60,7 @@ body {
   flex-direction: column;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  position: relative; /* for F7 fixed positioning */
 }
 
 .app-content {
@@ -73,28 +74,37 @@ body {
   background: #f3f3f3;
 }
 
-/* Header — horizontal: avatar + greeting/name | actions */
+/* Header — Framework7 Navbar override */
+.navbar.header,
 .header {
   position: relative;
-  background: #ffffff;
-  padding: 14px 16px 12px;
+  background: #ffffff !important;
   border-bottom: 1px solid #f0f2f5;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  height: auto !important;
+  min-height: unset !important;
 }
 
-.header::before,
-.header::after {
-  display: none;
-}
-
-.header-top-row {
+.navbar.header .navbar-inner,
+.navbar.header .header-top-row {
+  padding: 14px 16px 12px;
+  height: auto !important;
+  min-height: unset !important;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  position: static;
+}
+
+.navbar-spacer {
+  /* spacer not needed — navbar is relative, not fixed */
+  display: none;
+}
+
+.header::before,
+.header::after {
+  display: none;
 }
 
 .header-profile {
@@ -201,24 +211,38 @@ body {
   line-height: 1.35;
 }
 
-/* Navegação Inferior */
-.bottom-nav {
-  position: fixed;
+/* Navegação Inferior — Framework7 Tabbar */
+/* F7 handles most styles; we override colors and positioning for the phone frame */
+.toolbar.tabbar {
+  background: #ffffff !important;
+  border-top: 1px solid #f0f2f5 !important;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.05) !important;
+  position: absolute !important;  /* relative to .mobile-container, not viewport */
   bottom: 0;
   left: 0;
   right: 0;
-  max-width: 480px;
   margin: 0 auto;
-  height: calc(64px + env(safe-area-inset-bottom));
-  padding-bottom: env(safe-area-inset-bottom);
-  background: #ffffff;
-  border-top: 1px solid #f0f2f5;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.05);
+  max-width: 480px;
 }
 
+.toolbar.tabbar .tab-link {
+  color: #94a3b8 !important;
+}
+
+.toolbar.tabbar .tab-link.tab-link-active {
+  color: #2563eb !important;
+}
+
+.toolbar.tabbar .tab-link.tab-link-active .icon svg {
+  stroke-width: 2.5;
+}
+
+.toolbar.tabbar .tabbar-label {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+}
+
+/* keep original nav-item fallback classes for compat */
 .nav-item {
   flex: 1;
   display: flex;
@@ -229,49 +253,44 @@ body {
   color: #94a3b8;
   font-size: 11px;
   font-weight: 600;
-  transition: color 0.2s, transform 0.1s;
   border: none;
   background: none;
   padding: 6px 0;
   gap: 3px;
-  -webkit-tap-highlight-color: transparent;
 }
 
-.nav-item:active {
-  transform: scale(0.88);
-  transition: transform 0.08s ease;
-}
+.nav-item.active { color: #2563eb; }
 
-.nav-item.active {
-  color: #2563eb;
-}
-
-.nav-item.active .nav-icon svg {
-  stroke-width: 2.5;
-}
-
-.nav-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-}
-
-/* Telas — com fade de entrada */
+/* Telas — com animações de entrada/saída estilo app */
 .screen {
   display: none;
   padding: 4px;
-  animation: screenFadeIn 0.18s ease both;
 }
 
 .screen.active {
   display: block;
 }
 
-@keyframes screenFadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+.screen.screen--entering {
+  animation: screenSlideIn 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.screen.screen--leaving {
+  animation: screenFadeOut 0.22s ease both;
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+@keyframes screenSlideIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.99); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes screenFadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
 }
 
 /* Cards Base — borda uniforme (sem faixa lateral colorida) */
@@ -8622,3 +8641,42 @@ body {
   font-weight: 600;
   color: #0f172a;
 }
+
+/* ── Framework7 Tabbar icon sizing (uses SVG, not F7 icon font) ─────────── */
+.toolbar.tabbar .tab-link .icon {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+.toolbar.tabbar .tab-link .icon svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.toolbar.tabbar .tabbar-label {
+  font-size: 10px;
+  letter-spacing: 0;
+}
+
+/* Prevent F7 tabbar from clipping text */
+.toolbar.tabbar .tab-link {
+  padding: 6px 0 !important;
+  overflow: visible;
+}
+
+/* -- Framework7 Tabbar icon sizing (uses SVG, not F7 icon font) -- */
+.toolbar.tabbar .tab-link .icon {
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 2px;
+}
+.toolbar.tabbar .tab-link .icon svg { width: 24px; height: 24px; flex-shrink: 0; }
+.toolbar.tabbar .tabbar-label { font-size: 10px; letter-spacing: 0; }
+.toolbar.tabbar .tab-link { padding: 6px 0 !important; overflow: visible; }
+
+.toolbar.tabbar .tab-link .icon { width:24px; height:24px; display:flex; align-items:center; justify-content:center; margin-bottom:2px; } .toolbar.tabbar .tab-link .icon svg { width:24px; height:24px; } .toolbar.tabbar .tabbar-label { font-size:10px; }

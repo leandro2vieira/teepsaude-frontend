@@ -625,16 +625,16 @@ function applyBottomNavVisibility() {
   const controlledScreens = ['saudeScreen', 'composicaoScreen', 'medicacoesScreen', 'agendaScreen'];
 
   controlledScreens.forEach((screenId) => {
-    const navItem = document.querySelector(`.nav-item[data-screen="${screenId}"]`);
+    const navItem = document.querySelector(`.tab-link[data-screen="${screenId}"]`);
     if (!navItem) return;
     navItem.style.display = config[screenId] ? '' : 'none';
   });
 
   if (currentScreen && controlledScreens.includes(currentScreen) && !config[currentScreen]) {
     switchScreen('homeScreen');
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    const homeNavItem = document.querySelector('.nav-item[data-screen="homeScreen"]');
-    if (homeNavItem) homeNavItem.classList.add('active');
+    document.querySelectorAll('.tab-link').forEach(i => i.classList.remove('tab-link-active'));
+    const homeNavItem = document.querySelector('.tab-link[data-screen="homeScreen"]');
+    if (homeNavItem) homeNavItem.classList.add('tab-link-active');
   }
 }
 
@@ -649,6 +649,16 @@ function toggleBottomNavItem(screenId, toggleEl) {
 
   applyBottomNavVisibility();
 }
+
+// Framework7 initialization (UI shell only — no router)
+var f7app = new Framework7({
+  el: '#app',
+  name: 'Teep Saúde',
+  theme: 'ios',
+  autoDarkTheme: false,
+  // Disable router — we handle navigation manually
+  routes: [],
+});
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
@@ -1115,20 +1125,36 @@ function renderPerfil() {
 // ===== NAVEGAÇÃO =====
 
 function setupNavigation() {
-  document.querySelectorAll('.nav-item').forEach(item => {
+  document.querySelectorAll('.tab-link').forEach(item => {
     item.addEventListener('click', () => {
       const screenId = item.dataset.screen;
       switchScreen(screenId);
       
-      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-      item.classList.add('active');
+      document.querySelectorAll('.tab-link').forEach(i => i.classList.remove('tab-link-active'));
+      item.classList.add('tab-link-active');
     });
   });
 }
 
 function switchScreen(screenId) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(screenId).classList.add('active');
+  var prevScreen = document.querySelector('.screen.active');
+  var nextScreen = document.getElementById(screenId);
+  if (!nextScreen || nextScreen === prevScreen) return;
+
+  if (prevScreen) {
+    prevScreen.classList.add('screen--leaving');
+    prevScreen.addEventListener('animationend', function handler() {
+      prevScreen.classList.remove('active', 'screen--leaving');
+      prevScreen.removeEventListener('animationend', handler);
+    }, { once: true });
+  }
+
+  nextScreen.classList.add('active', 'screen--entering');
+  nextScreen.addEventListener('animationend', function handler() {
+    nextScreen.classList.remove('screen--entering');
+    nextScreen.removeEventListener('animationend', handler);
+  }, { once: true });
+
   currentScreen = screenId;
   updateHeaderForScreen(screenId);
 
