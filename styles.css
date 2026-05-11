@@ -7677,6 +7677,15 @@ body {
   background: #d97706;
 }
 
+/* Oculta scrollbar nativa no gráfico de pressão (scroll por arrastar continua funcional) */
+#pressaoHistoricoView {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+#pressaoHistoricoView::-webkit-scrollbar {
+  display: none;
+}
+
 /* â”€â”€ BotÃ£o "ver mais" inline na lista â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pressao-ver-mais-btn {
   display: block;
