@@ -7685,7 +7685,9 @@ function pressaoInsGo(step) {
 
 function piSumEdit(step) {
   _piReturnToSummary = true;
-  pressaoInsGo(step);
+  stopStepPA();
+  pressaoInsertStep = step;
+  _pressaoInsRender();
 }
 
 function pressaoInsConfirmStep() {
@@ -7772,6 +7774,9 @@ function _piDrumRender(field) {
   var val = pressaoInsertData[field];
   var track = document.getElementById('piDrumTrack-' + field);
   if (!track) return;
+  // Reset any leftover keyboard-input overlay
+  var inp = document.getElementById('piDcInput-' + field);
+  if (inp) { inp.blur(); inp.style.opacity = '0'; inp.style.pointerEvents = 'none'; }
   var html = '';
   // 5-slot drum: -2, -1, 0, +1, +2
   for (var offset = -2; offset <= 2; offset++) {
