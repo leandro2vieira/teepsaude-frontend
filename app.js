@@ -7954,9 +7954,13 @@ function renderSparklineChart(historico) {
       const dpr = window.devicePixelRatio || 1;
       const n = renderRows.length;
       const containerW = _chartView ? _chartView.offsetWidth : (canvas.parentElement ? canvas.parentElement.offsetWidth : 320);
+      // padT=30 leaves room for the tooltip bubble above the chart area
+      const padL = 30, padR = 20, padT = 30, padB = 22;
       const minColW = _isYearView ? 30 : 44;
-      const colW = Math.max(minColW, containerW / n);
-      const W = Math.max(containerW, n * colW);
+      // Force scroll in day-views: canvas width = max(container, paddings + n * minColW)
+      const W = Math.max(containerW, padL + n * minColW + padR);
+      const gw = W - padL - padR;
+      const colW = gw / n;  // columns perfectly fill the padded area
       const H = 180;
 
       canvas.width = W * dpr;
@@ -7964,8 +7968,6 @@ function renderSparklineChart(historico) {
       canvas.style.width = W + 'px';
       canvas.style.height = H + 'px';
 
-      const padL = 30, padR = 10, padT = 12, padB = 22;
-      const gw = W - padL - padR;
       const gh = H - padT - padB;
 
       const allS = renderRows.map(r => r.avgS);
@@ -8071,23 +8073,51 @@ function renderSparklineChart(historico) {
           if (isSelected) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke(); }
         });
 
-        // Value labels on selected dot
+        // Tooltip bubble — always visible on canvas for the selected column
         if (hasSel) {
           const selIdx = renderRows.findIndex(r => r.dayIso === pressaoSelectedDay);
           if (selIdx >= 0) {
             const selRow = renderRows[selIdx];
             const x = padL + colW * selIdx + colW / 2;
             ctx.globalAlpha = 1;
-            ctx.font = 'bold 10px Inter, sans-serif';
-            ctx.textAlign = 'center';
-            const syY = toY(selRow.avgS);
-            const diaY = toY(selRow.avgD);
-            ctx.fillStyle = '#f59e0b';
-            ctx.textBaseline = 'bottom';
-            ctx.fillText(String(selRow.avgS), x, syY - 7);
-            ctx.fillStyle = '#3b82f6';
-            ctx.textBaseline = 'top';
-            ctx.fillText(String(selRow.avgD), x, diaY + 7);
+            const sisStr = String(selRow.avgS);
+            const diaStr = String(selRow.avgD);
+            ctx.font = 'bold 11px Inter, sans-serif';
+            const sisW = ctx.measureText(sisStr).width;
+            const sepW = ctx.measureText(' / ').width;
+            const diaW = ctx.measureText(diaStr).width;
+            ctx.font = '10px Inter, sans-serif';
+            const unitW = ctx.measureText(' mmHg').width;
+            const totalTxtW = sisW + sepW + diaW + unitW;
+            const bw = Math.max(totalTxtW + 18, 88);
+            const bh = 20;
+            const arrowH = 5;
+            let bx = x - bw / 2;
+            if (bx < padL) bx = padL;
+            if (bx + bw > W - padR) bx = W - padR - bw;
+            const by = padT - arrowH - 2;
+            // Rounded bubble + downward arrow
+            ctx.fillStyle = '#1e293b';
+            ctx.beginPath();
+            const br = 4;
+            ctx.moveTo(bx + br, by - bh); ctx.lineTo(bx + bw - br, by - bh);
+            ctx.quadraticCurveTo(bx + bw, by - bh, bx + bw, by - bh + br);
+            ctx.lineTo(bx + bw, by - br); ctx.quadraticCurveTo(bx + bw, by, bx + bw - br, by);
+            const ax = Math.min(Math.max(x, bx + 10), bx + bw - 10);
+            ctx.lineTo(ax + 5, by); ctx.lineTo(ax, by + arrowH); ctx.lineTo(ax - 5, by);
+            ctx.lineTo(bx + br, by); ctx.quadraticCurveTo(bx, by, bx, by - br);
+            ctx.lineTo(bx, by - bh + br); ctx.quadraticCurveTo(bx, by - bh, bx + br, by - bh);
+            ctx.closePath(); ctx.fill();
+            // Colored text: SIS amber / DIA blue / mmHg gray
+            const txtY = by - bh / 2;
+            ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+            let cx2 = bx + bw / 2 - totalTxtW / 2;
+            ctx.font = 'bold 11px Inter, sans-serif';
+            ctx.fillStyle = '#fbbf24'; ctx.fillText(sisStr, cx2, txtY); cx2 += sisW;
+            ctx.fillStyle = '#94a3b8'; ctx.fillText(' / ', cx2, txtY); cx2 += sepW;
+            ctx.fillStyle = '#60a5fa'; ctx.fillText(diaStr, cx2, txtY); cx2 += diaW;
+            ctx.font = '10px Inter, sans-serif';
+            ctx.fillStyle = '#94a3b8'; ctx.fillText(' mmHg', cx2, txtY);
           }
         }
 
@@ -8156,10 +8186,9 @@ function renderSparklineChart(historico) {
           const _atEl = document.getElementById('pressaoDiaDetailLabel');
           if (_atEl) _atEl.textContent = `${_mAbr[_atm - 1]} ${_aty}`;
         }
-        // Scroll selected column into center of viewport
+        // Scroll to the right end so the most-recent (today) column is visible
         if (_chartView) {
-          const _selCx = padL + colW * _autoIdx;
-          _chartView.scrollLeft = Math.max(0, _selCx - containerW / 2);
+          _chartView.scrollLeft = Math.max(0, W - containerW);
         }
       }
 
@@ -8200,26 +8229,6 @@ function renderSparklineChart(historico) {
           dateLabel = `${_dias[_dateObj.getDay()]}, ${String(_d).padStart(2, '0')} ${_mAbr[_m - 1]}`;
         }
 
-        const tip = document.createElement('div');
-        tip.id = 'pressaoChartTooltip';
-        tip.style.cssText = 'position:absolute;background:#1e293b;color:#fff;border-radius:8px;padding:7px 12px;font-size:12px;line-height:1.5;pointer-events:none;z-index:9999;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
-        tip.innerHTML = `${dateLabel}&nbsp;&nbsp;<strong><span style="color:#f59e0b;font-size:1.2em;">${row.avgS}</span><span style="color:#94a3b8;"> / </span><span style="color:#3b82f6;font-size:1.2em;">${row.avgD}</span> mmHg</strong>`;
-
-        const tipParent = document.getElementById('vitalDetailDefaultChrome') || canvas.parentElement;
-        tipParent.style.position = 'relative';
-        const tipParentRect = tipParent.getBoundingClientRect();
-        const canvasRect = canvas.getBoundingClientRect();
-        const cxCanvas = padL + colW * hitIdx + colW / 2;
-        const cxViewport = canvasRect.left + cxCanvas * (canvasRect.width / W);
-        let left = cxViewport - tipParentRect.left - 90;
-        let top = canvasRect.top - tipParentRect.top - 48;
-        if (left < 0) left = 4;
-        if (left + 260 > tipParent.offsetWidth) left = tipParent.offsetWidth - 264;
-        if (top < 0) top = canvasRect.top - tipParentRect.top + 4;
-        tip.style.left = left + 'px';
-        tip.style.top = top + 'px';
-        tipParent.appendChild(tip);
-
         openPressaoDiaDetail(pressaoSelectedDay, row.entries);
 
         // Override detail-view header label for year view ("mai 2026" instead of a specific day)
@@ -8228,13 +8237,6 @@ function renderSparklineChart(historico) {
           const lEl = document.getElementById('pressaoDiaDetailLabel');
           if (lEl) lEl.textContent = `${_mAbr[_tm - 1]} ${_ty}`;
         }
-
-        const dismiss = () => {
-          const t = document.getElementById('pressaoChartTooltip');
-          if (t) t.remove();
-          document.removeEventListener('click', dismiss);
-        };
-        setTimeout(() => document.addEventListener('click', dismiss), 10);
       };
     });
     return;
