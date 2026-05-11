@@ -8748,6 +8748,7 @@ body {
   display: flex;
   justify-content: center;
   margin-bottom: 8px;
+  color: #ef4444;
 }
 
 .pi-step-icon-heart svg {
@@ -9060,12 +9061,12 @@ body {
   display: flex;
   justify-content: center;
   margin-bottom: 6px;
+  color: #f59e0b;
 }
 
 .pi-step-icon-bp svg {
   width: 48px;
   height: 48px;
-  stroke: #f59e0b;
 }
 
 /* ── Step 2: wrapper do drum de FC ─────────────────────────────────────────── */
