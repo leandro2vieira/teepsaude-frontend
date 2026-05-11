@@ -3247,10 +3247,7 @@ body {
 .bat-hourly-row:hover { background: #f1f5f9; }
 
 .bat-hd-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 0 12px;
+  display: none;
 }
 .bat-hd-back-btn {
   background: none;

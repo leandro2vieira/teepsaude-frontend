@@ -2235,6 +2235,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeVitalDetailModal = document.getElementById('closeVitalDetailModal');
   if (closeVitalDetailModal) {
     closeVitalDetailModal.addEventListener('click', () => {
+      if (window._batHdActive) {
+        closeBatHourlyDetail();
+        return;
+      }
       document.getElementById('vitalDetailModal').classList.remove('active');
     });
   }
@@ -5071,6 +5075,7 @@ let _batHdCurrentHistorico = null;
 
 function openBatHourlyDetail(slotKey, dMin, dMax, historico) {
   _batHdCurrentHistorico = historico;
+  window._batHdActive = true;
 
   // Oculta os cards normais
   ['batDayPickerCard','batMinMaxCard','batHourlyChart','batHourlyTable','batRestingTrend'].forEach(id => {
@@ -5091,6 +5096,10 @@ function openBatHourlyDetail(slotKey, dMin, dMax, historico) {
   const _dateLabel = `${_diasSem[_dateObj.getDay()]}, ${String(_d).padStart(2,'0')} ${_meses[_m - 1]}`;
   document.getElementById('batHdSlotLabel').innerHTML =
     `${slotKey} <span style="font-size:13px;font-weight:400;color:#94a3b8;">· ${_dateLabel}</span>`;
+
+  // Atualiza título do navbar principal para refletir o slot de hora
+  const _titleEl = document.getElementById('vitalDetailTitle');
+  if (_titleEl) _titleEl.textContent = slotKey + ' · ' + _dateLabel;
 
   // Min/Max card
   const mmEl = document.getElementById('batHdMinMax');
@@ -5118,8 +5127,16 @@ function openBatHourlyDetail(slotKey, dMin, dMax, historico) {
 }
 
 function closeBatHourlyDetail() {
+  window._batHdActive = false;
+
   const view = document.getElementById('batHourlyDetailView');
   if (view) view.style.display = 'none';
+
+  // Restaura título do navbar para o nome do sinal vital
+  const _titleEl = document.getElementById('vitalDetailTitle');
+  if (_titleEl && currentVitalDetail && currentVitalDetail.tipo) {
+    _titleEl.textContent = 'Histórico de ' + currentVitalDetail.tipo;
+  }
 
   ['batDayPickerCard','batMinMaxCard','batHourlyChart','batHourlyTable','batRestingTrend'].forEach(id => {
     const el = document.getElementById(id);
