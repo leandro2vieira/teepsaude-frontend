@@ -314,99 +314,116 @@
 
                 <!-- Formulário passo a passo: inserir apontamento de pressão -->
                 <div id="pressaoInsertView" style="display:none;">
-                  <div class="pi-panel">
 
-                    <!-- Cabecalho compacto -->
-                    <div class="pi-hdr">
-                      <div class="pi-hdr-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                      </div>
-                      <div class="pi-hdr-text">
-                        <span class="pi-hdr-title">Pressao Arterial</span>
-                        <span class="pi-hdr-sub">Toque no numero para digitar &middot; arraste para rolar</span>
-                      </div>
+                  <!-- Progresso -->
+                  <div class="pi-progress">
+                    <div class="pi-progress-dot pi-progress-dot--active" data-pidot="1"></div>
+                    <div class="pi-progress-dot" data-pidot="2"></div>
+                    <div class="pi-progress-dot" data-pidot="3"></div>
+                    <div class="pi-progress-dot" data-pidot="4"></div>
+                  </div>
+
+                  <!-- STEP 1: Pressao Arterial (SIS/DIA) -->
+                  <div class="pi-step" id="piStep1">
+                    <div class="pi-step-head">
+                      <div class="pi-step-label">Pressao Arterial</div>
+                      <div class="pi-step-hint">Arraste para ajustar &middot; Toque no numero para digitar</div>
                     </div>
-
-                    <!-- Campos SIS / DIA -->
-                    <div class="pi-bp-row">
-                      <div class="pi-bp-col">
-                        <div class="pi-col-lbl pi-col-lbl--sis">SIS.</div>
-                        <div class="pi-num-ctrl">
-                          <button class="pi-adj" onpointerdown="startStepPA('sis',-1)" onpointerup="stopStepPA()" onpointerleave="stopStepPA()">&#8722;</button>
-                          <div class="pi-dc" data-field="sis"
-                               ontouchstart="piDrumTouchStart(event,this)"
-                               ontouchmove="piDrumTouchMove(event,this)"
-                               ontouchend="piDrumTouchEnd(event,this)"
-                               onwheel="piDrumWheel(event,this)">
-                            <div class="pi-drum-track" id="piDrumTrack-sis"></div>
-                            <div class="pi-dc-sel"></div>
-                            <div class="pi-dc-fade pi-dc-fade--top"></div>
-                            <div class="pi-dc-fade pi-dc-fade--bot"></div>
-                            <input class="pi-dc-input" id="piDcInput-sis" type="number" inputmode="numeric" min="60" max="250"
-                                   onblur="piDcInputBlur('sis',this)" />
-                          </div>
-                          <button class="pi-adj" onpointerdown="startStepPA('sis',1)" onpointerup="stopStepPA()" onpointerleave="stopStepPA()">+</button>
+                    <div class="pi-bp-drums">
+                      <div class="pi-drum-col">
+                        <div class="pi-drum-lbl pi-drum-lbl--sis">SIS.</div>
+                        <div class="pi-drum" data-field="sis"
+                             ontouchstart="piDrumTouchStart(event,this)"
+                             ontouchmove="piDrumTouchMove(event,this)"
+                             ontouchend="piDrumTouchEnd(event,this)"
+                             onwheel="piDrumWheel(event,this)">
+                          <div class="pi-drum-track" id="piDrumTrack-sis"></div>
+                          <div class="pi-drum-sel"></div>
+                          <div class="pi-drum-fade pi-drum-fade--top"></div>
+                          <div class="pi-drum-fade pi-drum-fade--bot"></div>
+                          <input class="pi-drum-inp" id="piDcInput-sis" type="number" inputmode="numeric" min="60" max="250"
+                                 onblur="piDcInputBlur('sis',this)" />
                         </div>
                       </div>
                       <div class="pi-bp-slash">/</div>
-                      <div class="pi-bp-col">
-                        <div class="pi-col-lbl pi-col-lbl--dia">DIA.</div>
-                        <div class="pi-num-ctrl">
-                          <button class="pi-adj" onpointerdown="startStepPA('dia',-1)" onpointerup="stopStepPA()" onpointerleave="stopStepPA()">&#8722;</button>
-                          <div class="pi-dc" data-field="dia"
-                               ontouchstart="piDrumTouchStart(event,this)"
-                               ontouchmove="piDrumTouchMove(event,this)"
-                               ontouchend="piDrumTouchEnd(event,this)"
-                               onwheel="piDrumWheel(event,this)">
-                            <div class="pi-drum-track" id="piDrumTrack-dia"></div>
-                            <div class="pi-dc-sel"></div>
-                            <div class="pi-dc-fade pi-dc-fade--top"></div>
-                            <div class="pi-dc-fade pi-dc-fade--bot"></div>
-                            <input class="pi-dc-input" id="piDcInput-dia" type="number" inputmode="numeric" min="30" max="160"
-                                   onblur="piDcInputBlur('dia',this)" />
-                          </div>
-                          <button class="pi-adj" onpointerdown="startStepPA('dia',1)" onpointerup="stopStepPA()" onpointerleave="stopStepPA()">+</button>
+                      <div class="pi-drum-col">
+                        <div class="pi-drum-lbl pi-drum-lbl--dia">DIA.</div>
+                        <div class="pi-drum" data-field="dia"
+                             ontouchstart="piDrumTouchStart(event,this)"
+                             ontouchmove="piDrumTouchMove(event,this)"
+                             ontouchend="piDrumTouchEnd(event,this)"
+                             onwheel="piDrumWheel(event,this)">
+                          <div class="pi-drum-track" id="piDrumTrack-dia"></div>
+                          <div class="pi-drum-sel"></div>
+                          <div class="pi-drum-fade pi-drum-fade--top"></div>
+                          <div class="pi-drum-fade pi-drum-fade--bot"></div>
+                          <input class="pi-drum-inp" id="piDcInput-dia" type="number" inputmode="numeric" min="30" max="160"
+                                 onblur="piDcInputBlur('dia',this)" />
                         </div>
                       </div>
                     </div>
-                    <div class="pi-bp-unit">mmHg</div>
-
-                    <!-- Linha FC -->
-                    <div class="pi-hr-row">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="#ef4444" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                      <span class="pi-hr-lbl">FC</span>
-                      <button class="pi-adj pi-adj--sm" onpointerdown="startStepPA('hr',-1)" onpointerup="stopStepPA()" onpointerleave="stopStepPA()">&#8722;</button>
-                      <div class="pi-hr-num-wrap" data-field="hr"
-                           ontouchstart="piDrumTouchStart(event,this)"
-                           ontouchmove="piDrumTouchMove(event,this)"
-                           ontouchend="piDrumTouchEnd(event,this)"
-                           onwheel="piDrumWheel(event,this)">
-                        <span class="pi-hr-num" id="piHrNum">72</span>
-                        <input class="pi-hr-input" id="piDcInput-hr" type="number" inputmode="numeric" min="30" max="250"
-                               onblur="piDcInputBlur('hr',this)" />
-                      </div>
-                      <button class="pi-adj pi-adj--sm" onpointerdown="startStepPA('hr',1)" onpointerup="stopStepPA()" onpointerleave="stopStepPA()">+</button>
-                      <span class="pi-hr-unit">bpm</span>
-                    </div>
-
-                    <!-- Medicacao -->
-                    <div class="pi-med-row">
-                      <button class="pi-med-btn" id="piMed-tomados" onclick="pressaoInsSelectMed('tomados')">&#128138; Tomados</button>
-                      <button class="pi-med-btn" id="piMed-nao_tomados" onclick="pressaoInsSelectMed('nao_tomados')">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        Nao tomei
-                      </button>
-                      <button class="pi-med-btn pi-med-btn--active" id="piMed-nenhum" onclick="pressaoInsSelectMed('nenhum')">&#8212; N/A</button>
-                    </div>
-
-                    <!-- Nota -->
-                    <input class="pi-nota-input" id="piNotaInput" type="text" placeholder="Nota opcional..." maxlength="200" />
-
-                    <!-- Salvar -->
-                    <button id="piConfirmBtn" class="pi-save-btn" onclick="pressaoInsSave()">Salvar medicao</button>
-
+                    <div class="pi-unit-lbl">mmHg</div>
+                    <button class="pi-next-btn" onclick="pressaoInsGo(2)">Proximo &#8250;</button>
                   </div>
-                </div>
+
+                  <!-- STEP 2: Frequencia Cardiaca -->
+                  <div class="pi-step" id="piStep2" style="display:none;">
+                    <div class="pi-step-head">
+                      <div class="pi-step-icon-heart">
+                        <svg viewBox="0 0 24 24" fill="#ef4444" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                      </div>
+                      <div class="pi-step-label">Frequencia Cardiaca</div>
+                      <div class="pi-step-hint">Arraste para cima/baixo &middot; Toque para digitar</div>
+                    </div>
+                    <div class="pi-hr-dial" data-field="hr"
+                         ontouchstart="piDrumTouchStart(event,this)"
+                         ontouchmove="piDrumTouchMove(event,this)"
+                         ontouchend="piDrumTouchEnd(event,this)"
+                         onwheel="piDrumWheel(event,this)">
+                      <div class="pi-hr-dial-num" id="piHrNum">72</div>
+                      <input class="pi-hr-dial-inp" id="piDcInput-hr" type="number" inputmode="numeric" min="30" max="250"
+                             onblur="piDcInputBlur('hr',this)" />
+                    </div>
+                    <div class="pi-unit-lbl">bpm</div>
+                    <button class="pi-next-btn" onclick="pressaoInsGo(3)">Proximo &#8250;</button>
+                  </div>
+
+                  <!-- STEP 3: Remedios -->
+                  <div class="pi-step" id="piStep3" style="display:none;">
+                    <div class="pi-step-head">
+                      <div class="pi-step-label">Remedios hoje?</div>
+                      <div class="pi-step-hint">Toque em uma opcao para continuar</div>
+                    </div>
+                    <div class="pi-med-grid">
+                      <button class="pi-med-card" id="piMed-tomados"
+                              onclick="pressaoInsSelectMed('tomados');pressaoInsGo(4)">
+                        <span class="pi-med-card-icon">&#128138;</span>
+                        <span class="pi-med-card-lbl">Tomei meus<br>remedios</span>
+                      </button>
+                      <button class="pi-med-card" id="piMed-nao_tomados"
+                              onclick="pressaoInsSelectMed('nao_tomados');pressaoInsGo(4)">
+                        <svg class="pi-med-card-icon pi-med-card-icon--svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        <span class="pi-med-card-lbl">Nao tomei<br>hoje</span>
+                      </button>
+                      <button class="pi-med-card" id="piMed-nenhum"
+                              onclick="pressaoInsSelectMed('nenhum');pressaoInsGo(4)">
+                        <span class="pi-med-card-icon">&#8212;</span>
+                        <span class="pi-med-card-lbl">Nao tomo<br>remedios</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- STEP 4: Nota + Salvar -->
+                  <div class="pi-step" id="piStep4" style="display:none;">
+                    <div class="pi-step-head">
+                      <div class="pi-step-label">Alguma observacao?</div>
+                      <div class="pi-step-hint">Opcional &mdash; sintomas, atividade, contexto...</div>
+                    </div>
+                    <textarea class="pi-nota-area" id="piNotaInput"
+                              placeholder="Ex: senti tontura, apos caminhada..." maxlength="500"></textarea>
+                    <button class="pi-save-btn" id="piConfirmBtn" onclick="pressaoInsSave()">Salvar Medicao</button>
+                  </div>
+
                 </div>
             </div>
 

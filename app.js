@@ -7603,10 +7603,11 @@ function closePressaoColetaDetail() {
 let pressaoInsertStep = 1;
 let pressaoInsertData = { sis: 120, dia: 80, hr: 72, med: 'nenhum', nota: '' };
 let _piStepTimer = null;
-var PI_DRUM_IH = 44; // height per drum slot (px) — compact 3-slot drum
+var PI_DRUM_IH = 72; // height per drum slot (px) — 5-slot full-screen drum
 var _piDrumDrag = null;
 
 function openPressaoInsertForm() {
+  pressaoInsertStep = 1;
   pressaoInsertData = { sis: 120, dia: 80, hr: 72, med: 'nenhum', nota: '' };
 
   const diaView = document.getElementById('pressaoDiaDetailView');
@@ -7617,7 +7618,7 @@ function openPressaoInsertForm() {
   if (filters) filters.style.display = 'none';
 
   const insertView = document.getElementById('pressaoInsertView');
-  if (insertView) insertView.style.display = 'block';
+  if (insertView) insertView.style.display = 'flex';
 
   // Navigation flag
   window._pressaoDiaActive = false;
@@ -7625,21 +7626,13 @@ function openPressaoInsertForm() {
   const _titleEl = document.getElementById('vitalDetailTitle');
   if (_titleEl) _titleEl.textContent = 'Inserir Medição';
 
-  // Render all fields at once
-  _piDrumRender('sis');
-  _piDrumRender('dia');
-  _piDrumRender('hr');
-  _pressaoInsMedSync();
-  var notaEl = document.getElementById('piNotaInput');
-  if (notaEl) notaEl.value = '';
-
-  // Reset any lingering input overlays
+  // Reset input overlays
   ['sis','dia','hr'].forEach(function(f) {
     var inp = document.getElementById('piDcInput-' + f);
     if (inp) { inp.style.pointerEvents = 'none'; inp.style.opacity = '0'; }
-    var inp2 = document.getElementById('piDcInput-' + f);
-    if (f === 'hr' && inp2) { inp2.style.pointerEvents = 'none'; }
   });
+
+  _pressaoInsRender();
 }
 
 function closePressaoInsertForm() {
@@ -7670,18 +7663,34 @@ function closePressaoInsertForm() {
 }
 
 function pressaoInsGo(step) {
-  if (step < 1) closePressaoInsertForm();
+  if (step < 1) { closePressaoInsertForm(); return; }
+  if (step > 4) { pressaoInsSave(); return; }
+  pressaoInsertStep = step;
+  _pressaoInsRender();
 }
 
 function pressaoInsConfirmStep() {
-  pressaoInsSave();
+  pressaoInsGo(pressaoInsertStep + 1);
 }
 
 function _pressaoInsRender() {
-  _piDrumRender('sis');
-  _piDrumRender('dia');
-  _piDrumRender('hr');
-  _pressaoInsMedSync();
+  var s = pressaoInsertStep;
+  [1, 2, 3, 4].forEach(function(i) {
+    var el = document.getElementById('piStep' + i);
+    if (el) el.style.display = i === s ? 'flex' : 'none';
+    var dot = document.querySelector('[data-pidot="' + i + '"]');
+    if (dot) {
+      if (i <= s) dot.classList.add('pi-progress-dot--active');
+      else dot.classList.remove('pi-progress-dot--active');
+    }
+  });
+  if (s === 1) { _piDrumRender('sis'); _piDrumRender('dia'); }
+  if (s === 2) { _piDrumRender('hr'); }
+  if (s === 3) { _pressaoInsMedSync(); }
+  if (s === 4) {
+    var ta = document.getElementById('piNotaInput');
+    if (ta) { ta.value = pressaoInsertData.nota || ''; setTimeout(function() { ta.focus(); }, 80); }
+  }
 }
 
 function _piRenderSummary() { /* no-op: wizard removed, single-panel form */ }
@@ -7710,10 +7719,13 @@ function _piDrumRender(field) {
   var track = document.getElementById('piDrumTrack-' + field);
   if (!track) return;
   var html = '';
-  // 3-slot compact drum: prev, sel, next
-  for (var offset = -1; offset <= 1; offset++) {
+  // 5-slot drum: -2, -1, 0, +1, +2
+  for (var offset = -2; offset <= 2; offset++) {
     var v = val + offset;
-    var cls = offset === 0 ? 'pi-drum-item pi-drum-item--sel' : 'pi-drum-item pi-drum-item--near';
+    var cls = 'pi-drum-item';
+    if (offset === 0) cls += ' pi-drum-item--sel';
+    else if (Math.abs(offset) === 1) cls += ' pi-drum-item--near';
+    else cls += ' pi-drum-item--far';
     html += '<div class="' + cls + '">' + v + '</div>';
   }
   track.innerHTML = html;

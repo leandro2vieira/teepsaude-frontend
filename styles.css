@@ -8692,386 +8692,415 @@ body {
   color: #0f172a;
 }
 
-/* ── Formulario de insercao compacto (single-panel) ─────────────────────── */
-#pressaoInsertView {
-  padding: 0;
+/* ── Formulario wizard imersivo de pressao arterial ─────────────────────── */
+
+:root {
+  --pi-ih: 72px;
 }
 
-.pi-panel {
+#pressaoInsertView {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 10px 4px 12px;
-  height: 100%;
-  box-sizing: border-box;
+  min-height: calc(100dvh - 56px);
+  background: #fff;
 }
 
-/* Cabecalho */
-.pi-hdr {
+/* Barra de progresso */
+.pi-progress {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 4px 0 2px;
-}
-
-.pi-hdr-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: #f59e0b;
-  display: flex;
-  align-items: center;
+  gap: 8px;
   justify-content: center;
-  color: #fff;
+  padding: 16px 0 8px;
   flex-shrink: 0;
 }
 
-.pi-hdr-text {
+.pi-progress-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  transition: background 0.25s, transform 0.25s, width 0.25s;
+}
+
+.pi-progress-dot--active {
+  background: #f59e0b;
+  width: 20px;
+  border-radius: 4px;
+}
+
+/* Cada step: coluna flexivel, preenche tela */
+.pi-step {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  padding: 8px 20px 28px;
+  min-height: 0;
 }
 
-.pi-hdr-title {
-  font-size: 16px;
+/* Cabecalho do step */
+.pi-step-head {
+  text-align: center;
+  padding: 8px 0 16px;
+  flex-shrink: 0;
+}
+
+.pi-step-icon-heart {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.pi-step-icon-heart svg {
+  width: 40px;
+  height: 40px;
+}
+
+.pi-step-label {
+  font-size: 22px;
   font-weight: 700;
   color: #0f172a;
+  margin-bottom: 4px;
 }
 
-.pi-hdr-sub {
-  font-size: 11px;
+.pi-step-hint {
+  font-size: 13px;
   color: #94a3b8;
 }
 
-/* Linha SIS / DIA */
-.pi-bp-row {
+/* ── STEP 1: Drums SIS / DIA ─────────────────────────────────────────────── */
+
+.pi-bp-drums {
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 6px;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  margin: 4px 0 8px;
 }
 
-.pi-bp-col {
+.pi-drum-col {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  flex: 1;
+  gap: 10px;
+  min-width: 0;
 }
 
-.pi-col-lbl {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+.pi-drum-lbl {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
-.pi-col-lbl--sis { color: #f59e0b; }
-.pi-col-lbl--dia { color: #3b82f6; }
+.pi-drum-lbl--sis { color: #f59e0b; }
+.pi-drum-lbl--dia { color: #3b82f6; }
 
-.pi-num-ctrl {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  width: 100%;
-}
-
-/* Botao +/- */
-.pi-adj {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: none;
-  background: #f1f5f9;
-  color: #0f172a;
-  font-size: 22px;
-  font-weight: 300;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: none;
-  transition: background 0.12s, transform 0.08s;
-  flex-shrink: 0;
-  line-height: 1;
-}
-
-.pi-adj:active {
-  background: #dde3ed;
-  transform: scale(0.93);
-}
-
-.pi-adj--sm {
-  width: 30px;
-  height: 30px;
-  font-size: 18px;
-}
-
-/* Drum compacto SIS/DIA: 3 slots x 44px = 132px */
-.pi-dc {
+/* Drum picker — 5 items x 72px = 360px */
+.pi-drum {
   position: relative;
-  flex: 1;
-  min-width: 64px;
-  height: 132px;
+  width: 100%;
+  height: calc(var(--pi-ih) * 5);
   overflow: hidden;
   touch-action: none;
   cursor: ns-resize;
   user-select: none;
   -webkit-user-select: none;
-  border-radius: 10px;
+  border-radius: 20px;
   background: #f8fafc;
 }
 
-.pi-dc .pi-drum-track {
+.pi-drum .pi-drum-track {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
+  will-change: transform;
 }
 
-.pi-dc .pi-drum-item {
-  height: 44px;
+.pi-drum .pi-drum-item {
+  height: var(--pi-ih);
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   font-weight: 700;
-  line-height: 1;
   flex-shrink: 0;
+  line-height: 1;
 }
 
-.pi-dc .pi-drum-item--near {
-  font-size: 22px;
+.pi-drum .pi-drum-item--far {
+  font-size: 16px;
+  color: #cbd5e1;
+}
+
+.pi-drum .pi-drum-item--near {
+  font-size: 30px;
   color: #94a3b8;
-  opacity: 0.5;
 }
 
-.pi-dc .pi-drum-item--sel {
-  font-size: 42px;
+.pi-drum .pi-drum-item--sel {
+  font-size: 72px;
   color: #0f172a;
-  letter-spacing: -1px;
-  opacity: 1;
+  letter-spacing: -2px;
 }
 
-/* Selection lines around center slot */
-.pi-dc-sel {
+/* Linha de selecao sobre o slot central */
+.pi-drum-sel {
   position: absolute;
-  left: 8px;
-  right: 8px;
-  top: 44px;
-  height: 44px;
-  border-top: 1.5px solid #e2e8f0;
-  border-bottom: 1.5px solid #e2e8f0;
+  left: 12px;
+  right: 12px;
+  top: calc(var(--pi-ih) * 2);
+  height: var(--pi-ih);
+  border-top: 2px solid #e2e8f0;
+  border-bottom: 2px solid #e2e8f0;
   pointer-events: none;
   border-radius: 2px;
+  z-index: 1;
 }
 
-/* Fade gradients */
-.pi-dc-fade {
+/* Fade em cima/baixo */
+.pi-drum-fade {
   position: absolute;
   left: 0;
   right: 0;
-  height: 44px;
+  height: calc(var(--pi-ih) * 2);
   pointer-events: none;
+  z-index: 2;
 }
 
-.pi-dc-fade--top {
+.pi-drum-fade--top {
   top: 0;
-  background: linear-gradient(to bottom, #f8fafc 30%, rgba(248,250,252,0) 100%);
+  background: linear-gradient(to bottom, #f8fafc 15%, rgba(248,250,252,0) 100%);
 }
 
-.pi-dc-fade--bot {
+.pi-drum-fade--bot {
   bottom: 0;
-  background: linear-gradient(to top, #f8fafc 30%, rgba(248,250,252,0) 100%);
+  background: linear-gradient(to top, #f8fafc 15%, rgba(248,250,252,0) 100%);
 }
 
-/* Transparent input over center slot — visible only when focused */
-.pi-dc-input {
+/* Input de teclado sobre o slot central */
+.pi-drum-inp {
   position: absolute;
-  top: 44px;
+  top: calc(var(--pi-ih) * 2);
   left: 0;
   right: 0;
-  height: 44px;
+  height: var(--pi-ih);
   opacity: 0;
   pointer-events: none;
   border: none;
-  background: rgba(255,255,255,0.95);
-  font-size: 42px;
+  background: rgba(255,255,255,0.97);
+  font-size: 72px;
   font-weight: 700;
   color: #0f172a;
   text-align: center;
-  letter-spacing: -1px;
+  letter-spacing: -2px;
   z-index: 3;
   outline: none;
   -moz-appearance: textfield;
+  font-family: inherit;
+  padding: 0;
+  margin: 0;
 }
 
-.pi-dc-input::-webkit-inner-spin-button,
-.pi-dc-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.pi-drum-inp::-webkit-inner-spin-button,
+.pi-drum-inp::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
-.pi-dc-input:focus {
-  outline: none;
-}
-
-/* Separador / */
+/* Separador "/" entre SIS e DIA */
 .pi-bp-slash {
-  font-size: 36px;
+  font-size: 48px;
   font-weight: 200;
   color: #cbd5e1;
-  align-self: center;
-  padding-top: 20px;
   flex-shrink: 0;
+  align-self: center;
+  /* Deslocar para baixo para alinhar com o slot selecionado (label ~30px + sel-center ~2.5*72=180px) */
+  margin-top: calc(30px + var(--pi-ih) * 0.5);
   line-height: 1;
 }
 
-/* Unidade mmHg */
-.pi-bp-unit {
-  font-size: 13px;
-  color: #94a3b8;
+/* Unidade abaixo dos drums */
+.pi-unit-lbl {
   text-align: center;
-  margin-top: -4px;
+  font-size: 15px;
+  color: #94a3b8;
+  font-weight: 500;
+  padding: 4px 0 8px;
+  flex-shrink: 0;
 }
 
-/* Linha FC */
-.pi-hr-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #f8fafc;
-  border-radius: 12px;
-  padding: 8px 12px;
+/* Botao "Proximo" */
+.pi-next-btn {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  flex-shrink: 0;
+  transition: background 0.15s, transform 0.1s;
+  margin-top: auto;
 }
 
-.pi-hr-lbl {
-  font-size: 12px;
-  font-weight: 700;
-  color: #64748b;
-  letter-spacing: 0.05em;
-  margin-right: 4px;
+.pi-next-btn:active {
+  background: #1e293b;
+  transform: scale(0.98);
 }
 
-.pi-hr-num-wrap {
-  position: relative;
+/* ── STEP 2: FC — numero enorme ──────────────────────────────────────────── */
+
+.pi-hr-dial {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 52px;
-  height: 36px;
-  cursor: ns-resize;
+  position: relative;
   touch-action: none;
+  cursor: ns-resize;
   user-select: none;
   -webkit-user-select: none;
+  border-radius: 24px;
+  background: #fef9f0;
+  margin: 4px 0;
 }
 
-.pi-hr-num {
-  font-size: 26px;
-  font-weight: 700;
+.pi-hr-dial-num {
+  font-size: 120px;
+  font-weight: 800;
   color: #0f172a;
-  letter-spacing: -0.5px;
+  letter-spacing: -4px;
   line-height: 1;
+  pointer-events: none;
+  transition: color 0.1s;
 }
 
-.pi-hr-input {
+.pi-hr-dial-inp {
   position: absolute;
   inset: 0;
   opacity: 0;
   pointer-events: none;
   border: none;
-  background: rgba(255,255,255,0.95);
-  font-size: 26px;
-  font-weight: 700;
+  background: rgba(255,255,255,0.97);
+  font-size: 120px;
+  font-weight: 800;
   color: #0f172a;
   text-align: center;
-  border-radius: 6px;
+  border-radius: 24px;
   outline: none;
   -moz-appearance: textfield;
+  font-family: inherit;
+  padding: 0;
+  letter-spacing: -4px;
 }
 
-.pi-hr-input::-webkit-inner-spin-button,
-.pi-hr-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.pi-hr-dial-inp::-webkit-inner-spin-button,
+.pi-hr-dial-inp::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 
-.pi-hr-unit {
-  font-size: 12px;
-  color: #94a3b8;
-  margin-left: 2px;
-}
+/* ── STEP 3: Remedios — 3 cards grandes ─────────────────────────────────── */
 
-/* Medicacao */
-.pi-med-row {
-  display: flex;
-  gap: 6px;
-}
-
-.pi-med-btn {
+.pi-med-grid {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 8px 0 0;
+}
+
+.pi-med-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #f8fafc;
+  border: 2.5px solid transparent;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  font-family: inherit;
+  padding: 16px 12px;
+}
+
+.pi-med-card:active {
+  transform: scale(0.97);
+}
+
+.pi-med-card--active {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.pi-med-card-icon {
+  font-size: 40px;
+  line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 8px 4px;
-  background: #f1f5f9;
-  border: 2px solid transparent;
-  border-radius: 10px;
-  font-size: 11px;
+}
+
+.pi-med-card-icon--svg {
+  width: 40px;
+  height: 40px;
+  stroke: #64748b;
+}
+
+.pi-med-card-lbl {
+  font-size: 16px;
   font-weight: 600;
-  color: #475569;
-  cursor: pointer;
+  color: #0f172a;
   text-align: center;
-  transition: border-color 0.15s, background 0.15s;
-  font-family: inherit;
-  white-space: nowrap;
-  line-height: 1.2;
+  line-height: 1.35;
 }
 
-.pi-med-btn:active {
-  background: #e2e8f0;
-}
+/* ── STEP 4: Nota + Salvar ───────────────────────────────────────────────── */
 
-.pi-med-btn--active {
-  border-color: #f59e0b;
-  background: #fffbeb;
-  color: #92400e;
-}
-
-/* Nota */
-.pi-nota-input {
+.pi-nota-area {
+  flex: 1;
   width: 100%;
   box-sizing: border-box;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1.5px solid #e2e8f0;
-  font-size: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 2px solid #e2e8f0;
+  font-size: 16px;
   color: #0f172a;
   font-family: inherit;
-  background: #fff;
-  transition: border-color 0.15s;
+  background: #f8fafc;
+  resize: none;
   outline: none;
+  transition: border-color 0.15s;
+  margin-bottom: 12px;
+  line-height: 1.5;
 }
 
-.pi-nota-input:focus {
+.pi-nota-area:focus {
   border-color: #f59e0b;
+  background: #fff;
 }
 
-/* Botao salvar */
 .pi-save-btn {
   display: block;
   width: 100%;
-  padding: 14px;
+  padding: 16px;
   background: #f59e0b;
   color: #fff;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 700;
   border: none;
-  border-radius: 12px;
+  border-radius: 16px;
   cursor: pointer;
   text-align: center;
   font-family: inherit;
-  transition: background 0.15s;
-  margin-top: auto;
+  transition: background 0.15s, transform 0.1s;
+  flex-shrink: 0;
 }
 
 .pi-save-btn:active {
   background: #d97706;
+  transform: scale(0.98);
 }
