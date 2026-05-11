@@ -1764,7 +1764,7 @@ body {
   transition: background 0.15s, transform 0.1s;
 }
 .modal-close::after {
-  content: 'âœ•';
+  content: '\2715';
   font-size: 16px;
   color: #475569;
   position: absolute;
@@ -1810,7 +1810,7 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 .modal-ok::after {
-  content: 'âœ•';
+  content: '\2715';
   font-size: 16px;
   font-weight: 400;
   color: #475569;
@@ -2458,7 +2458,7 @@ body {
 
 /* Item 3 â€” Chevron affordance on home vital cards */
 #homeScreen .home-vital-card::after {
-  content: 'â€º';
+  content: '\203a';
   position: absolute;
   right: 14px;
   top: 50%;
