@@ -2236,6 +2236,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (closeVitalDetailModal) {
     closeVitalDetailModal.addEventListener('click', () => {
       if (window._batHdActive) { closeBatHourlyDetail(); return; }
+      if (window._pressaoInsertActive) { closePressaoInsertForm(); return; }
       if (window._pressaoColetaActive) { closePressaoColetaDetail(); return; }
       if (window._pressaoDiaActive) { closePressaoDiaDetail(); return; }
       document.getElementById('vitalDetailModal').classList.remove('active');
@@ -7619,6 +7620,12 @@ function openPressaoInsertForm() {
   const insertView = document.getElementById('pressaoInsertView');
   if (insertView) insertView.style.display = 'block';
 
+  // Navigation flag: take over the navbar back button
+  window._pressaoDiaActive = false;
+  window._pressaoInsertActive = true;
+  const _titleEl = document.getElementById('vitalDetailTitle');
+  if (_titleEl) _titleEl.textContent = 'Inserir Medição';
+
   _pressaoInsRender();
 }
 
@@ -7627,13 +7634,26 @@ function closePressaoInsertForm() {
   const insertView = document.getElementById('pressaoInsertView');
   if (insertView) insertView.style.display = 'none';
 
-  const chart = document.getElementById('pressaoHistoricoView');
-  if (chart) chart.style.display = '';
-  const filters = document.getElementById('vitalDefaultPeriodControls');
-  if (filters) filters.style.display = '';
+  window._pressaoInsertActive = false;
 
-  const diaView = document.getElementById('pressaoDiaDetailView');
-  if (diaView) diaView.style.display = 'block';
+  if (pressaoSelectedDay) {
+    // Return to the day-detail view
+    window._pressaoDiaActive = true;
+    const _dLabel = document.getElementById('pressaoDiaDetailLabel');
+    const _titleEl = document.getElementById('vitalDetailTitle');
+    if (_titleEl && _dLabel) _titleEl.textContent = _dLabel.textContent;
+    const diaView = document.getElementById('pressaoDiaDetailView');
+    if (diaView) diaView.style.display = 'block';
+    // chart + filters stay hidden (dia detail is showing)
+  } else {
+    // No day selected — return to main chart
+    const chart = document.getElementById('pressaoHistoricoView');
+    if (chart) chart.style.display = '';
+    const filters = document.getElementById('vitalDefaultPeriodControls');
+    if (filters) filters.style.display = '';
+    const _titleEl = document.getElementById('vitalDetailTitle');
+    if (_titleEl && currentVitalDetail) _titleEl.textContent = 'Histórico de ' + currentVitalDetail.tipo;
+  }
 }
 
 function pressaoInsGo(step) {
