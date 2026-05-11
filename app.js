@@ -2235,10 +2235,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeVitalDetailModal = document.getElementById('closeVitalDetailModal');
   if (closeVitalDetailModal) {
     closeVitalDetailModal.addEventListener('click', () => {
-      if (window._batHdActive) {
-        closeBatHourlyDetail();
-        return;
-      }
+      if (window._batHdActive) { closeBatHourlyDetail(); return; }
+      if (window._pressaoColetaActive) { closePressaoColetaDetail(); return; }
+      if (window._pressaoDiaActive) { closePressaoDiaDetail(); return; }
       document.getElementById('vitalDetailModal').classList.remove('active');
     });
   }
@@ -7396,6 +7395,11 @@ function openPressaoDiaDetail(dayIso, entries) {
   const labelEl = document.getElementById('pressaoDiaDetailLabel');
   if (labelEl) labelEl.textContent = dateLabel;
 
+  window._pressaoDiaActive = true;
+  window._pressaoDiaLabel = dateLabel;
+  const _titleEl = document.getElementById('vitalDetailTitle');
+  if (_titleEl) _titleEl.textContent = dateLabel;
+
   const pares = entries.map(h => typeof parseHistoricoPressurePair === 'function' ? parseHistoricoPressurePair(h) : null).filter(Boolean);
   const minS = pares.length ? Math.min(...pares.map(p => p.s)) : null;
   const maxS = pares.length ? Math.max(...pares.map(p => p.s)) : null;
@@ -7488,6 +7492,10 @@ function pressaoColetaShowMore() {
 }
 
 function closePressaoDiaDetail() {
+  window._pressaoDiaActive = false;
+  const _titleEl = document.getElementById('vitalDetailTitle');
+  if (_titleEl && currentVitalDetail) _titleEl.textContent = 'Histórico de ' + currentVitalDetail.tipo;
+
   pressaoSelectedDay = null;
   const _dCanvas = document.getElementById('sparklineChart');
   if (_dCanvas && typeof _dCanvas.__drawPressao === 'function') _dCanvas.__drawPressao();
@@ -7508,6 +7516,7 @@ function openPressaoColetaDetail(idx) {
   const coletaView = document.getElementById('pressaoColetaDetailView');
   if (!coletaView) return;
   coletaView.style.display = 'block';
+  window._pressaoColetaActive = true;
 
   // Hide chart + period filters while in reading detail
   const _chartArea = document.getElementById('pressaoHistoricoView');
@@ -7523,7 +7532,10 @@ function openPressaoColetaDetail(idx) {
     const _dateObj = new Date(_y, _m - 1, _d);
     const _dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
     const _meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-    labelEl.textContent = `${_dias[_dateObj.getDay()]}, ${String(_d).padStart(2, '0')} ${_meses[_m - 1]} · ${hora}`;
+    const _coletaLabel = `${_dias[_dateObj.getDay()]}, ${String(_d).padStart(2, '0')} ${_meses[_m - 1]} · ${hora}`;
+    labelEl.textContent = _coletaLabel;
+    const _titleEl = document.getElementById('vitalDetailTitle');
+    if (_titleEl) _titleEl.textContent = _coletaLabel;
   }
 
   const pair = typeof parseHistoricoPressurePair === 'function' ? parseHistoricoPressurePair(h) : null;
@@ -7571,6 +7583,10 @@ function openPressaoColetaDetail(idx) {
 }
 
 function closePressaoColetaDetail() {
+  window._pressaoColetaActive = false;
+  const _titleEl = document.getElementById('vitalDetailTitle');
+  if (_titleEl && window._pressaoDiaLabel) _titleEl.textContent = window._pressaoDiaLabel;
+
   const coletaView = document.getElementById('pressaoColetaDetailView');
   if (coletaView) coletaView.style.display = 'none';
   // Restore chart + period filters

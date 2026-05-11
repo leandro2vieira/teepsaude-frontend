@@ -3890,28 +3890,35 @@ body {
 
 .vital-period-chips {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-bottom: 6px;
+  flex-wrap: nowrap;
+  gap: 3px;
+  margin-bottom: 10px;
+  background: #eef2f7;
+  border-radius: 10px;
+  padding: 3px;
 }
 
 .vital-period-chip {
-  border: 1px solid #e8e8e8;
-  background: #fafafa;
-  border-radius: 999px;
-  padding: 5px 10px;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--text-body);
+  flex: 1;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  padding: 6px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
   cursor: pointer;
   font-family: inherit;
-  line-height: 1.15;
+  line-height: 1.2;
+  text-align: center;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
 }
 
 .vital-period-chip.is-active {
-  background: #2563eb;
-  color: #fff;
-  border-color: #2563eb;
+  background: #ffffff;
+  color: #2563eb;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
 }
 
 .vital-batimento-context-row {
@@ -7627,18 +7634,7 @@ body {
   padding: 10px 0 12px;
 }
 .pressao-dia-det-back-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: none;
-  color: #475569;
-  cursor: pointer;
-  border-radius: 8px;
-  flex-shrink: 0;
-  padding: 0;
+  display: none;
 }
 .pressao-dia-det-back-btn:hover {
   background: #f1f5f9;
@@ -7671,6 +7667,10 @@ body {
   cursor: pointer;
   text-align: center;
   transition: background 0.15s, opacity 0.15s;
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  box-shadow: 0 -4px 16px rgba(245, 158, 11, 0.18);
 }
 
 .pressao-inserir-btn:active {
