@@ -7721,7 +7721,7 @@ function _piRenderSummary() {
   var medMap = { tomados: 'Tomei os rem\u00e9dios', nao_tomados: 'N\u00e3o tomei hoje', nenhum: 'N\u00e3o tomo rem\u00e9dios' };
   var nota = pressaoInsertData.nota && pressaoInsertData.nota.trim() ? pressaoInsertData.nota.trim() : '\u2014';
   var svgBP = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor"><polyline stroke-linecap="round" stroke-linejoin="round" points="2 12 6 12 8 5 11 19 13 12 15 9 17 15 19 12 22 12"/></svg>';
-  var svgHR = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+  var svgHR = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/></svg>';
   el.innerHTML =
     '<div class="pi-sum-row" onclick="piSumEdit(1)">' +
       '<div class="pi-sum-ico pi-sum-ico--bp">' + svgBP + '</div>' +
