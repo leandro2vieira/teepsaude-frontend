@@ -8691,3 +8691,387 @@ body {
   font-weight: 600;
   color: #0f172a;
 }
+
+/* ── Formulario de insercao compacto (single-panel) ─────────────────────── */
+#pressaoInsertView {
+  padding: 0;
+}
+
+.pi-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 4px 12px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* Cabecalho */
+.pi-hdr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0 2px;
+}
+
+.pi-hdr-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #f59e0b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.pi-hdr-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.pi-hdr-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.pi-hdr-sub {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* Linha SIS / DIA */
+.pi-bp-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6px;
+}
+
+.pi-bp-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.pi-col-lbl {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pi-col-lbl--sis { color: #f59e0b; }
+.pi-col-lbl--dia { color: #3b82f6; }
+
+.pi-num-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+/* Botao +/- */
+.pi-adj {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #f1f5f9;
+  color: #0f172a;
+  font-size: 22px;
+  font-weight: 300;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  transition: background 0.12s, transform 0.08s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.pi-adj:active {
+  background: #dde3ed;
+  transform: scale(0.93);
+}
+
+.pi-adj--sm {
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+}
+
+/* Drum compacto SIS/DIA: 3 slots x 44px = 132px */
+.pi-dc {
+  position: relative;
+  flex: 1;
+  min-width: 64px;
+  height: 132px;
+  overflow: hidden;
+  touch-action: none;
+  cursor: ns-resize;
+  user-select: none;
+  -webkit-user-select: none;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.pi-dc .pi-drum-track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.pi-dc .pi-drum-item {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.pi-dc .pi-drum-item--near {
+  font-size: 22px;
+  color: #94a3b8;
+  opacity: 0.5;
+}
+
+.pi-dc .pi-drum-item--sel {
+  font-size: 42px;
+  color: #0f172a;
+  letter-spacing: -1px;
+  opacity: 1;
+}
+
+/* Selection lines around center slot */
+.pi-dc-sel {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 44px;
+  height: 44px;
+  border-top: 1.5px solid #e2e8f0;
+  border-bottom: 1.5px solid #e2e8f0;
+  pointer-events: none;
+  border-radius: 2px;
+}
+
+/* Fade gradients */
+.pi-dc-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 44px;
+  pointer-events: none;
+}
+
+.pi-dc-fade--top {
+  top: 0;
+  background: linear-gradient(to bottom, #f8fafc 30%, rgba(248,250,252,0) 100%);
+}
+
+.pi-dc-fade--bot {
+  bottom: 0;
+  background: linear-gradient(to top, #f8fafc 30%, rgba(248,250,252,0) 100%);
+}
+
+/* Transparent input over center slot — visible only when focused */
+.pi-dc-input {
+  position: absolute;
+  top: 44px;
+  left: 0;
+  right: 0;
+  height: 44px;
+  opacity: 0;
+  pointer-events: none;
+  border: none;
+  background: rgba(255,255,255,0.95);
+  font-size: 42px;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: center;
+  letter-spacing: -1px;
+  z-index: 3;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.pi-dc-input::-webkit-inner-spin-button,
+.pi-dc-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+.pi-dc-input:focus {
+  outline: none;
+}
+
+/* Separador / */
+.pi-bp-slash {
+  font-size: 36px;
+  font-weight: 200;
+  color: #cbd5e1;
+  align-self: center;
+  padding-top: 20px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* Unidade mmHg */
+.pi-bp-unit {
+  font-size: 13px;
+  color: #94a3b8;
+  text-align: center;
+  margin-top: -4px;
+}
+
+/* Linha FC */
+.pi-hr-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+
+.pi-hr-lbl {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.05em;
+  margin-right: 4px;
+}
+
+.pi-hr-num-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  height: 36px;
+  cursor: ns-resize;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pi-hr-num {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.pi-hr-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  border: none;
+  background: rgba(255,255,255,0.95);
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: center;
+  border-radius: 6px;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.pi-hr-input::-webkit-inner-spin-button,
+.pi-hr-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+.pi-hr-unit {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-left: 2px;
+}
+
+/* Medicacao */
+.pi-med-row {
+  display: flex;
+  gap: 6px;
+}
+
+.pi-med-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 4px;
+  background: #f1f5f9;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s, background 0.15s;
+  font-family: inherit;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.pi-med-btn:active {
+  background: #e2e8f0;
+}
+
+.pi-med-btn--active {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+/* Nota */
+.pi-nota-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  font-size: 14px;
+  color: #0f172a;
+  font-family: inherit;
+  background: #fff;
+  transition: border-color 0.15s;
+  outline: none;
+}
+
+.pi-nota-input:focus {
+  border-color: #f59e0b;
+}
+
+/* Botao salvar */
+.pi-save-btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: #f59e0b;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  transition: background 0.15s;
+  margin-top: auto;
+}
+
+.pi-save-btn:active {
+  background: #d97706;
+}
