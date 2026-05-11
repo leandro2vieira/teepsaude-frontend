@@ -1,4 +1,4 @@
-/* Estilos - Sistema de Saúde */
+﻿/* Estilos - Sistema de SaÃºde */
 
 * {
   margin: 0;
@@ -25,13 +25,13 @@ body {
   --border-card-soft: 1px solid #f1f1f1;
   --space-card-padding: 14px;
   --space-card-gap: 10px;
-  /* Valores/títulos principais dos cards */
+  /* Valores/tÃ­tulos principais dos cards */
   --text-title: #0f172a;
   --text-body: #1e293b;
   --text-muted: #64748b;
   --accent-primary: #2563eb;
   --wizard-accent: #2563eb;
-  /* Tom alinhado ao logo Teep Saúde (lavanda → azul muito claro) */
+  /* Tom alinhado ao logo Teep SaÃºde (lavanda â†’ azul muito claro) */
   --header-brand-gradient: linear-gradient(
     165deg,
     #e0e4fa 0%,
@@ -74,7 +74,7 @@ body {
   background: #f3f3f3;
 }
 
-/* Header — Framework7 Navbar override */
+/* Header â€” Framework7 Navbar override */
 .navbar.header,
 .header {
   position: relative;
@@ -98,7 +98,7 @@ body {
 }
 
 .navbar-spacer {
-  /* spacer not needed — navbar is relative, not fixed */
+  /* spacer not needed â€” navbar is relative, not fixed */
   display: none;
 }
 
@@ -211,57 +211,101 @@ body {
   line-height: 1.35;
 }
 
-/* Navegação Inferior — Framework7 Tabbar */
-/* F7 handles most styles; we override colors and positioning for the phone frame */
+/* â”€â”€ NavegaÃ§Ã£o Inferior â€” Tab bar integrada ao design system â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .toolbar.tabbar {
   background: #ffffff !important;
   border-top: 1px solid #f0f2f5 !important;
-  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.05) !important;
-  position: absolute !important;  /* relative to .mobile-container, not viewport */
+  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.06) !important;
+  position: absolute !important;
   bottom: 0;
   left: 0;
   right: 0;
-  margin: 0 auto;
   max-width: 480px;
+  height: 60px !important;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
+.toolbar.tabbar .toolbar-inner {
+  padding: 0 !important;
+  align-items: stretch;
+}
+
+/* Cada aba */
 .toolbar.tabbar .tab-link {
+  flex: 1;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 3px;
+  padding: 8px 0 6px !important;
+  overflow: visible;
+  border-radius: 0;
   color: #94a3b8 !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 10.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em;
+  transition: color 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+  text-decoration: none;
 }
 
+/* Aba ativa */
 .toolbar.tabbar .tab-link.tab-link-active {
   color: #2563eb !important;
 }
 
-.toolbar.tabbar .tab-link.tab-link-active .icon svg {
-  stroke-width: 2.5;
-}
-
-.toolbar.tabbar .tabbar-label {
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-}
-
-/* keep original nav-item fallback classes for compat */
-.nav-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+/* Ãcone (SVG wrapper) */
+.toolbar.tabbar .tab-link .icon {
+  width: 26px;
+  height: 26px;
+  display: flex !important;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  color: #94a3b8;
-  font-size: 11px;
-  font-weight: 600;
-  border: none;
-  background: none;
-  padding: 6px 0;
-  gap: 3px;
+  flex-shrink: 0;
+  position: relative;
 }
 
-.nav-item.active { color: #2563eb; }
+.toolbar.tabbar .tab-link .icon svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 1.8;
+  transition: stroke-width 0.18s ease;
+}
 
-/* Telas — com animações de entrada/saída estilo app */
+.toolbar.tabbar .tab-link.tab-link-active .icon svg {
+  stroke-width: 2.4;
+}
+
+/* Ponto indicador sob o Ã­cone da aba ativa */
+.toolbar.tabbar .tab-link.tab-link-active .icon::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #2563eb;
+  opacity: 0.7;
+}
+
+/* RÃ³tulo */
+.toolbar.tabbar .tabbar-label {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  line-height: 1;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+/* keep nav-item fallback for compat */
+.nav-item { display: none; }
+
+/* Telas â€” com animaÃ§Ãµes de entrada/saÃ­da estilo app */
 .screen {
   display: none;
   padding: 4px;
@@ -293,7 +337,7 @@ body {
   to   { opacity: 0; }
 }
 
-/* Cards Base — borda uniforme (sem faixa lateral colorida) */
+/* Cards Base â€” borda uniforme (sem faixa lateral colorida) */
 .card {
   background: var(--surface-card);
   border-radius: var(--radius-card);
@@ -372,7 +416,7 @@ body {
   margin-bottom: 6px;
 }
 
-/* Medicação - Novo Padrão */
+/* MedicaÃ§Ã£o - Novo PadrÃ£o */
 .med-header {
   display: flex;
   justify-content: space-between;
@@ -488,7 +532,7 @@ body {
   gap: 8px;
 }
 
-/* Botões de Ação de Sinais Vitais */
+/* BotÃµes de AÃ§Ã£o de Sinais Vitais */
 .vital-action-buttons {
   display: flex;
   gap: 6px;
@@ -648,7 +692,7 @@ body {
   color: #999999;
 }
 
-/* Seções */
+/* SeÃ§Ãµes */
 .section-title {
   font-size: 18px;
   font-weight: 700;
@@ -708,7 +752,7 @@ body {
   color: var(--text-muted);
 }
 
-/* Home — status card (medicações) */
+/* Home â€” status card (medicaÃ§Ãµes) */
 .home-status-card {
   display: flex;
   align-items: center;
@@ -761,7 +805,7 @@ body {
   display: none;
 }
 
-/* Home — alinhado à legibilidade para leitura rápida */
+/* Home â€” alinhado Ã  legibilidade para leitura rÃ¡pida */
 #homeScreen .page-subtitle,
 #homeScreen .page-context-sub {
   font-size: 15px;
@@ -885,7 +929,7 @@ body {
   color: #b91c1c;
 }
 
-/* Próxima Consulta — home simplified */
+/* PrÃ³xima Consulta â€” home simplified */
 #homeScreen #homeConsulta .card-agenda--home,
 #agendaScreen .card-agenda--home {
   border-radius: 14px;
@@ -970,7 +1014,7 @@ body {
   text-transform: uppercase;
 }
 
-/* Botão Adicionar */
+/* BotÃ£o Adicionar */
 .add-button {
   width: 44px;
   height: 44px;
@@ -1037,7 +1081,7 @@ body {
   margin-top: 4px;
 }
 
-/* Configurações */
+/* ConfiguraÃ§Ãµes */
 .config-item {
   background: white;
   border-radius: 14px;
@@ -1126,7 +1170,7 @@ body {
   left: 24px;
 }
 
-/* Botões */
+/* BotÃµes */
 .button {
   padding: 12px;
   border-radius: 8px;
@@ -1185,7 +1229,7 @@ body {
   z-index: 1300;
 }
 
-/* Modal adicionar medição — layout e cores alinhados ao app */
+/* Modal adicionar mediÃ§Ã£o â€” layout e cores alinhados ao app */
 .add-vital-modal .modal-content--add-vital {
   padding: 0;
   max-width: 420px;
@@ -1324,7 +1368,7 @@ body {
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
 
-/* Confirmação — números grandes */
+/* ConfirmaÃ§Ã£o â€” nÃºmeros grandes */
 .vital-save-confirm-content {
   max-width: 400px;
 }
@@ -1720,7 +1764,7 @@ body {
   transition: background 0.15s, transform 0.1s;
 }
 .modal-close::after {
-  content: '✕';
+  content: 'âœ•';
   font-size: 16px;
   color: #475569;
   position: absolute;
@@ -1766,7 +1810,7 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 .modal-ok::after {
-  content: '✕';
+  content: 'âœ•';
   font-size: 16px;
   font-weight: 400;
   color: #475569;
@@ -1784,7 +1828,7 @@ body {
   transform: scale(0.9);
 }
 
-/* Formulários */
+/* FormulÃ¡rios */
 .form-group {
   margin-bottom: 16px;
 }
@@ -1825,7 +1869,7 @@ body {
   cursor: pointer;
 }
 
-/* Saúde e Corpo: datas/horas legíveis (idoso) */
+/* SaÃºde e Corpo: datas/horas legÃ­veis (idoso) */
 #vitalDetailModal input[type="date"],
 #vitalDetailModal input[type="time"],
 #vitalDetailModal input[type="datetime-local"],
@@ -2008,7 +2052,7 @@ body {
   flex: 1;
 }
 
-/* Grupos de Botões */
+/* Grupos de BotÃµes */
 .button-group {
   display: flex;
   gap: 12px;
@@ -2225,7 +2269,7 @@ body {
 
 /* ===== SINAIS VITAIS MELHORADOS ===== */
 
-/* Card mais compacto: menos padding interno, mesma estrutura (ícone / valor / status → data → faixa 24h → +) */
+/* Card mais compacto: menos padding interno, mesma estrutura (Ã­cone / valor / status â†’ data â†’ faixa 24h â†’ +) */
 .vital-card {
   cursor: pointer;
   transition: all 0.2s;
@@ -2233,7 +2277,7 @@ body {
   margin-bottom: 12px !important;
 }
 
-/* Espaço mínimo para o "+" no canto */
+/* EspaÃ§o mÃ­nimo para o "+" no canto */
 .vital-card.card-has-action {
   padding-bottom: 32px !important;
 }
@@ -2369,7 +2413,7 @@ body {
   line-height: 1.15;
 }
 
-/* Pressão: SIS/DIA na mesma linha sem aumentar altura do card */
+/* PressÃ£o: SIS/DIA na mesma linha sem aumentar altura do card */
 .vital-value-main--pressure {
   font-size: 17px;
   letter-spacing: -0.02em;
@@ -2387,7 +2431,7 @@ body {
   vertical-align: 0.05em;
 }
 
-/* Batimento cardíaco: título + selo min–máx; valor grande + unidade (sem data) */
+/* Batimento cardÃ­aco: tÃ­tulo + selo minâ€“mÃ¡x; valor grande + unidade (sem data) */
 .vital-card--batimento {
   padding: 12px 14px 12px 12px !important;
   margin-bottom: 8px !important;
@@ -2412,9 +2456,9 @@ body {
   color: #94a3b8;
 }
 
-/* Item 3 — Chevron affordance on home vital cards */
+/* Item 3 â€” Chevron affordance on home vital cards */
 #homeScreen .home-vital-card::after {
-  content: '›';
+  content: 'â€º';
   position: absolute;
   right: 14px;
   top: 50%;
@@ -2426,7 +2470,7 @@ body {
   pointer-events: none;
 }
 
-/* Item 9 — Header compacto: saudação + nome na mesma linha */
+/* Item 9 â€” Header compacto: saudaÃ§Ã£o + nome na mesma linha */
 .header-name-row {
   display: flex;
   flex-direction: row;
@@ -2604,7 +2648,7 @@ body {
   color: #6b7280;
 }
 
-/* Selo tipo pílula: min–máx bpm */
+/* Selo tipo pÃ­lula: minâ€“mÃ¡x bpm */
 .vital-batimento-badge {
   font-size: 12px;
   font-weight: 600;
@@ -2640,7 +2684,7 @@ body {
   color: #6b7280;
 }
 
-/* Pressão arterial: mesmo padrão visual do card de batimento */
+/* PressÃ£o arterial: mesmo padrÃ£o visual do card de batimento */
 .vital-card--pressao {
   padding: 12px 14px 12px 12px !important;
   margin-bottom: 8px !important;
@@ -2855,7 +2899,7 @@ body {
   font-weight: 600;
 }
 
-/* Pressão: faixa 24 h só com números (sis max–min / dia max–min) */
+/* PressÃ£o: faixa 24 h sÃ³ com nÃºmeros (sis maxâ€“min / dia maxâ€“min) */
 .vital-24h-line--pressure {
   justify-content: flex-start;
   align-items: center;
@@ -2876,8 +2920,8 @@ body {
   font-weight: 500;
 }
 
-/* Modal histórico vital — menos padding, mais área útil no mobile */
-/* ══ Vital Detail: TELA CHEIA (substitui popup) ══════════════ */
+/* Modal histÃ³rico vital â€” menos padding, mais Ã¡rea Ãºtil no mobile */
+/* â•â• Vital Detail: TELA CHEIA (substitui popup) â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 #vitalDetailModal {
   background: #f3f3f3;
   align-items: stretch;
@@ -2932,7 +2976,7 @@ body {
   padding: 0 4px;
 }
 
-/* Botão Voltar (seta) e Fechar: círculos pequenos 36px */
+/* BotÃ£o Voltar (seta) e Fechar: cÃ­rculos pequenos 36px */
 #vitalDetailModal .vital-detail-back-btn,
 #vitalDetailModal .vital-detail-close-btn,
 #vitalDetailModal .bat-share-btn {
@@ -2972,7 +3016,7 @@ body {
   flex-shrink: 0;
 }
 
-/* Área de scroll: conteúdo abaixo do header — padding lateral */
+/* Ãrea de scroll: conteÃºdo abaixo do header â€” padding lateral */
 #vitalDetailModal .vital-batimento-chrome,
 #vitalDetailModal .vital-detail-default-chrome {
   padding: 12px 12px 0;
@@ -2993,7 +3037,7 @@ body {
   border: var(--border-card-soft);
 }
 
-/* No drill-down "Detalhado por hora", reserva altura para a lista não sumir. */
+/* No drill-down "Detalhado por hora", reserva altura para a lista nÃ£o sumir. */
 #vitalDetailModal #vitalDetailContent.vital-detail-content--batimento-day {
   min-height: 170px;
 }
@@ -3038,12 +3082,12 @@ body {
   transform: scale(0.98);
 }
 
-/* Modal histórico — Batimento: período + barras diárias */
+/* Modal histÃ³rico â€” Batimento: perÃ­odo + barras diÃ¡rias */
 .vital-batimento-chrome {
   margin-bottom: 8px;
 }
 
-/* Card: gráfico + controles de período */
+/* Card: grÃ¡fico + controles de perÃ­odo */
 .vital-detail-chart-card {
   background: #ffffff;
   border-radius: var(--radius-card);
@@ -3053,7 +3097,7 @@ body {
   margin-bottom: 12px;
 }
 
-/* ── Batimento: card Min/Max ─────────────────────────────── */
+/* â”€â”€ Batimento: card Min/Max â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .bat-minmax-card {
   background: #ffffff;
   border: var(--border-card-soft);
@@ -3115,7 +3159,7 @@ body {
   margin-top: 10px;
 }
 
-/* ── Batimento: tabela horária ───────────────────────────── */
+/* â”€â”€ Batimento: tabela horÃ¡ria â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .bat-hourly-section {
   background: #ffffff;
   border-radius: var(--radius-card);
@@ -3198,7 +3242,7 @@ body {
 
 .bat-hourly-more:hover { background: #eff6ff; }
 
-/* ── Batimento: detalhe por hora ────────────────────────── */
+/* â”€â”€ Batimento: detalhe por hora â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .bat-hourly-row { cursor: pointer; }
 .bat-hourly-row:hover { background: #f1f5f9; }
 
@@ -3324,7 +3368,7 @@ body {
   margin-left: 4px;
 }
 
-/* Valor médio em destaque */
+/* Valor mÃ©dio em destaque */
 .bat-resting-avg {
   display: flex;
   align-items: baseline;
@@ -3377,7 +3421,7 @@ body {
   background: #fafbff;
 }
 
-/* ─── Batimento: Detalhe Repouso (brd-*) ────────────────────────────────── */
+/* â”€â”€â”€ Batimento: Detalhe Repouso (brd-*) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .brd-header {
   display: flex;
   align-items: center;
@@ -3604,7 +3648,7 @@ body {
   background: #e2e8f0;
 }
 
-/* ─── Hourly Bar Chart Card ──────────────────────────────────────────────── */
+/* â”€â”€â”€ Hourly Bar Chart Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .bat-hourly-chart-card {
   background: #fff;
   border-radius: var(--radius-card);
@@ -3668,7 +3712,7 @@ body {
   border-top: 1px dashed rgba(34,197,94,0.6);
 }
 
-/* ─── Day Picker ─────────────────────────────────────────────────────────── */
+/* â”€â”€â”€ Day Picker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .bat-day-picker-card {
   background: #fff;
   border-radius: var(--radius-card);
@@ -3941,7 +3985,7 @@ body {
   line-height: 1.3;
 }
 
-/* Gráfico colado à largura do modal */
+/* GrÃ¡fico colado Ã  largura do modal */
 .vital-batimento-canvas {
   display: block;
   width: 100%;
@@ -3960,7 +4004,7 @@ body {
   flex: 1;
 }
 
-/* Vista dia (drill-down): resumo + barra na faixa do indicador + gráfico por hora */
+/* Vista dia (drill-down): resumo + barra na faixa do indicador + grÃ¡fico por hora */
 .vital-batimento-day-scope {
   margin-bottom: 6px;
 }
@@ -4112,7 +4156,7 @@ body {
   background: linear-gradient(180deg, #ffedd5, #c2410c);
 }
 
-/* Lista período: linha inteira abre detalhe do dia (como a coluna do gráfico) */
+/* Lista perÃ­odo: linha inteira abre detalhe do dia (como a coluna do grÃ¡fico) */
 .vital-list-item--day-nav {
   cursor: pointer;
 }
@@ -4195,7 +4239,7 @@ body {
   margin-bottom: 16px;
 }
 
-/* ===== COMPOSIÇÃO CORPORAL (mesma paleta/tipografia das outras telas) ===== */
+/* ===== COMPOSIÃ‡ÃƒO CORPORAL (mesma paleta/tipografia das outras telas) ===== */
 
 .card-composicao {
   background: var(--surface-card);
@@ -4475,7 +4519,7 @@ body {
   border-radius: 4px;
 }
 
-/* ===== COMPOSIÇÃO SECTION ===== */
+/* ===== COMPOSIÃ‡ÃƒO SECTION ===== */
 
 .composicao-section {
   margin-bottom: 16px;
@@ -4488,7 +4532,7 @@ body {
 
 /* ===== CLOCK WIDGET ===== */
 
-/* Medicações: Calendário · Agenda · Atraso · Relatório — uma linha compacta */
+/* MedicaÃ§Ãµes: CalendÃ¡rio Â· Agenda Â· Atraso Â· RelatÃ³rio â€” uma linha compacta */
 .med-calendar-unified {
   display: flex;
   flex-wrap: nowrap;
@@ -5156,7 +5200,7 @@ body {
   border-color: #2563eb;
 }
 
-/* ===== MEDICATION SEARCH (adicionar — um item por vez) ===== */
+/* ===== MEDICATION SEARCH (adicionar â€” um item por vez) ===== */
 
 .med-pick-hint {
   font-size: 12px;
@@ -5256,7 +5300,7 @@ body {
   border-bottom: none;
 }
 
-/* ===== HORÁRIOS DINÂMICOS ===== */
+/* ===== HORÃRIOS DINÃ‚MICOS ===== */
 
 #horariosContainer,
 #editHorariosContainer {
@@ -5519,7 +5563,7 @@ body {
   color: var(--text-muted);
 }
 
-/* Nome + dosagem — alinhado aos valores principais / metadados da Saúde */
+/* Nome + dosagem â€” alinhado aos valores principais / metadados da SaÃºde */
 .card-medicacao-enhanced .med-name {
   font-size: 21px;
   font-weight: 700;
@@ -5563,7 +5607,7 @@ body {
   transform: scale(1.05);
 }
 
-/* Próxima Dose */
+/* PrÃ³xima Dose */
 .med-proxima-dose {
   background: #FFF8F0;
   border-radius: 8px;
@@ -5594,7 +5638,7 @@ body {
   font-weight: 600;
 }
 
-/* Horários */
+/* HorÃ¡rios */
 .med-horarios {
   margin-bottom: 12px;
 }
@@ -5623,7 +5667,7 @@ body {
   font-weight: 600;
 }
 
-/* Histórico */
+/* HistÃ³rico */
 .med-historico {
   margin-bottom: 8px;
   padding: 8px 9px;
@@ -5738,7 +5782,7 @@ body {
   font-size: 13px;
 }
 
-/* Warning — texto auxiliar; menor que dados principais do card */
+/* Warning â€” texto auxiliar; menor que dados principais do card */
 .med-warning {
   font-size: 14px;
   line-height: 1.35;
@@ -6368,7 +6412,7 @@ body {
   gap: 0;
 }
 
-/* Minuto a minuto: mesma hierarquia da lista por hora (valor em destaque, horário abaixo, chevron) */
+/* Minuto a minuto: mesma hierarquia da lista por hora (valor em destaque, horÃ¡rio abaixo, chevron) */
 .modal-content--bmin .bmin-lista .vital-list-item--minuto-historico {
   align-items: flex-start;
 }
@@ -6431,7 +6475,7 @@ body {
   min-width: 0;
 }
 
-/* Detalhe do dia — lista por hora: medida em cima, intervalo em baixo (formato tipo “Todos reg.”). Cores de fundo da linha inalteradas. */
+/* Detalhe do dia â€” lista por hora: medida em cima, intervalo em baixo (formato tipo â€œTodos reg.â€). Cores de fundo da linha inalteradas. */
 .vital-list-main--hour-detail {
   display: flex;
   flex-direction: column;
@@ -6529,7 +6573,7 @@ body {
   background: #fff4e6;
 }
 
-/* Lista período (uma linha por dia): pico Baixo / Normal / Alto vs faixa ideal — alinhado ao gráfico */
+/* Lista perÃ­odo (uma linha por dia): pico Baixo / Normal / Alto vs faixa ideal â€” alinhado ao grÃ¡fico */
 .vital-list-item--bc-chart-baixo {
   background: #fff4e6;
 }
@@ -6600,7 +6644,7 @@ body {
   padding-top: 2px;
 }
 
-/* Detalhe de sessão de exercício (FC) */
+/* Detalhe de sessÃ£o de exercÃ­cio (FC) */
 .modal-exercicio-detalhe {
   z-index: 1100;
 }
@@ -6905,7 +6949,7 @@ body {
   font-weight: 600;
 }
 
-/* ===== WIZARD ADICIONAR MEDICAÇÃO ===== */
+/* ===== WIZARD ADICIONAR MEDICAÃ‡ÃƒO ===== */
 
 #addMedicacaoModal .modal-content--med-wizard {
   padding: 0;
@@ -7055,7 +7099,7 @@ body {
   justify-content: space-between;
 }
 
-/* Uma linha: Cancelar | Voltar + Próximo/Salvar (sem empilhar) */
+/* Uma linha: Cancelar | Voltar + PrÃ³ximo/Salvar (sem empilhar) */
 #addMedicacaoModal .add-med-wizard-footer > .button-cancel {
   flex: 0 0 auto;
   margin: 0;
@@ -7280,7 +7324,7 @@ body {
   cursor: pointer;
 }
 
-/* Doc: cores de texto em cards de medicação */
+/* Doc: cores de texto em cards de medicaÃ§Ã£o */
 .card-medicacao-enhanced,
 .card-medicacao-enhanced .med-name {
   color: var(--text-title);
@@ -7295,7 +7339,7 @@ body {
   color: var(--text-muted);
 }
 
-/* Pressão: lembretes medicamento (botões compactos) */
+/* PressÃ£o: lembretes medicamento (botÃµes compactos) */
 .pressure-med-group .add-med-freq-options--inline {
   flex-direction: row;
   flex-wrap: wrap;
@@ -7309,7 +7353,7 @@ body {
   padding: 10px 8px;
 }
 
-/* ===== ABAS PRESSÃO DIÁRIA ===== */
+/* ===== ABAS PRESSÃƒO DIÃRIA ===== */
 .pressao-tab-nav {
   display: flex;
   gap: 6px;
@@ -7339,7 +7383,7 @@ body {
   box-shadow: 0 1px 4px rgba(0,0,0,0.10);
 }
 
-/* ===== PRESSÃO DIÁRIA — lista por dia ===== */
+/* ===== PRESSÃƒO DIÃRIA â€” lista por dia ===== */
 .pressao-diaria-content {
   display: flex;
   flex-direction: column;
@@ -7578,7 +7622,7 @@ body {
   line-height: 1;
 }
 
-/* ── Pressão: detail view header & list ───────────────────────────────────── */
+/* â”€â”€ PressÃ£o: detail view header & list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pressao-dia-det-header {
   display: flex;
   align-items: center;
@@ -7615,7 +7659,7 @@ body {
   margin-top: 8px;
 }
 
-/* ── Botão inserir dados ─────────────────────────────────────────────────── */
+/* â”€â”€ BotÃ£o inserir dados â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pressao-inserir-btn {
   display: block;
   width: 100%;
@@ -7636,7 +7680,7 @@ body {
   background: #d97706;
 }
 
-/* ── Botão "ver mais" inline na lista ────────────────────────────────────── */
+/* â”€â”€ BotÃ£o "ver mais" inline na lista â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pressao-ver-mais-btn {
   display: block;
   width: 100%;
@@ -7657,7 +7701,7 @@ body {
   background: #f8fafc;
 }
 
-/* ── Tela de detalhe de uma coleta ───────────────────────────────────────── */
+/* â”€â”€ Tela de detalhe de uma coleta â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pressao-coleta-det-card {
   background: #fff;
   border-radius: 16px;
@@ -7761,7 +7805,7 @@ body {
   font-size: 11px;
 }
 
-/* ── Card de notas da coleta ─────────────────────────────────────────────── */
+/* â”€â”€ Card de notas da coleta â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pressao-nota-card {
   background: #fff;
   border-radius: 16px;
@@ -7788,7 +7832,7 @@ body {
   line-height: 1.6;
 }
 
-/* ===== CARD PRESSÃO — revisão visual ===== */
+/* ===== CARD PRESSÃƒO â€” revisÃ£o visual ===== */
 .vital-card--pressao {
   padding: 12px 14px 12px 12px !important;
 }
@@ -8176,7 +8220,7 @@ body {
   color: #98a1af;
 }
 
-/* Pressão Histórico — valor à direita alinhado */
+/* PressÃ£o HistÃ³rico â€” valor Ã  direita alinhado */
 .vital-list-value--pressao {
   font-size: 15px;
   font-weight: 700;
@@ -8186,7 +8230,7 @@ body {
   text-align: right;
 }
 
-/* ── Formulário de inserção de pressão (passo a passo) ───────────────────── */
+/* â”€â”€ FormulÃ¡rio de inserÃ§Ã£o de pressÃ£o (passo a passo) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pressao-ins-header {
   display: flex;
   align-items: center;
@@ -8424,7 +8468,7 @@ body {
   background: #16a34a;
 }
 
-/* ── Drum roller (scroll gesture on number) ──────────────────────────────── */
+/* â”€â”€ Drum roller (scroll gesture on number) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pressao-ins-drum {
   touch-action: none;
   cursor: ns-resize;
@@ -8478,7 +8522,7 @@ body {
   opacity: 0.5;
 }
 
-/* ── Step icons ───────────────────────────────────────────────────────────── */
+/* â”€â”€ Step icons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pressao-ins-step-icon {
   width: 68px;
   height: 68px;
@@ -8495,7 +8539,7 @@ body {
 .pressao-ins-step-icon--blue  { background: #3b82f6; }
 .pressao-ins-step-icon--green { background: #22c55e; }
 
-/* ── Drum picker (5-slot roller) ─────────────────────────────────────────── */
+/* â”€â”€ Drum picker (5-slot roller) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pi-drum-wrap {
   position: relative;
   width: 100%;
@@ -8581,11 +8625,11 @@ body {
 /* Slash alignment with drum center */
 .pressao-ins-slash {
   align-self: flex-start !important;
-  margin-top: 218px; /* label(20) + gap(14) + btn(64) + gap(14) + 2 items(112) - half slash(26) ≈ 198 → tuned */
+  margin-top: 218px; /* label(20) + gap(14) + btn(64) + gap(14) + 2 items(112) - half slash(26) â‰ˆ 198 â†’ tuned */
   padding-top: 0 !important;
 }
 
-/* ── Sticky confirm button wrapper ────────────────────────────────────────── */
+/* â”€â”€ Sticky confirm button wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pressao-ins-confirm-wrap {
   position: sticky;
   bottom: 0;
@@ -8594,7 +8638,7 @@ body {
   margin-top: 16px;
 }
 
-/* ── Summary list (step 5) ────────────────────────────────────────────────── */
+/* â”€â”€ Summary list (step 5) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 .pi-summary-list {
   width: 100%;
   background: #fff;
@@ -8641,42 +8685,3 @@ body {
   font-weight: 600;
   color: #0f172a;
 }
-
-/* ── Framework7 Tabbar icon sizing (uses SVG, not F7 icon font) ─────────── */
-.toolbar.tabbar .tab-link .icon {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 2px;
-}
-
-.toolbar.tabbar .tab-link .icon svg {
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-}
-
-.toolbar.tabbar .tabbar-label {
-  font-size: 10px;
-  letter-spacing: 0;
-}
-
-/* Prevent F7 tabbar from clipping text */
-.toolbar.tabbar .tab-link {
-  padding: 6px 0 !important;
-  overflow: visible;
-}
-
-/* -- Framework7 Tabbar icon sizing (uses SVG, not F7 icon font) -- */
-.toolbar.tabbar .tab-link .icon {
-  width: 24px; height: 24px;
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 2px;
-}
-.toolbar.tabbar .tab-link .icon svg { width: 24px; height: 24px; flex-shrink: 0; }
-.toolbar.tabbar .tabbar-label { font-size: 10px; letter-spacing: 0; }
-.toolbar.tabbar .tab-link { padding: 6px 0 !important; overflow: visible; }
-
-.toolbar.tabbar .tab-link .icon { width:24px; height:24px; display:flex; align-items:center; justify-content:center; margin-bottom:2px; } .toolbar.tabbar .tab-link .icon svg { width:24px; height:24px; } .toolbar.tabbar .tabbar-label { font-size:10px; }
