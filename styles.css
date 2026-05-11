@@ -8952,55 +8952,6 @@ body {
   transform: scale(0.98);
 }
 
-/* ── STEP 2: FC — numero enorme ──────────────────────────────────────────── */
-
-.pi-hr-dial {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  touch-action: none;
-  cursor: ns-resize;
-  user-select: none;
-  -webkit-user-select: none;
-  border-radius: 24px;
-  background: #fef9f0;
-  margin: 4px 0;
-}
-
-.pi-hr-dial-num {
-  font-size: 120px;
-  font-weight: 800;
-  color: #0f172a;
-  letter-spacing: -4px;
-  line-height: 1;
-  pointer-events: none;
-  transition: color 0.1s;
-}
-
-.pi-hr-dial-inp {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
-  border: none;
-  background: rgba(255,255,255,0.97);
-  font-size: 120px;
-  font-weight: 800;
-  color: #0f172a;
-  text-align: center;
-  border-radius: 24px;
-  outline: none;
-  -moz-appearance: textfield;
-  font-family: inherit;
-  padding: 0;
-  letter-spacing: -4px;
-}
-
-.pi-hr-dial-inp::-webkit-inner-spin-button,
-.pi-hr-dial-inp::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-
 /* ── STEP 3: Remedios — 3 cards grandes ─────────────────────────────────── */
 
 .pi-med-grid {
@@ -9103,4 +9054,158 @@ body {
 .pi-save-btn:active {
   background: #d97706;
   transform: scale(0.98);
+}
+/* ── Step 1: icone ECG da pressao ─────────────────────────────────────────── */
+.pi-step-icon-bp {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.pi-step-icon-bp svg {
+  width: 48px;
+  height: 48px;
+  stroke: #f59e0b;
+}
+
+/* ── Step 2: wrapper do drum de FC ─────────────────────────────────────────── */
+.pi-hr-drum-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px 0;
+}
+
+.pi-hr-drum-wrap .pi-drum {
+  width: min(280px, 70vw);
+}
+
+/* Slot central da FC: numero maior que SIS/DIA */
+.pi-hr-drum-wrap .pi-drum-item--sel {
+  font-size: 88px;
+  letter-spacing: -3px;
+}
+
+.pi-hr-drum-wrap .pi-drum-item--near {
+  font-size: 36px;
+}
+
+.pi-hr-drum-wrap .pi-drum-item--far {
+  font-size: 20px;
+}
+
+/* ── Step 5: Resumo ─────────────────────────────────────────────────────────── */
+.pi-summary {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+
+.pi-sum-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pi-sum-row:active {
+  background: #f1f5f9;
+}
+
+.pi-sum-ico {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 22px;
+}
+
+.pi-sum-ico--bp {
+  background: #fff7ed;
+  color: #f59e0b;
+}
+
+.pi-sum-ico--bp svg {
+  width: 22px;
+  height: 22px;
+}
+
+.pi-sum-ico--hr {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.pi-sum-ico--hr svg {
+  width: 20px;
+  height: 20px;
+}
+
+.pi-sum-ico--med {
+  background: #eff6ff;
+  font-size: 22px;
+}
+
+.pi-sum-ico--nota {
+  background: #f0fdf4;
+  color: #16a34a;
+  font-size: 20px;
+}
+
+.pi-sum-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.pi-sum-lbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 2px;
+}
+
+.pi-sum-val {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pi-sum-val--nota {
+  font-size: 14px;
+  font-weight: 500;
+  color: #475569;
+  white-space: normal;
+  line-height: 1.4;
+}
+
+.pi-sum-unit {
+  font-size: 13px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.pi-sum-edit {
+  font-size: 12px;
+  font-weight: 600;
+  color: #f59e0b;
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #fff7ed;
 }

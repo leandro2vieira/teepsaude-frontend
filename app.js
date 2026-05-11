@@ -7605,6 +7605,7 @@ let pressaoInsertData = { sis: 120, dia: 80, hr: 72, med: 'nenhum', nota: '' };
 let _piStepTimer = null;
 var PI_DRUM_IH = 72; // height per drum slot (px) — 5-slot full-screen drum
 var _piDrumDrag = null;
+var _piReturnToSummary = false;
 
 function openPressaoInsertForm() {
   pressaoInsertStep = 1;
@@ -7663,10 +7664,28 @@ function closePressaoInsertForm() {
 }
 
 function pressaoInsGo(step) {
+  stopStepPA();
+  // Capture nota text before leaving step 4
+  if (pressaoInsertStep === 4) {
+    var _ta = document.getElementById('piNotaInput');
+    if (_ta) pressaoInsertData.nota = _ta.value.trim();
+  }
   if (step < 1) { closePressaoInsertForm(); return; }
-  if (step > 4) { pressaoInsSave(); return; }
+  if (step > 5) { pressaoInsSave(); return; }
+  // If user was editing from summary, jump straight back to step 5
+  if (_piReturnToSummary && step < 5) {
+    _piReturnToSummary = false;
+    pressaoInsertStep = 5;
+    _pressaoInsRender();
+    return;
+  }
   pressaoInsertStep = step;
   _pressaoInsRender();
+}
+
+function piSumEdit(step) {
+  _piReturnToSummary = true;
+  pressaoInsGo(step);
 }
 
 function pressaoInsConfirmStep() {
@@ -7675,7 +7694,7 @@ function pressaoInsConfirmStep() {
 
 function _pressaoInsRender() {
   var s = pressaoInsertStep;
-  [1, 2, 3, 4].forEach(function(i) {
+  [1, 2, 3, 4, 5].forEach(function(i) {
     var el = document.getElementById('piStep' + i);
     if (el) el.style.display = i === s ? 'flex' : 'none';
     var dot = document.querySelector('[data-pidot="' + i + '"]');
@@ -7691,9 +7710,50 @@ function _pressaoInsRender() {
     var ta = document.getElementById('piNotaInput');
     if (ta) { ta.value = pressaoInsertData.nota || ''; setTimeout(function() { ta.focus(); }, 80); }
   }
+  if (s === 5) { _piRenderSummary(); }
 }
 
-function _piRenderSummary() { /* no-op: wizard removed, single-panel form */ }
+function _piRenderSummary() {
+  var el = document.getElementById('piSummaryContent');
+  if (!el) return;
+  var medMap = { tomados: 'Tomei os rem\u00e9dios', nao_tomados: 'N\u00e3o tomei hoje', nenhum: 'N\u00e3o tomo rem\u00e9dios' };
+  var nota = pressaoInsertData.nota && pressaoInsertData.nota.trim() ? pressaoInsertData.nota.trim() : '\u2014';
+  var svgBP = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor"><polyline stroke-linecap="round" stroke-linejoin="round" points="2 12 6 12 8 5 11 19 13 12 15 9 17 15 19 12 22 12"/></svg>';
+  var svgHR = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+  el.innerHTML =
+    '<div class="pi-sum-row" onclick="piSumEdit(1)">' +
+      '<div class="pi-sum-ico pi-sum-ico--bp">' + svgBP + '</div>' +
+      '<div class="pi-sum-body">' +
+        '<div class="pi-sum-lbl">Press\u00e3o Arterial</div>' +
+        '<div class="pi-sum-val">' + pressaoInsertData.sis + '/' + pressaoInsertData.dia + ' <span class="pi-sum-unit">mmHg</span></div>' +
+      '</div>' +
+      '<div class="pi-sum-edit">Editar</div>' +
+    '</div>' +
+    '<div class="pi-sum-row" onclick="piSumEdit(2)">' +
+      '<div class="pi-sum-ico pi-sum-ico--hr">' + svgHR + '</div>' +
+      '<div class="pi-sum-body">' +
+        '<div class="pi-sum-lbl">Frequ\u00eancia Card\u00edaca</div>' +
+        '<div class="pi-sum-val">' + pressaoInsertData.hr + ' <span class="pi-sum-unit">bpm</span></div>' +
+      '</div>' +
+      '<div class="pi-sum-edit">Editar</div>' +
+    '</div>' +
+    '<div class="pi-sum-row" onclick="piSumEdit(3)">' +
+      '<div class="pi-sum-ico pi-sum-ico--med">\uD83D\uDC8A</div>' +
+      '<div class="pi-sum-body">' +
+        '<div class="pi-sum-lbl">Rem\u00e9dios</div>' +
+        '<div class="pi-sum-val">' + (medMap[pressaoInsertData.med] || pressaoInsertData.med) + '</div>' +
+      '</div>' +
+      '<div class="pi-sum-edit">Editar</div>' +
+    '</div>' +
+    '<div class="pi-sum-row" onclick="piSumEdit(4)">' +
+      '<div class="pi-sum-ico pi-sum-ico--nota">&#9998;</div>' +
+      '<div class="pi-sum-body">' +
+        '<div class="pi-sum-lbl">Observa\u00e7\u00e3o</div>' +
+        '<div class="pi-sum-val pi-sum-val--nota">' + nota + '</div>' +
+      '</div>' +
+      '<div class="pi-sum-edit">Editar</div>' +
+    '</div>';
+}
 
 function piDcInputBlur(field, inp) {
   var v = parseInt(inp.value, 10);
@@ -7710,12 +7770,6 @@ function piDcInputBlur(field, inp) {
 /* ── Drum picker ─────────────────────────────────────────────────────────── */
 function _piDrumRender(field) {
   var val = pressaoInsertData[field];
-  // HR uses a simple number display, not a drum
-  if (field === 'hr') {
-    var numEl = document.getElementById('piHrNum');
-    if (numEl) numEl.textContent = val;
-    return;
-  }
   var track = document.getElementById('piDrumTrack-' + field);
   if (!track) return;
   var html = '';
@@ -7741,7 +7795,6 @@ function _piDrumStep(field, delta) {
 
 function _piDrumAnimate(field, fromOffsetPx) {
   _piDrumRender(field);
-  if (field === 'hr') return; // HR uses simple display, no track animation
   var track = document.getElementById('piDrumTrack-' + field);
   if (!track) return;
   track.style.transition = 'none';
@@ -7770,7 +7823,6 @@ function piDrumTouchMove(e, wrap) {
   var dy = e.touches[0].clientY - _piDrumDrag.startY;
   var field = _piDrumDrag.field;
   _piDrumDrag.liveY = dy;
-  if (field === 'hr') return; // HR has no track to animate live
   var track = document.getElementById('piDrumTrack-' + field);
   if (!track) return;
   track.style.transition = 'none';
@@ -7791,8 +7843,7 @@ function piDrumTouchEnd(e, wrap) {
     _piDrumAnimate(field, residual);
   } else if (Math.abs(dy) < 8) {
     // Tap: open keyboard editor for this field
-    var inputId = field === 'hr' ? 'piDcInput-hr' : 'piDcInput-' + field;
-    var inputEl = document.getElementById(inputId);
+    var inputEl = document.getElementById('piDcInput-' + field);
     if (inputEl) {
       inputEl.value = pressaoInsertData[field];
       inputEl.style.pointerEvents = 'auto';
@@ -7801,10 +7852,8 @@ function piDrumTouchEnd(e, wrap) {
     }
   } else {
     // Drag that didn't complete a step — snap back
-    if (field !== 'hr') {
-      var track = document.getElementById('piDrumTrack-' + field);
-      if (track) { track.style.transition = 'transform 0.18s ease'; track.style.transform = 'translateY(0)'; }
-    }
+    var _snapTrack = document.getElementById('piDrumTrack-' + field);
+    if (_snapTrack) { _snapTrack.style.transition = 'transform 0.18s ease'; _snapTrack.style.transform = 'translateY(0)'; }
   }
 }
 

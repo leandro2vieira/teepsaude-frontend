@@ -321,11 +321,15 @@
                     <div class="pi-progress-dot" data-pidot="2"></div>
                     <div class="pi-progress-dot" data-pidot="3"></div>
                     <div class="pi-progress-dot" data-pidot="4"></div>
+                    <div class="pi-progress-dot" data-pidot="5"></div>
                   </div>
 
                   <!-- STEP 1: Pressao Arterial (SIS/DIA) -->
                   <div class="pi-step" id="piStep1">
                     <div class="pi-step-head">
+                      <div class="pi-step-icon-bp">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true"><polyline stroke-linecap="round" stroke-linejoin="round" points="2 12 6 12 8 5 11 19 13 12 15 9 17 15 19 12 22 12"/></svg>
+                      </div>
                       <div class="pi-step-label">Pressao Arterial</div>
                       <div class="pi-step-hint">Arraste para ajustar &middot; Toque no numero para digitar</div>
                     </div>
@@ -366,23 +370,28 @@
                     <button class="pi-next-btn" onclick="pressaoInsGo(2)">Proximo &#8250;</button>
                   </div>
 
-                  <!-- STEP 2: Frequencia Cardiaca -->
+                  <!-- STEP 2: Frequencia Cardiaca (drum igual SIS/DIA) -->
                   <div class="pi-step" id="piStep2" style="display:none;">
                     <div class="pi-step-head">
                       <div class="pi-step-icon-heart">
                         <svg viewBox="0 0 24 24" fill="#ef4444" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                       </div>
                       <div class="pi-step-label">Frequencia Cardiaca</div>
-                      <div class="pi-step-hint">Arraste para cima/baixo &middot; Toque para digitar</div>
+                      <div class="pi-step-hint">Arraste para ajustar &middot; Toque no numero para digitar</div>
                     </div>
-                    <div class="pi-hr-dial" data-field="hr"
-                         ontouchstart="piDrumTouchStart(event,this)"
-                         ontouchmove="piDrumTouchMove(event,this)"
-                         ontouchend="piDrumTouchEnd(event,this)"
-                         onwheel="piDrumWheel(event,this)">
-                      <div class="pi-hr-dial-num" id="piHrNum">72</div>
-                      <input class="pi-hr-dial-inp" id="piDcInput-hr" type="number" inputmode="numeric" min="30" max="250"
-                             onblur="piDcInputBlur('hr',this)" />
+                    <div class="pi-hr-drum-wrap">
+                      <div class="pi-drum" data-field="hr"
+                           ontouchstart="piDrumTouchStart(event,this)"
+                           ontouchmove="piDrumTouchMove(event,this)"
+                           ontouchend="piDrumTouchEnd(event,this)"
+                           onwheel="piDrumWheel(event,this)">
+                        <div class="pi-drum-track" id="piDrumTrack-hr"></div>
+                        <div class="pi-drum-sel"></div>
+                        <div class="pi-drum-fade pi-drum-fade--top"></div>
+                        <div class="pi-drum-fade pi-drum-fade--bot"></div>
+                        <input class="pi-drum-inp" id="piDcInput-hr" type="number" inputmode="numeric" min="30" max="250"
+                               onblur="piDcInputBlur('hr',this)" />
+                      </div>
                     </div>
                     <div class="pi-unit-lbl">bpm</div>
                     <button class="pi-next-btn" onclick="pressaoInsGo(3)">Proximo &#8250;</button>
@@ -413,7 +422,7 @@
                     </div>
                   </div>
 
-                  <!-- STEP 4: Nota + Salvar -->
+                  <!-- STEP 4: Nota -->
                   <div class="pi-step" id="piStep4" style="display:none;">
                     <div class="pi-step-head">
                       <div class="pi-step-label">Alguma observacao?</div>
@@ -421,6 +430,16 @@
                     </div>
                     <textarea class="pi-nota-area" id="piNotaInput"
                               placeholder="Ex: senti tontura, apos caminhada..." maxlength="500"></textarea>
+                    <button class="pi-next-btn" onclick="pressaoInsGo(5)">Revisar &#8250;</button>
+                  </div>
+
+                  <!-- STEP 5: Resumo -->
+                  <div class="pi-step" id="piStep5" style="display:none;">
+                    <div class="pi-step-head">
+                      <div class="pi-step-label">Confirmar</div>
+                      <div class="pi-step-hint">Toque em um campo para corrigir</div>
+                    </div>
+                    <div class="pi-summary" id="piSummaryContent"></div>
                     <button class="pi-save-btn" id="piConfirmBtn" onclick="pressaoInsSave()">Salvar Medicao</button>
                   </div>
 
