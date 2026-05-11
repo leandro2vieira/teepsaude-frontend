@@ -7539,8 +7539,245 @@ function closePressaoColetaDetail() {
   if (diaView) diaView.style.display = 'block';
 }
 
+/* ── Inserção manual de pressão arterial ──────────────────────────────────── */
+let pressaoInsertStep = 1;
+let pressaoInsertData = { sis: 120, dia: 80, hr: 72, med: 'nenhum', nota: '' };
+let _piStepTimer = null;
+var PI_DRUM_IH = 56; // height per drum slot (px)
+var _piDrumDrag = null;
+
 function openPressaoInsertForm() {
-  // TODO: will be implemented when the user specifies the form fields
+  pressaoInsertStep = 1;
+  pressaoInsertData = { sis: 120, dia: 80, hr: 72, med: 'nenhum', nota: '' };
+
+  const diaView = document.getElementById('pressaoDiaDetailView');
+  if (diaView) diaView.style.display = 'none';
+  const chart = document.getElementById('pressaoHistoricoView');
+  if (chart) chart.style.display = 'none';
+  const filters = document.getElementById('vitalDefaultPeriodControls');
+  if (filters) filters.style.display = 'none';
+
+  const insertView = document.getElementById('pressaoInsertView');
+  if (insertView) insertView.style.display = 'block';
+
+  _pressaoInsRender();
+}
+
+function closePressaoInsertForm() {
+  stopStepPA();
+  const insertView = document.getElementById('pressaoInsertView');
+  if (insertView) insertView.style.display = 'none';
+
+  const chart = document.getElementById('pressaoHistoricoView');
+  if (chart) chart.style.display = '';
+  const filters = document.getElementById('vitalDefaultPeriodControls');
+  if (filters) filters.style.display = '';
+
+  const diaView = document.getElementById('pressaoDiaDetailView');
+  if (diaView) diaView.style.display = 'block';
+}
+
+function pressaoInsGo(step) {
+  stopStepPA();
+  if (pressaoInsertStep === 4) {
+    var ta = document.getElementById('piNotaInput');
+    if (ta) pressaoInsertData.nota = ta.value.trim();
+  }
+  if (step < 1) { closePressaoInsertForm(); return; }
+  pressaoInsertStep = step;
+  _pressaoInsRender();
+}
+
+function pressaoInsConfirmStep() {
+  var s = pressaoInsertStep;
+  if (s === 4) {
+    var ta = document.getElementById('piNotaInput');
+    if (ta) pressaoInsertData.nota = ta.value.trim();
+    pressaoInsGo(5);
+  } else if (s === 5) {
+    pressaoInsSave();
+  } else {
+    pressaoInsGo(s + 1);
+  }
+}
+
+function _pressaoInsRender() {
+  var s = pressaoInsertStep;
+
+  // Update step dots (5 total)
+  [1, 2, 3, 4, 5].forEach(function(i) {
+    var dot = document.querySelector('[data-pidot="' + i + '"]');
+    if (dot) {
+      if (i === s) dot.classList.add('pressao-ins-dot--active');
+      else dot.classList.remove('pressao-ins-dot--active');
+    }
+    var stepEl = document.getElementById('piStep' + i);
+    if (stepEl) stepEl.style.display = i === s ? 'flex' : 'none';
+  });
+
+  // Wire back button
+  var backBtn = document.getElementById('piBackBtn');
+  if (backBtn) {
+    backBtn.onclick = s === 1 ? closePressaoInsertForm : function() { pressaoInsGo(s - 1); };
+  }
+
+  // Update shared confirm button label/style
+  var btn = document.getElementById('piConfirmBtn');
+  if (btn) {
+    if (s === 5) {
+      btn.textContent = 'Salvar';
+      btn.className = 'pressao-ins-confirm-btn pressao-ins-confirm-btn--save';
+    } else {
+      btn.textContent = 'Confirmar';
+      btn.className = 'pressao-ins-confirm-btn';
+    }
+  }
+
+  if (s === 1) { _piDrumRender('sis'); _piDrumRender('dia'); }
+  if (s === 2) { _piDrumRender('hr'); }
+  if (s === 3) { _pressaoInsMedSync(); }
+  if (s === 4) {
+    var ta2 = document.getElementById('piNotaInput');
+    if (ta2) { ta2.value = pressaoInsertData.nota; setTimeout(function() { ta2.focus(); }, 80); }
+  }
+  if (s === 5) { _piRenderSummary(); }
+}
+
+function _piRenderSummary() {
+  var medLabels = { tomados: 'Tomados', nao_tomados: 'Não tomados', nenhum: 'Não se aplica' };
+  var el;
+  el = document.getElementById('piSumPressao');
+  if (el) el.textContent = pressaoInsertData.sis + '/' + pressaoInsertData.dia + ' mmHg';
+  el = document.getElementById('piSumHr');
+  if (el) el.textContent = pressaoInsertData.hr + ' bpm';
+  el = document.getElementById('piSumMed');
+  if (el) el.textContent = medLabels[pressaoInsertData.med] || pressaoInsertData.med;
+  el = document.getElementById('piSumNota');
+  if (el) {
+    var nota = pressaoInsertData.nota;
+    el.textContent = nota ? (nota.length > 60 ? nota.slice(0, 57) + '...' : nota) : '—';
+  }
+}
+
+/* ── Drum picker ─────────────────────────────────────────────────────────── */
+function _piDrumRender(field) {
+  var val = pressaoInsertData[field];
+  var track = document.getElementById('piDrumTrack-' + field);
+  if (!track) return;
+  var html = '';
+  for (var offset = -2; offset <= 2; offset++) {
+    var v = val + offset;
+    var cls = 'pi-drum-item';
+    if (offset === 0) cls += ' pi-drum-item--sel';
+    else if (Math.abs(offset) === 1) cls += ' pi-drum-item--near';
+    else cls += ' pi-drum-item--far';
+    html += '<div class="' + cls + '">' + v + '</div>';
+  }
+  track.innerHTML = html;
+  track.style.transition = 'none';
+  track.style.transform = 'translateY(0)';
+}
+
+function _piDrumStep(field, delta) {
+  if (field === 'sis') pressaoInsertData.sis = Math.max(60, Math.min(250, pressaoInsertData.sis + delta));
+  else if (field === 'dia') pressaoInsertData.dia = Math.max(30, Math.min(160, pressaoInsertData.dia + delta));
+  else if (field === 'hr') pressaoInsertData.hr = Math.max(30, Math.min(250, pressaoInsertData.hr + delta));
+}
+
+function _piDrumAnimate(field, fromOffsetPx) {
+  _piDrumRender(field);
+  var track = document.getElementById('piDrumTrack-' + field);
+  if (!track) return;
+  track.style.transition = 'none';
+  track.style.transform = 'translateY(' + fromOffsetPx + 'px)';
+  track.offsetHeight; // force reflow
+  track.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+  track.style.transform = 'translateY(0)';
+}
+
+function piDrumWheel(e, wrap) {
+  e.preventDefault();
+  var field = wrap.getAttribute('data-field');
+  var delta = e.deltaY > 0 ? 1 : -1;
+  _piDrumStep(field, delta);
+  _piDrumAnimate(field, -delta * PI_DRUM_IH);
+}
+
+function piDrumTouchStart(e, wrap) {
+  var field = wrap.getAttribute('data-field');
+  _piDrumDrag = { field: field, startY: e.touches[0].clientY, liveY: 0 };
+}
+
+function piDrumTouchMove(e, wrap) {
+  if (!_piDrumDrag) return;
+  e.preventDefault();
+  var dy = e.touches[0].clientY - _piDrumDrag.startY;
+  var field = _piDrumDrag.field;
+  var track = document.getElementById('piDrumTrack-' + field);
+  if (!track) return;
+  _piDrumDrag.liveY = dy;
+  track.style.transition = 'none';
+  track.style.transform = 'translateY(' + dy + 'px)';
+}
+
+function piDrumTouchEnd(e, wrap) {
+  if (!_piDrumDrag) return;
+  var dy = _piDrumDrag.liveY || 0;
+  var field = _piDrumDrag.field;
+  _piDrumDrag = null;
+  // dy > 0 = finger moved down = value decreased
+  var steps = -Math.round(dy / PI_DRUM_IH);
+  if (steps !== 0) {
+    for (var i = 0; i < Math.abs(steps); i++) {
+      _piDrumStep(field, steps > 0 ? 1 : -1);
+    }
+    var residual = dy + steps * PI_DRUM_IH;
+    _piDrumAnimate(field, residual);
+  } else {
+    var track = document.getElementById('piDrumTrack-' + field);
+    if (track) { track.style.transition = 'transform 0.18s ease'; track.style.transform = 'translateY(0)'; }
+  }
+}
+
+function startStepPA(field, delta) {
+  stopStepPA();
+  _piDrumStep(field, delta);
+  _piDrumAnimate(field, -delta * PI_DRUM_IH);
+  var count = 0;
+  function repeat() {
+    _piDrumStep(field, delta);
+    _piDrumAnimate(field, -delta * PI_DRUM_IH);
+    count++;
+    _piStepTimer = setTimeout(repeat, count > 10 ? 80 : 140);
+  }
+  _piStepTimer = setTimeout(repeat, 400);
+}
+
+function stopStepPA() {
+  if (_piStepTimer) { clearTimeout(_piStepTimer); _piStepTimer = null; }
+}
+
+function pressaoInsSelectMed(val) {
+  pressaoInsertData.med = val;
+  _pressaoInsMedSync();
+}
+
+function _pressaoInsMedSync() {
+  ['tomados', 'nao_tomados', 'nenhum'].forEach(function(v) {
+    var el = document.getElementById('piMed-' + v);
+    if (el) {
+      if (v === pressaoInsertData.med) el.classList.add('pressao-ins-med-card--active');
+      else el.classList.remove('pressao-ins-med-card--active');
+    }
+  });
+}
+
+function pressaoInsSave() {
+  stopStepPA();
+  var ta = document.getElementById('piNotaInput');
+  if (ta) pressaoInsertData.nota = ta.value.trim();
+  // TODO: persist to pressaoColetaEntries when backend is ready
+  closePressaoInsertForm();
 }
 
 function renderSparklineChart(historico) {

@@ -8166,3 +8166,459 @@ body {
   white-space: nowrap;
   text-align: right;
 }
+
+/* ── Formulário de inserção de pressão (passo a passo) ───────────────────── */
+.pressao-ins-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0 14px;
+}
+
+.pressao-ins-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pressao-ins-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.pressao-ins-dot--active {
+  background: #f59e0b;
+  transform: scale(1.25);
+}
+
+.pressao-ins-header-spacer {
+  width: 32px;
+}
+
+.pressao-ins-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 4px 4px;
+}
+
+.pressao-ins-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.pressao-ins-sub {
+  font-size: 14px;
+  color: #64748b;
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.pressao-ins-duo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.pressao-ins-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+}
+
+.pressao-ins-col-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.pressao-ins-col-label--sis { color: #f59e0b; }
+.pressao-ins-col-label--dia { color: #3b82f6; }
+
+.pressao-ins-circle-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: none;
+  background: #f1f5f9;
+  color: #0f172a;
+  font-size: 28px;
+  font-weight: 300;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  transition: background 0.12s, transform 0.08s;
+  line-height: 1;
+}
+
+.pressao-ins-circle-btn:active {
+  background: #dde3ed;
+  transform: scale(0.94);
+}
+
+.pressao-ins-circle-btn--lg {
+  width: 80px;
+  height: 80px;
+  font-size: 36px;
+}
+
+.pressao-ins-num {
+  font-size: 58px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1;
+  min-width: 80px;
+  text-align: center;
+  letter-spacing: -1px;
+}
+
+.pressao-ins-num--lg {
+  font-size: 80px;
+  min-width: 120px;
+  letter-spacing: -2px;
+}
+
+.pressao-ins-slash {
+  font-size: 52px;
+  font-weight: 200;
+  color: #cbd5e1;
+  align-self: center;
+  padding-top: 22px;
+  line-height: 1;
+}
+
+.pressao-ins-unit-row {
+  font-size: 15px;
+  color: #94a3b8;
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.pressao-ins-single {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.pressao-ins-med-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 28px;
+}
+
+.pressao-ins-med-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 20px 22px;
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  font-size: 18px;
+  font-weight: 500;
+  color: #1e293b;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.pressao-ins-med-card:active {
+  background: #f8fafc;
+}
+
+.pressao-ins-med-card--active {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.pressao-ins-med-label {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.pressao-ins-textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  font-size: 17px;
+  line-height: 1.6;
+  color: #0f172a;
+  resize: none;
+  font-family: inherit;
+  margin-bottom: 24px;
+  background: #fff;
+  transition: border-color 0.15s;
+}
+
+.pressao-ins-textarea:focus {
+  outline: none;
+  border-color: #f59e0b;
+}
+
+.pressao-ins-confirm-btn {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  background: #f59e0b;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 600;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.pressao-ins-confirm-btn:active {
+  background: #d97706;
+}
+
+.pressao-ins-confirm-btn--save {
+  background: #22c55e;
+}
+
+.pressao-ins-confirm-btn--save:active {
+  background: #16a34a;
+}
+
+/* ── Drum roller (scroll gesture on number) ──────────────────────────────── */
+.pressao-ins-drum {
+  touch-action: none;
+  cursor: ns-resize;
+  user-select: none;
+  -webkit-user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 6px 16px;
+  border-radius: 12px;
+  transition: background 0.12s;
+}
+
+.pressao-ins-drum:active {
+  background: rgba(0,0,0,0.04);
+}
+
+/* subtle grip lines to hint vertical drag */
+.pressao-ins-drum::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 4px;
+  width: 3px;
+  height: 36px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #d1d5db 0px, #d1d5db 2px,
+    transparent 2px, transparent 5px
+  );
+  border-radius: 2px;
+  opacity: 0.5;
+}
+
+.pressao-ins-drum::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 4px;
+  width: 3px;
+  height: 36px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #d1d5db 0px, #d1d5db 2px,
+    transparent 2px, transparent 5px
+  );
+  border-radius: 2px;
+  opacity: 0.5;
+}
+
+/* ── Step icons ───────────────────────────────────────────────────────────── */
+.pressao-ins-step-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  color: #fff;
+}
+
+.pressao-ins-step-icon--amber { background: #f59e0b; }
+.pressao-ins-step-icon--red   { background: #ef4444; }
+.pressao-ins-step-icon--blue  { background: #3b82f6; }
+.pressao-ins-step-icon--green { background: #22c55e; }
+
+/* ── Drum picker (5-slot roller) ─────────────────────────────────────────── */
+.pi-drum-wrap {
+  position: relative;
+  width: 100%;
+  height: 280px; /* 5 x 56px */
+  overflow: hidden;
+  touch-action: none;
+  cursor: ns-resize;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.pi-drum-track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.pi-drum-item {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  font-weight: 700;
+  font-size: 16px;
+  color: #94a3b8;
+  opacity: 0.28;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.pi-drum-item--near {
+  font-size: 30px;
+  color: #475569;
+  opacity: 0.5;
+}
+
+.pi-drum-item--sel {
+  font-size: 58px;
+  color: #0f172a;
+  opacity: 1;
+  letter-spacing: -2px;
+}
+
+/* Larger variant for the HR step */
+.pi-drum-wrap--lg .pi-drum-item     { font-size: 20px; }
+.pi-drum-wrap--lg .pi-drum-item--near { font-size: 38px; }
+.pi-drum-wrap--lg .pi-drum-item--sel  { font-size: 72px; letter-spacing: -3px; }
+
+/* Selection lines at center slot */
+.pi-drum-center-sel {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 112px; /* 2 * 56px */
+  height: 56px;
+  border-top: 1.5px solid #e2e8f0;
+  border-bottom: 1.5px solid #e2e8f0;
+  pointer-events: none;
+  border-radius: 2px;
+}
+
+/* Fade gradients top and bottom */
+.pi-drum-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 120px;
+  pointer-events: none;
+}
+
+.pi-drum-fade--top {
+  top: 0;
+  background: linear-gradient(to bottom, #f3f3f3 20%, rgba(243,243,243,0) 100%);
+}
+
+.pi-drum-fade--bot {
+  bottom: 0;
+  background: linear-gradient(to top, #f3f3f3 20%, rgba(243,243,243,0) 100%);
+}
+
+/* Slash alignment with drum center */
+.pressao-ins-slash {
+  align-self: flex-start !important;
+  margin-top: 218px; /* label(20) + gap(14) + btn(64) + gap(14) + 2 items(112) - half slash(26) ≈ 198 → tuned */
+  padding-top: 0 !important;
+}
+
+/* ── Sticky confirm button wrapper ────────────────────────────────────────── */
+.pressao-ins-confirm-wrap {
+  position: sticky;
+  bottom: 0;
+  background: #f3f3f3;
+  padding: 10px 0 14px;
+  margin-top: 16px;
+}
+
+/* ── Summary list (step 5) ────────────────────────────────────────────────── */
+.pi-summary-list {
+  width: 100%;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.pi-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: background 0.12s;
+  gap: 12px;
+}
+
+.pi-summary-row:not(:last-child) {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.pi-summary-row:active {
+  background: #f8fafc;
+}
+
+.pi-summary-left {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+
+.pi-summary-lbl {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pi-summary-val {
+  font-size: 17px;
+  font-weight: 600;
+  color: #0f172a;
+}

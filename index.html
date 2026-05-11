@@ -306,6 +306,155 @@
                   </div>
                   <div id="pressaoColetaDetailContent"></div>
                 </div>
+
+                <!-- Formulário passo a passo: inserir apontamento de pressão -->
+                <div id="pressaoInsertView" style="display:none;">
+                  <div class="pressao-ins-header">
+                    <button type="button" class="pressao-dia-det-back-btn" id="piBackBtn">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <div class="pressao-ins-dots">
+                      <span class="pressao-ins-dot pressao-ins-dot--active" data-pidot="1"></span>
+                      <span class="pressao-ins-dot" data-pidot="2"></span>
+                      <span class="pressao-ins-dot" data-pidot="3"></span>
+                      <span class="pressao-ins-dot" data-pidot="4"></span>
+                      <span class="pressao-ins-dot" data-pidot="5"></span>
+                    </div>
+                    <div class="pressao-ins-header-spacer"></div>
+                  </div>
+
+                  <!-- Passo 1 – Pressão -->
+                  <div id="piStep1" class="pressao-ins-step">
+                    <div class="pressao-ins-step-icon pressao-ins-step-icon--amber">
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    </div>
+                    <div class="pressao-ins-title">Pressão Arterial</div>
+                    <div class="pressao-ins-sub">Use +/− ou arraste o número para ajustar</div>
+                    <div class="pressao-ins-duo">
+                      <div class="pressao-ins-col">
+                        <div class="pressao-ins-col-label pressao-ins-col-label--sis">SIS.</div>
+                        <button class="pressao-ins-circle-btn" onpointerdown="startStepPA('sis',-1)" onpointerup="stopStepPA()" onpointerleave="stopStepPA()">−</button>
+                        <div class="pi-drum-wrap" data-field="sis" ontouchstart="piDrumTouchStart(event,this)" ontouchmove="piDrumTouchMove(event,this)" ontouchend="piDrumTouchEnd(event,this)" onwheel="piDrumWheel(event,this)">
+                          <div class="pi-drum-track" id="piDrumTrack-sis"></div>
+                          <div class="pi-drum-center-sel"></div>
+                          <div class="pi-drum-fade pi-drum-fade--top"></div>
+                          <div class="pi-drum-fade pi-drum-fade--bot"></div>
+                        </div>
+                        <button class="pressao-ins-circle-btn" onpointerdown="startStepPA('sis',1)" onpointerup="stopStepPA()" onpointerleave="stopStepPA()">+</button>
+                      </div>
+                      <div class="pressao-ins-slash">/</div>
+                      <div class="pressao-ins-col">
+                        <div class="pressao-ins-col-label pressao-ins-col-label--dia">DIA.</div>
+                        <button class="pressao-ins-circle-btn" onpointerdown="startStepPA('dia',-1)" onpointerup="stopStepPA()" onpointerleave="stopStepPA()">−</button>
+                        <div class="pi-drum-wrap" data-field="dia" ontouchstart="piDrumTouchStart(event,this)" ontouchmove="piDrumTouchMove(event,this)" ontouchend="piDrumTouchEnd(event,this)" onwheel="piDrumWheel(event,this)">
+                          <div class="pi-drum-track" id="piDrumTrack-dia"></div>
+                          <div class="pi-drum-center-sel"></div>
+                          <div class="pi-drum-fade pi-drum-fade--top"></div>
+                          <div class="pi-drum-fade pi-drum-fade--bot"></div>
+                        </div>
+                        <button class="pressao-ins-circle-btn" onpointerdown="startStepPA('dia',1)" onpointerup="stopStepPA()" onpointerleave="stopStepPA()">+</button>
+                      </div>
+                    </div>
+                    <div class="pressao-ins-unit-row">mmHg</div>
+                  </div>
+
+                  <!-- Passo 2 – Batimentos -->
+                  <div id="piStep2" class="pressao-ins-step" style="display:none;">
+                    <div class="pressao-ins-step-icon pressao-ins-step-icon--red">
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </div>
+                    <div class="pressao-ins-title">Batimentos</div>
+                    <div class="pressao-ins-sub">Use +/− ou arraste o número para ajustar</div>
+                    <div class="pressao-ins-single">
+                      <button class="pressao-ins-circle-btn pressao-ins-circle-btn--lg" onpointerdown="startStepPA('hr',-1)" onpointerup="stopStepPA()" onpointerleave="stopStepPA()">−</button>
+                      <div class="pi-drum-wrap pi-drum-wrap--lg" data-field="hr" ontouchstart="piDrumTouchStart(event,this)" ontouchmove="piDrumTouchMove(event,this)" ontouchend="piDrumTouchEnd(event,this)" onwheel="piDrumWheel(event,this)">
+                        <div class="pi-drum-track" id="piDrumTrack-hr"></div>
+                        <div class="pi-drum-center-sel"></div>
+                        <div class="pi-drum-fade pi-drum-fade--top"></div>
+                        <div class="pi-drum-fade pi-drum-fade--bot"></div>
+                      </div>
+                      <button class="pressao-ins-circle-btn pressao-ins-circle-btn--lg" onpointerdown="startStepPA('hr',1)" onpointerup="stopStepPA()" onpointerleave="stopStepPA()">+</button>
+                    </div>
+                    <div class="pressao-ins-unit-row">bpm</div>
+                  </div>
+
+                  <!-- Passo 3 – Medicação -->
+                  <div id="piStep3" class="pressao-ins-step" style="display:none;">
+                    <div class="pressao-ins-step-icon pressao-ins-step-icon--blue">
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg>
+                    </div>
+                    <div class="pressao-ins-title">Medicamentos</div>
+                    <div class="pressao-ins-sub">Tomou os medicamentos hoje?</div>
+                    <div class="pressao-ins-med-list">
+                      <button class="pressao-ins-med-card" id="piMed-tomados" onclick="pressaoInsSelectMed('tomados')">
+                        <span class="pressao-ins-med-icon">💊</span>
+                        <span class="pressao-ins-med-label">Tomados</span>
+                      </button>
+                      <button class="pressao-ins-med-card" id="piMed-nao_tomados" onclick="pressaoInsSelectMed('nao_tomados')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        <span class="pressao-ins-med-label">Não tomados</span>
+                      </button>
+                      <button class="pressao-ins-med-card pressao-ins-med-card--active" id="piMed-nenhum" onclick="pressaoInsSelectMed('nenhum')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        <span class="pressao-ins-med-label">Não se aplica</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Passo 4 – Notas -->
+                  <div id="piStep4" class="pressao-ins-step" style="display:none;">
+                    <div class="pressao-ins-step-icon pressao-ins-step-icon--green">
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </div>
+                    <div class="pressao-ins-title">Notas</div>
+                    <div class="pressao-ins-sub">Como você está se sentindo?</div>
+                    <textarea class="pressao-ins-textarea" id="piNotaInput" placeholder="Escreva aqui como está se sentindo..."></textarea>
+                  </div>
+
+                  <!-- Passo 5 – Resumo -->
+                  <div id="piStep5" class="pressao-ins-step" style="display:none;">
+                    <div class="pressao-ins-step-icon" style="background:#6366f1;">
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div class="pressao-ins-title">Resumo</div>
+                    <div class="pressao-ins-sub">Confirme ou toque para corrigir</div>
+                    <div class="pi-summary-list">
+                      <div class="pi-summary-row" onclick="pressaoInsGo(1)">
+                        <div class="pi-summary-left">
+                          <span class="pi-summary-lbl">Pressão</span>
+                          <span class="pi-summary-val" id="piSumPressao"></span>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </div>
+                      <div class="pi-summary-row" onclick="pressaoInsGo(2)">
+                        <div class="pi-summary-left">
+                          <span class="pi-summary-lbl">Batimentos</span>
+                          <span class="pi-summary-val" id="piSumHr"></span>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </div>
+                      <div class="pi-summary-row" onclick="pressaoInsGo(3)">
+                        <div class="pi-summary-left">
+                          <span class="pi-summary-lbl">Medicamentos</span>
+                          <span class="pi-summary-val" id="piSumMed"></span>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </div>
+                      <div class="pi-summary-row" onclick="pressaoInsGo(4)">
+                        <div class="pi-summary-left">
+                          <span class="pi-summary-lbl">Nota</span>
+                          <span class="pi-summary-val" id="piSumNota"></span>
+                        </div>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Botão de confirmação fixo no rodapé -->
+                  <div class="pressao-ins-confirm-wrap">
+                    <button id="piConfirmBtn" class="pressao-ins-confirm-btn" onclick="pressaoInsConfirmStep()">Confirmar</button>
+                  </div>
+                </div>
             </div>
 
             <div id="vitalDetailContent" class="vital-detail-content"></div>
