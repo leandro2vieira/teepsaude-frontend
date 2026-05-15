@@ -208,28 +208,147 @@ function renderPassosHourlyCanvas(dayIso, dayEntries, goal) {
     const hit = hourHits.find((b) => x >= b.x0 && x <= b.x1);
     if (!hit) return;
     passosSelectedHour = passosSelectedHour === hit.hour ? null : hit.hour;
-    renderVitalDetailContent(currentVitalHistoricoView);
+    renderPassosHourlyCanvas(dayIso, dayEntries, goal);
+    _updatePassosHourFooter(dayEntries, goal);
   };
 }
 
 function setPassosDayFromChart(dayIso) {
   if (!dayIso) return;
   if (!currentVitalDetail || currentVitalDetail.tipo !== 'Passos') return;
-  passosSelectedDayIso = dayIso;
+  passosSelectedDayIso = passosSelectedDayIso === dayIso ? null : dayIso;
   passosSelectedHour = null;
-  batHourlySelectedHour = null;
-  renderVitalDetailContent(currentVitalHistoricoView);
   renderSparklineChart(currentVitalHistoricoView);
+  renderVitalDetailContent(currentVitalHistoricoView);
 }
 
 function setPassosDayFromList(dayIso) {
   if (!dayIso) return;
   if (!currentVitalDetail || currentVitalDetail.tipo !== 'Passos') return;
+  openPassosDiaDetail(dayIso);
+}
+
+function openPassosDiaDetail(dayIso) {
+  if (!currentVitalDetail || currentVitalDetail.tipo !== 'Passos') return;
   passosSelectedDayIso = dayIso;
   passosSelectedHour = null;
-  batHourlySelectedHour = null;
-  renderVitalDetailContent(currentVitalHistoricoView);
+
+  // Update chart selection
   renderSparklineChart(currentVitalHistoricoView);
+
+  // Hide chart + period controls + list
+  var _chartArea = document.getElementById('pressaoHistoricoView');
+  if (_chartArea) _chartArea.style.display = 'none';
+  var _periodCtrls = document.getElementById('vitalDefaultPeriodControls');
+  if (_periodCtrls) _periodCtrls.style.display = 'none';
+  var _contentEl = document.getElementById('vitalDetailContent');
+  if (_contentEl) _contentEl.style.display = 'none';
+  var _addRow = document.querySelector('#vitalDetailModal .vital-detail-add-row');
+  if (_addRow) _addRow.style.display = 'none';
+
+  // Show day detail panel
+  var _view = document.getElementById('passosDiaDetailView');
+  if (_view) _view.style.display = 'block';
+  window._passaosDiaActive = true;
+
+  // Date label
+  var _p = dayIso.split('-').map(Number);
+  var _dateObj2 = new Date(_p[0], _p[1] - 1, _p[2]);
+  var _dias2 = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  var _meses2 = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  var _dateLabel2 = _dias2[_dateObj2.getDay()] + ', ' + String(_p[2]).padStart(2, '0') + ' ' + _meses2[_p[1] - 1];
+  var _lblEl = document.getElementById('passosDiaDetailLabel');
+  if (_lblEl) _lblEl.textContent = _dateLabel2;
+
+  // Navbar title + subtitle
+  var _titleEl2 = document.getElementById('vitalDetailTitle');
+  if (_titleEl2) _titleEl2.textContent = 'Passos';
+  var _subEl2 = document.getElementById('vitalDetailSubtitle');
+  if (_subEl2) _subEl2.textContent = _dateLabel2;
+
+  // Render summary + hourly chart
+  var _goal2 = getStepsDailyGoalValue(currentVitalDetail);
+  var _dayRows2 = aggregatePassosByDay(currentVitalHistoricoView);
+  var _selRow2 = _dayRows2.find(function(r) { return r.day === dayIso; });
+  if (!_selRow2) return;
+
+  var _daySteps2 = Math.max(0, Math.round(Number(_selRow2.total || 0)));
+  var _dayPct2 = _goal2 > 0 ? Math.max(0, Math.min(100, Math.round((_daySteps2 / _goal2) * 100))) : 0;
+  var _dayDist2 = (_daySteps2 * 0.00075).toFixed(2).replace('.', ',');
+  var _dayKcal2 = Math.round(_daySteps2 * 0.04);
+  var _dayElev2 = Math.max(0, Math.round((_daySteps2 / 1200) * 3));
+
+  var _detContent = document.getElementById('passosDiaDetailContent');
+  if (_detContent) {
+    _detContent.innerHTML =
+      '<div class="passos-resumo-card">' +
+        '<div class="passos-resumo-head"><div class="passos-resumo-num">' + _daySteps2.toLocaleString('pt-BR') + ' passos</div></div>' +
+        '<div class="passos-resumo-bar"><span style="width:' + _dayPct2 + '%;"></span></div>' +
+        '<div class="passos-resumo-scale"><span>0</span><span>Meta: ' + _goal2.toLocaleString('pt-BR') + '</span></div>' +
+        '<div class="passos-resumo-meta">' +
+          '<span>' + _dayDist2 + ' km</span>' +
+          '<span>' + _dayKcal2 + ' kcal</span>' +
+          '<span>' + _dayElev2 + ' m elevação</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="passos-hourly-card">' +
+        '<div class="passos-hourly-title">Passos por hora</div>' +
+        '<div id="passosHourlySubtitle" class="passos-hourly-subtitle">' + _dateLabel2 + '</div>' +
+        '<canvas id="passosHourlyCanvas" class="passos-hourly-canvas" width="720" height="180"></canvas>' +
+      '</div>' +
+      '<div id="passosFooterNote" class="passos-footer-note">' +
+        '<div class="passos-footer-empty">Toque em uma barra para ver distância, calorias e elevação.</div>' +
+      '</div>';
+    renderPassosHourlyCanvas(dayIso, _selRow2.entries || [], _goal2);
+  }
+}
+
+function closePassosDiaDetail() {
+  window._passaosDiaActive = false;
+  passosSelectedHour = null;
+  // keep passosSelectedDayIso so the chart + list remain filtered
+
+  var _view = document.getElementById('passosDiaDetailView');
+  if (_view) _view.style.display = 'none';
+
+  var _chartArea = document.getElementById('pressaoHistoricoView');
+  if (_chartArea) _chartArea.style.display = 'block';
+  var _periodCtrls = document.getElementById('vitalDefaultPeriodControls');
+  if (_periodCtrls) _periodCtrls.style.display = 'block';
+  var _contentEl = document.getElementById('vitalDetailContent');
+  if (_contentEl) _contentEl.style.display = '';
+  var _addRow = document.querySelector('#vitalDetailModal .vital-detail-add-row');
+  if (_addRow) _addRow.style.display = 'none'; // Passos has no manual entry
+
+  var _subEl = document.getElementById('vitalDetailSubtitle');
+  if (_subEl) _subEl.textContent = '';
+  var _titleEl = document.getElementById('vitalDetailTitle');
+  if (_titleEl) _titleEl.textContent = 'Passos';
+
+  // Redraw chart without selection
+  renderSparklineChart(currentVitalHistoricoView);
+}
+
+function _updatePassosHourFooter(dayEntries, goal) {
+  var _footerEl = document.getElementById('passosFooterNote');
+  if (!_footerEl) return;
+  var _hValid = Number.isInteger(passosSelectedHour) && passosSelectedHour >= 0 && passosSelectedHour <= 23;
+  if (!_hValid) {
+    _footerEl.innerHTML = '<div class="passos-footer-empty">Toque em uma barra para ver distância, calorias e elevação.</div>';
+    return;
+  }
+  var _buckets = buildPassosHourlyBucketsForDay(dayEntries);
+  var _hSteps = Math.max(0, Math.round(Number(_buckets[passosSelectedHour] || 0)));
+  var _hDist = (_hSteps * 0.00075).toFixed(2).replace('.', ',');
+  var _hKcal = Math.round(_hSteps * 0.04);
+  var _hElev = Math.max(0, Math.round((_hSteps / 1200) * 3));
+  _footerEl.innerHTML =
+    '<div class="passos-footer-hour">' + String(passosSelectedHour).padStart(2, '0') + ':00\u2013' + String(passosSelectedHour).padStart(2, '0') + ':59</div>' +
+    '<div class="passos-footer-meta">' +
+      '<span>' + _hDist + ' km</span>' +
+      '<span>' + _hKcal + ' kcal</span>' +
+      '<span>' + _hElev + ' m elevação</span>' +
+    '</div>';
 }
 
 function updateVitalDefaultPeriodChipActive() {
@@ -2238,7 +2357,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (window._batHdActive) { closeBatHourlyDetail(); return; }
       if (window._pressaoInsertActive) { closePressaoInsertForm(); return; }
       if (window._pressaoColetaActive) { closePressaoColetaDetail(); return; }
-      if (window._pressaoDiaActive) { closePressaoDiaDetail(); return; }
+      if (window._passaosDiaActive) { closePassosDiaDetail(); return; }
       document.getElementById('vitalDetailModal').classList.remove('active');
     });
   }
@@ -4994,9 +5113,23 @@ function renderBatimentoHourlyChart(historico) {
 }
 
 // ─── Batimento: Tabela horária ─────────────────────────────────────────────
-function renderBatimentoHourlyTable(historico) {
+function renderBatimentoHourlyTable(historico, isoDate) {
   const el = document.getElementById('batHourlyTable');
   if (!el) return;
+
+  // Atualiza label de data acima do card
+  const _labelEl = document.getElementById('batHourlyDateLabel');
+  if (_labelEl) {
+    if (isoDate) {
+      const _p = isoDate.split('-').map(Number);
+      const _dt = new Date(_p[0], _p[1] - 1, _p[2]);
+      const _dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'S\u00e1b'];
+      const _meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+      _labelEl.textContent = _dias[_dt.getDay()] + ', ' + String(_p[2]).padStart(2, '0') + ' ' + _meses[_p[1] - 1];
+    } else {
+      _labelEl.textContent = '';
+    }
+  }
 
   // Guardar referência global para uso no onclick das linhas
   window.__batHourlyHistorico = historico;
@@ -5025,7 +5158,7 @@ function renderBatimentoHourlyTable(historico) {
 
   if (!rows.length) { el.innerHTML = ''; return; }
 
-  const INITIAL = 4;
+  const INITIAL = 3;
   let showAll = false;
 
   const BAT_CLS = {
@@ -5044,9 +5177,11 @@ function renderBatimentoHourlyTable(historico) {
     return null;
   };
 
+  const _chevron = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
+
   const renderRows = (all) => rows.slice(0, all ? rows.length : INITIAL).map(([slot, d]) => {
     const cls = getBatCls(slot);
-    const icoHtml = cls ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${cls.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${cls.p}</svg>` : '';
+    const icoHtml = cls ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${cls.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${cls.p}</svg>` : '';
     const safeSlot = slot.replace(/'/g, "\\'");
     return `
     <div class="bat-hourly-row" onclick="openBatHourlyDetail('${safeSlot}', ${d.min}, ${d.max}, window.__batHourlyHistorico)">
@@ -5054,7 +5189,7 @@ function renderBatimentoHourlyTable(historico) {
         <span class="bat-hourly-range">${d.min} <span class="bat-hourly-sep">–</span> ${d.max} <span class="bat-hourly-unit">bpm</span></span>
         <span class="bat-hourly-slot">${slot}</span>
       </div>
-      <div class="bat-hourly-right">${icoHtml}</div>
+      <div class="bat-hourly-right">${icoHtml}${_chevron}</div>
     </div>`;
   }).join('');
 
@@ -5097,9 +5232,11 @@ function openBatHourlyDetail(slotKey, dMin, dMax, historico) {
   document.getElementById('batHdSlotLabel').innerHTML =
     `${slotKey} <span style="font-size:13px;font-weight:400;color:#94a3b8;">· ${_dateLabel}</span>`;
 
-  // Atualiza título do navbar principal para refletir o slot de hora
+  // Atualiza título e subtítulo do navbar principal
   const _titleEl = document.getElementById('vitalDetailTitle');
-  if (_titleEl) _titleEl.textContent = slotKey + ' · ' + _dateLabel;
+  if (_titleEl) _titleEl.textContent = 'Medição horária';
+  const _subtitleEl = document.getElementById('vitalDetailSubtitle');
+  if (_subtitleEl) _subtitleEl.textContent = slotKey;
 
   // Min/Max card
   const mmEl = document.getElementById('batHdMinMax');
@@ -5132,11 +5269,13 @@ function closeBatHourlyDetail() {
   const view = document.getElementById('batHourlyDetailView');
   if (view) view.style.display = 'none';
 
-  // Restaura título do navbar para o nome do sinal vital
+  // Restaura título do navbar e limpa subtítulo
   const _titleEl = document.getElementById('vitalDetailTitle');
   if (_titleEl && currentVitalDetail && currentVitalDetail.tipo) {
     _titleEl.textContent = 'Histórico de ' + currentVitalDetail.tipo;
   }
+  const _subtitleEl = document.getElementById('vitalDetailSubtitle');
+  if (_subtitleEl) _subtitleEl.textContent = '';
 
   ['batDayPickerCard','batMinMaxCard','batHourlyChart','batHourlyTable','batRestingTrend'].forEach(id => {
     const el = document.getElementById(id);
@@ -6182,7 +6321,7 @@ function selectBatimentoDay(iso) {
 
   renderBatimentoMinMaxCard(dayData);
   renderBatimentoHourlyChart(dayData);
-  renderBatimentoHourlyTable(dayData);
+  renderBatimentoHourlyTable(dayData, iso);
 }
 
 /**
@@ -6211,7 +6350,7 @@ function updateVitalBatimentoModalView() {
   });
   renderBatimentoMinMaxCard(dayData);
   renderBatimentoHourlyChart(dayData);
-  renderBatimentoHourlyTable(dayData);
+  renderBatimentoHourlyTable(dayData, selISO);
   renderBatimentoRestingTrend(allHist);
 }
 
@@ -7280,7 +7419,8 @@ function openVitalDetailModal(tipoVital, vitalId) {
   }
 
   window.__vitalDetailModalTipoLabel = tipoVital;
-  document.getElementById('vitalDetailTitle').textContent = `Histórico de ${tipoVital}`;
+  document.getElementById('vitalDetailTitle').textContent = tipoVital === 'Passos' ? tipoVital : `Histórico de ${tipoVital}`;
+  document.getElementById('vitalDetailSubtitle').textContent = '';
   document.getElementById('filterVitalDataInicio').value = '';
   document.getElementById('filterVitalDataFim').value = '';
 
@@ -7310,9 +7450,22 @@ function openVitalDetailModal(tipoVital, vitalId) {
   const vitalDetailContentEl = document.getElementById('vitalDetailContent');
   const vitalDetailAddRowEl = document.querySelector('#vitalDetailModal .vital-detail-add-row');
   if (vitalDetailContentEl) vitalDetailContentEl.style.display = bc ? 'none' : '';
-  if (vitalDetailAddRowEl) vitalDetailAddRowEl.style.display = bc ? 'none' : '';
+  if (vitalDetailAddRowEl) vitalDetailAddRowEl.style.display = (bc || isPassos) ? 'none' : '';
 
   if (pressaoHistoricoView) pressaoHistoricoView.style.display = 'block';
+
+  // Reset all sub-views whenever opening a new vital modal
+  var _pdv = document.getElementById('pressaoDiaDetailView');
+  if (_pdv) _pdv.style.display = 'none';
+  var _pcv = document.getElementById('pressaoColetaDetailView');
+  if (_pcv) _pcv.style.display = 'none';
+  var _passv = document.getElementById('passosDiaDetailView');
+  if (_passv) _passv.style.display = 'none';
+  window._pressaoDiaActive = false;
+  window._pressaoColetaActive = false;
+  window._passaosDiaActive = false;
+  if (vitalDetailContentEl) vitalDetailContentEl.style.display = bc ? 'none' : '';
+  if (vitalDetailAddRowEl) vitalDetailAddRowEl.style.display = (bc || isPassos) ? 'none' : '';
 
   if (bc) {
     vitalBatimentoChartSelection = null;
@@ -7443,6 +7596,13 @@ function openPressaoDiaDetail(dayIso, entries) {
   }
 }
 
+function _pressaoClassificar(sis, dia) {
+  if (!Number.isFinite(sis) || !Number.isFinite(dia)) return 'normal';
+  if (sis >= 140 || dia >= 90) return 'alta';
+  if (sis >= 130 || dia >= 80) return 'limitrofe';
+  return 'normal';
+}
+
 function _renderPressaoDiaColetaList() {
   const listEl = document.getElementById('pressaoDiaReadingsList');
   if (!listEl || !pressaoColetaEntries.length) return;
@@ -7452,11 +7612,9 @@ function _renderPressaoDiaColetaList() {
   const hiddenCount = pressaoColetaEntries.length - LIMIT;
   const hasMore = !pressaoDiaShowAll && hiddenCount > 0;
 
-  // SVG icon strings — small, gray, minimal
-  const _svgNote = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
-  const _svgMed = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7.07-7.07l-10 10a4.95 4.95 0 1 0 7.07 7.07Z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg>`;
-  const _svgSin = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>`;
-  const _svgChev = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
+  const _svgNote = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
+  const _svgMed  = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7.07-7.07l-10 10a4.95 4.95 0 1 0 7.07 7.07Z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg>`;
+  const _svgChev = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`;
 
   listEl.innerHTML = toShow.map((h, _idx) => {
     const hora = h.hora ? String(h.hora).trim().slice(0, 5) : '--:--';
@@ -7466,20 +7624,25 @@ function _renderPressaoDiaColetaList() {
 
     const hasNota = h.anotacao && String(h.anotacao).trim().length > 0;
     const hasMed = h.medicamentoPressao && h.medicamentoPressao !== 'nenhum';
-    const hasSin = h.sintomas && String(h.sintomas).trim().length > 0;
 
-    const noteIcon = hasNota ? `<span class="pressao-icon" title="${String(h.anotacao).trim()}">${_svgNote}</span>` : '';
-    const medIcon = hasMed ? `<span class="pressao-icon" title="Medicação: ${h.medicamentoPressao}">${_svgMed}</span>` : '';
-    const sinIcon = hasSin ? `<span class="pressao-icon" title="Sintoma: ${String(h.sintomas).trim()}">${_svgSin}</span>` : '';
+    const icons = [
+      hasMed  ? `<span class="pc-icon" title="Remédio tomado">${_svgMed}</span>`   : '',
+      hasNota ? `<span class="pc-icon" title="${String(h.anotacao).trim()}">${_svgNote}</span>` : '',
+    ].filter(Boolean).join('');
 
     return `
       <div class="pressao-coleta-item pressao-coleta-item--clickable" onclick="openPressaoColetaDetail(${_idx})">
-        <div class="pressao-coleta-main">
-          <div class="pressao-coleta-left">
-            <span class="pressao-coleta-valor">${valorFormatado} mmHg</span>${hrLabel ? `<span class="pressao-coleta-sep">·</span><span class="pressao-coleta-fc">${hrLabel}</span>` : ''}
-            <div class="pressao-coleta-hora">${hora}</div>
+        <div class="pc-body">
+          <div class="pc-valor-row">
+            <span class="pc-valor">${valorFormatado}</span>
+            <span class="pc-unit">mmHg</span>
+            ${hrLabel ? `<span class="pc-fc">· ${hrLabel}</span>` : ''}
           </div>
-          <div class="pressao-coleta-icons">${noteIcon}${medIcon}${sinIcon}<span class="pressao-coleta-chevron">${_svgChev}</span></div>
+          <div class="pc-hora">${hora}</div>
+        </div>
+        <div class="pc-right">
+          ${icons ? `<div class="pc-icons">${icons}</div>` : ''}
+          <span class="pressao-coleta-chevron">${_svgChev}</span>
         </div>
       </div>`;
   }).join('') + (hasMore
@@ -7502,10 +7665,21 @@ function closePressaoDiaDetail() {
   if (_dCanvas && typeof _dCanvas.__drawPressao === 'function') _dCanvas.__drawPressao();
   const view = document.getElementById('pressaoDiaDetailView');
   if (view) view.style.display = 'none';
-  const contentEl = document.getElementById('vitalDetailContent');
-  if (contentEl) contentEl.style.display = '';
-  const addRow = document.querySelector('#vitalDetailModal .vital-detail-add-row');
-  if (addRow) addRow.style.display = '';
+
+  // For Pressão Arterial the main view is the sparkline — vitalDetailContent stays hidden
+  const _isPressao = currentVitalDetail && currentVitalDetail.tipo === 'Pressão Arterial';
+  if (!_isPressao) {
+    const contentEl = document.getElementById('vitalDetailContent');
+    if (contentEl) contentEl.style.display = '';
+    const addRow = document.querySelector('#vitalDetailModal .vital-detail-add-row');
+    if (addRow) addRow.style.display = '';
+  } else {
+    // Ensure the sparkline chart area is visible
+    const _sparkView = document.getElementById('pressaoHistoricoView');
+    if (_sparkView) _sparkView.style.display = '';
+    const filters = document.getElementById('vitalDefaultPeriodControls');
+    if (filters) filters.style.display = '';
+  }
 }
 
 function openPressaoColetaDetail(idx) {
@@ -7525,7 +7699,7 @@ function openPressaoColetaDetail(idx) {
   const _periodControls = document.getElementById('vitalDefaultPeriodControls');
   if (_periodControls) _periodControls.style.display = 'none';
 
-  // Label: "Sex, 08 mai · 18:15"
+  // Label: "Sex, 08 mai" (sem horário); navbar: "Pressão Arterial" + horário no subtitle
   const hora = h.hora ? String(h.hora).trim().slice(0, 5) : '--:--';
   const labelEl = document.getElementById('pressaoColetaDetailLabel');
   if (labelEl && pressaoColetaDayIso) {
@@ -7533,10 +7707,12 @@ function openPressaoColetaDetail(idx) {
     const _dateObj = new Date(_y, _m - 1, _d);
     const _dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
     const _meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
-    const _coletaLabel = `${_dias[_dateObj.getDay()]}, ${String(_d).padStart(2, '0')} ${_meses[_m - 1]} · ${hora}`;
-    labelEl.textContent = _coletaLabel;
+    const _dateLabel = `${_dias[_dateObj.getDay()]}, ${String(_d).padStart(2, '0')} ${_meses[_m - 1]}`;
+    labelEl.textContent = _dateLabel;
     const _titleEl = document.getElementById('vitalDetailTitle');
-    if (_titleEl) _titleEl.textContent = _coletaLabel;
+    if (_titleEl) _titleEl.textContent = 'Pressão Arterial';
+    const _subtitleEl = document.getElementById('vitalDetailSubtitle');
+    if (_subtitleEl) _subtitleEl.textContent = hora;
   }
 
   const pair = typeof parseHistoricoPressurePair === 'function' ? parseHistoricoPressurePair(h) : null;
@@ -7544,10 +7720,9 @@ function openPressaoColetaDetail(idx) {
   const hrLabel = Number.isFinite(hr) ? `${Math.round(hr)} bpm` : null;
   const medTomado = h.medicamentoPressao === 'tomados';
 
-  // Simulate a note if none exists (for demo)
   const nota = (h.anotacao && String(h.anotacao).trim().length > 0)
     ? String(h.anotacao).trim()
-    : 'Medição realizada em repouso, após 5 minutos sentado.';
+    : null;
 
   const medIconHtml = medTomado
     ? `<span class="pressao-det-med-icon" title="Medicação tomada"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7.07-7.07l-10 10a4.95 4.95 0 1 0 7.07 7.07Z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg></span>`
@@ -7573,13 +7748,14 @@ function openPressaoColetaDetail(idx) {
         <div class="pressao-coleta-det-unit-row">mmHg</div>
         ${hrLabel ? `<div class="pressao-coleta-det-hr"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>${hrLabel}</span>${medIconHtml}</div>` : ''}
       </div>
+      ${nota ? `
       <div class="pressao-nota-card">
         <div class="pressao-nota-header">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
           <span>Nota</span>
         </div>
         <p class="pressao-nota-text">${nota}</p>
-      </div>`;
+      </div>` : ''}`;
   }
 }
 
@@ -7587,6 +7763,8 @@ function closePressaoColetaDetail() {
   window._pressaoColetaActive = false;
   const _titleEl = document.getElementById('vitalDetailTitle');
   if (_titleEl && window._pressaoDiaLabel) _titleEl.textContent = window._pressaoDiaLabel;
+  const _subtitleEl = document.getElementById('vitalDetailSubtitle');
+  if (_subtitleEl) _subtitleEl.textContent = '';
 
   const coletaView = document.getElementById('pressaoColetaDetailView');
   if (coletaView) coletaView.style.display = 'none';
@@ -7882,25 +8060,78 @@ function stopStepPA() {
 
 function pressaoInsSelectMed(val) {
   pressaoInsertData.med = val;
-  _pressaoInsMedSync();
+  // Aplica highlight
+  ['tomados', 'nao_tomados', 'nenhum'].forEach(function(v) {
+    var el = document.getElementById('piMed-' + v);
+    if (!el) return;
+    el.classList.remove('pi-med-card--active', 'pi-med-card--active-green', 'pi-med-card--active-red', 'pi-med-card--active-gray');
+    if (v === val) {
+      el.classList.add('pi-med-card--active');
+      if (v === 'tomados')     el.classList.add('pi-med-card--active-green');
+      if (v === 'nao_tomados') el.classList.add('pi-med-card--active-red');
+      if (v === 'nenhum')      el.classList.add('pi-med-card--active-gray');
+    }
+  });
+  // Libera o botão Próximo
+  var btn = document.getElementById('piMedNextBtn');
+  if (btn) { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; }
 }
 
 function _pressaoInsMedSync() {
+  var hasSel = !!pressaoInsertData.med;
   ['tomados', 'nao_tomados', 'nenhum'].forEach(function(v) {
     var el = document.getElementById('piMed-' + v);
-    if (el) {
-      if (v === pressaoInsertData.med) el.classList.add('pi-med-btn--active');
-      else el.classList.remove('pi-med-btn--active');
+    if (!el) return;
+    el.classList.remove('pi-med-card--active', 'pi-med-card--active-green', 'pi-med-card--active-red', 'pi-med-card--active-gray');
+    if (v === pressaoInsertData.med) {
+      el.classList.add('pi-med-card--active');
+      if (v === 'tomados')     el.classList.add('pi-med-card--active-green');
+      if (v === 'nao_tomados') el.classList.add('pi-med-card--active-red');
+      if (v === 'nenhum')      el.classList.add('pi-med-card--active-gray');
     }
   });
+  var btn = document.getElementById('piMedNextBtn');
+  if (btn) {
+    btn.style.opacity = hasSel ? '1' : '0.35';
+    btn.style.pointerEvents = hasSel ? 'auto' : 'none';
+  }
 }
 
 function pressaoInsSave() {
   stopStepPA();
   var ta = document.getElementById('piNotaInput');
   if (ta) pressaoInsertData.nota = ta.value.trim();
-  // TODO: persist to pressaoColetaEntries when backend is ready
-  closePressaoInsertForm();
+
+  // Build and persist entry into the in-memory historico
+  if (currentVitalDetail && Array.isArray(currentVitalDetail.historico)) {
+    var _now = new Date();
+    var _yyyy = _now.getFullYear();
+    var _mm   = String(_now.getMonth() + 1).padStart(2, '0');
+    var _dd   = String(_now.getDate()).padStart(2, '0');
+    var _hh   = String(_now.getHours()).padStart(2, '0');
+    var _min  = String(_now.getMinutes()).padStart(2, '0');
+    var _newEntry = {
+      data: _yyyy + '-' + _mm + '-' + _dd,
+      hora: _hh + ':' + _min,
+      valor: pressaoInsertData.sis + '/' + pressaoInsertData.dia,
+      hr:    pressaoInsertData.hr,
+      medicamentoPressao: pressaoInsertData.med,
+      anotacao: pressaoInsertData.nota || ''
+    };
+    currentVitalDetail.historico.push(_newEntry);
+  }
+
+  // Hide insert form directly — let renderSparklineChart handle the rest
+  var insertView = document.getElementById('pressaoInsertView');
+  if (insertView) insertView.style.display = 'none';
+  window._pressaoInsertActive = false;
+  window._pressaoDiaActive = false;
+  pressaoSelectedDay = null;
+  var _titleEl = document.getElementById('vitalDetailTitle');
+  if (_titleEl && currentVitalDetail) _titleEl.textContent = 'Histórico de ' + currentVitalDetail.tipo;
+
+  // Re-render chart — auto-selects today and opens day detail with updated entries
+  if (currentVitalDetail) renderSparklineChart(currentVitalDetail.historico);
 }
 
 function renderSparklineChart(historico) {
@@ -8307,26 +8538,47 @@ function renderSparklineChart(historico) {
   }
 
   if (currentVitalDetail && currentVitalDetail.tipo === 'Passos') {
-    const dayRows = aggregatePassosByDay(historico).slice(0, 10).reverse();
+    const allDayRows = aggregatePassosByDay(historico);
+    const dayRows = allDayRows.slice().sort((a, b) => a.day.localeCompare(b.day));
     const rows = dayRows.map((g) => ({ h: { data: g.day }, v: g.total, day: g.day }));
     if (rows.length === 0) return;
 
     const goal = getStepsDailyGoalValue(currentVitalDetail);
+
+    // Scrollable container (like PA chart)
+    const _passChartView = document.getElementById('pressaoHistoricoView');
+    if (_passChartView) {
+      _passChartView.style.overflowX = 'auto';
+      _passChartView.style.overflowY = 'hidden';
+      _passChartView.style.webkitOverflowScrolling = 'touch';
+    }
+
+    requestAnimationFrame(() => {
+    const dpr = window.devicePixelRatio || 1;
+    const n = rows.length;
+    const containerW = _passChartView ? _passChartView.offsetWidth : (canvas.parentElement ? canvas.parentElement.offsetWidth : 320);
+    const padL = 28, padR = 12, padT = 30, padB = 20;
+    const minColW = 36;
+    const W = Math.max(containerW, padL + n * minColW + padR);
+    const H = 180;
+    const gw = W - padL - padR;
+    const gh = H - padT - padB;
+
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+
     const maxData = Math.max(...rows.map((r) => r.v), goal);
     const yLow = 0;
     const yHigh = Math.max(goal * 1.15, maxData * 1.1, 1);
     const span = yHigh - yLow;
-
-    const padL = 28;
-    const padR = 8;
-    const padT = 8;
-    const padB = 20;
-    const gw = width - padL - padR;
-    const gh = height - padT - padB;
     const toY = (v) => padT + ((yHigh - v) / span) * gh;
 
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = '#F8F9FA';
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(0, 0, W, H);
 
     ctx.fillStyle = 'rgba(34, 197, 94, 0.08)';
     ctx.fillRect(padL, toY(goal), gw, gh - (toY(goal) - padT));
@@ -8340,7 +8592,6 @@ function renderSparklineChart(historico) {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    const n = rows.length;
     const slot = gw / Math.max(1, n);
     const barW = Math.min(18, Math.max(7, slot * 0.58));
     const barR = Math.min(5, barW / 2 - 0.5);
@@ -8373,6 +8624,49 @@ function renderSparklineChart(historico) {
       hitBoxes.push({ x0: slotX0, x1: slotX0 + slot, dayIso: row.day });
     });
 
+    // Tooltip para dia selecionado
+    if (passosSelectedDayIso) {
+      const _selIdx = rows.findIndex(r => r.day === passosSelectedDayIso);
+      if (_selIdx >= 0) {
+        const _selRow = rows[_selIdx];
+        const _cx = padL + slot * _selIdx + slot / 2;
+        const _numStr = _selRow.v.toLocaleString('pt-BR');
+        ctx.font = 'bold 10px Inter, sans-serif';
+        const _nw = ctx.measureText(_numStr).width;
+        ctx.font = '9px Inter, sans-serif';
+        const _sw = ctx.measureText(' passos').width;
+        const _bw = Math.max(_nw + _sw + 18, 76);
+        const _bh = 20;
+        const _arr = 5;
+        let _bx = _cx - _bw / 2;
+        if (_bx < padL) _bx = padL;
+        if (_bx + _bw > padL + gw) _bx = padL + gw - _bw;
+        const _by = padT - _arr - 2;
+        const _br = 4;
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath();
+        ctx.moveTo(_bx + _br, _by - _bh);
+        ctx.lineTo(_bx + _bw - _br, _by - _bh);
+        ctx.quadraticCurveTo(_bx + _bw, _by - _bh, _bx + _bw, _by - _bh + _br);
+        ctx.lineTo(_bx + _bw, _by - _br);
+        ctx.quadraticCurveTo(_bx + _bw, _by, _bx + _bw - _br, _by);
+        const _ax = Math.min(Math.max(_cx, _bx + 10), _bx + _bw - 10);
+        ctx.lineTo(_ax + 5, _by); ctx.lineTo(_ax, _by + _arr); ctx.lineTo(_ax - 5, _by);
+        ctx.lineTo(_bx + _br, _by);
+        ctx.quadraticCurveTo(_bx, _by, _bx, _by - _br);
+        ctx.lineTo(_bx, _by - _bh + _br);
+        ctx.quadraticCurveTo(_bx, _by - _bh, _bx + _br, _by - _bh);
+        ctx.closePath(); ctx.fill();
+        const _ty = _by - _bh / 2;
+        let _tx = _bx + (_bw - _nw - _sw) / 2;
+        ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+        ctx.font = 'bold 10px Inter, sans-serif';
+        ctx.fillStyle = '#34d399'; ctx.fillText(_numStr, _tx, _ty); _tx += _nw;
+        ctx.font = '9px Inter, sans-serif';
+        ctx.fillStyle = '#94a3b8'; ctx.fillText(' passos', _tx, _ty);
+      }
+    }
+
     ctx.fillStyle = '#8e8e8e';
     ctx.font = '8px sans-serif';
     ctx.textAlign = 'right';
@@ -8380,8 +8674,9 @@ function renderSparklineChart(historico) {
     ctx.fillText('0', padL - 4, toY(0));
     ctx.fillText(String(Math.round(goal)), padL - 4, toY(goal));
 
-    const labelEvery = Math.max(1, Math.ceil(n / 5));
+    const labelEvery = Math.max(1, Math.ceil(n / 8));
     ctx.fillStyle = '#666';
+    ctx.font = '8px sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
     rows.forEach((row, i) => {
@@ -8390,15 +8685,23 @@ function renderSparklineChart(historico) {
       const d = String(row.h.data || '');
       const parts = d.split('-');
       const short = parts.length === 3 ? String(Number(parts[2])) : '';
-      ctx.fillText(short, cx, height - 4);
+      ctx.fillText(short, cx, H - 4);
     });
+
+    canvas.style.cursor = 'pointer';
     canvas.onclick = (ev) => {
       const rect = canvas.getBoundingClientRect();
-      const sx = canvas.width / Math.max(1, rect.width);
+      const sx = W / Math.max(1, rect.width);
       const x = (ev.clientX - rect.left) * sx;
       const hit = hitBoxes.find((b) => x >= b.x0 && x <= b.x1);
       if (hit && hit.dayIso) setPassosDayFromChart(hit.dayIso);
     };
+
+    // Scroll to show the most recent (rightmost) day
+    if (_passChartView && !passosSelectedDayIso) {
+      _passChartView.scrollLeft = Math.max(0, W - containerW);
+    }
+    }); // end requestAnimationFrame
     return;
   }
 
@@ -8743,58 +9046,31 @@ function renderVitalDetailContent(historico) {
         '<div class="empty-state"><div class="empty-text">Nenhum registro encontrado</div></div>';
       return;
     }
-    const selectedExists = passosSelectedDayIso && dayRows.some((r) => r.day === passosSelectedDayIso);
-    const selectedDay = selectedExists ? passosSelectedDayIso : dayRows[0].day;
-    passosSelectedDayIso = selectedDay;
-    const selectedRow = dayRows.find((r) => r.day === selectedDay) || dayRows[0];
-    const selectedHourValid = Number.isInteger(passosSelectedHour) && passosSelectedHour >= 0 && passosSelectedHour <= 23;
-    const daySteps = Math.max(0, Math.round(Number(selectedRow?.total || 0)));
-    const dayPct = goal > 0 ? Math.max(0, Math.min(999, Math.round((daySteps / goal) * 100))) : 0;
-    const dayDistKm = (daySteps * 0.00075).toFixed(2).replace('.', ',');
-    const dayKcal = Math.round(daySteps * 0.04);
-    const dayElevacaoM = Math.max(0, Math.round((daySteps / 1200) * 3));
-
-    const hourlyBuckets = buildPassosHourlyBucketsForDay(selectedRow?.entries || []);
-    const hourSteps = selectedHourValid
-      ? Math.max(0, Math.round(Number(hourlyBuckets[passosSelectedHour] || 0)))
-      : null;
-    const hourDistKm = hourSteps != null ? (hourSteps * 0.00075).toFixed(2).replace('.', ',') : null;
-    const hourKcal = hourSteps != null ? Math.round(hourSteps * 0.04) : null;
-    const hourElevacaoM = hourSteps != null ? Math.max(0, Math.round((hourSteps / 1200) * 3)) : null;
-    const hourInfoHtml = selectedHourValid
-      ? `
-        <div class="passos-footer-hour">${String(passosSelectedHour).padStart(2, '0')}:00–${String(passosSelectedHour).padStart(2, '0')}:59</div>
-        <div class="passos-footer-meta">
-          <span>${hourDistKm} km</span>
-          <span>${hourKcal} kcal</span>
-          <span>${hourElevacaoM} m elevação</span>
-        </div>`
-      : '<div class="passos-footer-empty">Toque em uma barra do gráfico por hora para ver distância, calorias e elevação da hora.</div>';
-
-    document.getElementById('vitalDetailContent').innerHTML = `
-      <div class="passos-resumo-card">
-        <div class="passos-resumo-head">
-          <div class="passos-resumo-num">${daySteps.toLocaleString('pt-BR')} passos</div>
-        </div>
-        <div class="passos-resumo-bar"><span style="width:${Math.max(0, Math.min(100, dayPct))}%;"></span></div>
-        <div class="passos-resumo-scale">
-          <span>0</span>
-          <span>Meta: ${goal.toLocaleString('pt-BR')}</span>
-        </div>
-        <div class="passos-resumo-meta">
-          <span>${dayDistKm} km</span>
-          <span>${dayKcal} kcal</span>
-          <span>${dayElevacaoM} m elevação</span>
-        </div>
-      </div>
-      <div class="passos-hourly-card">
-        <div class="passos-hourly-title">Passos por hora do dia</div>
-        <div id="passosHourlySubtitle" class="passos-hourly-subtitle"></div>
-        <canvas id="passosHourlyCanvas" class="passos-hourly-canvas" width="720" height="180"></canvas>
-      </div>
-      <div class="passos-footer-note">${hourInfoHtml}</div>
-    `;
-    renderPassosHourlyCanvas(selectedDay, selectedRow?.entries || [], goal);
+    // Flat list of days — filtered by chart selection if any
+    const _dias3 = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    const _meses3 = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+    const _filteredRows = passosSelectedDayIso
+      ? dayRows.filter(function(r) { return r.day === passosSelectedDayIso; })
+      : dayRows.slice().reverse();
+    let _clearFilterBtn = '';
+    if (passosSelectedDayIso) {
+      _clearFilterBtn = '<div style="text-align:center;padding:8px 0 4px;"><button type="button" onclick="setPassosDayFromChart(null)" style="font-size:13px;color:#3b82f6;background:none;border:none;cursor:pointer;padding:4px 8px;">Ver todos os dias</button></div>';
+    }
+    const _dayListHtml = _filteredRows.map(function(row) {
+      const _steps = Math.max(0, Math.round(Number(row.total || 0)));
+      const _pp = row.day.split('-').map(Number);
+      const _do = new Date(_pp[0], _pp[1] - 1, _pp[2]);
+      const _dl = _dias3[_do.getDay()] + ', ' + String(_pp[2]).padStart(2, '0') + ' ' + _meses3[_pp[1] - 1];
+      const _pct = goal > 0 ? Math.round((_steps / goal) * 100) : 0;
+      return '<div class="vital-list-item vital-list-item--day-nav vital-list-item--hour-bucket" role="button" tabindex="0" onclick="openPassosDiaDetail(\'' + row.day + '\')">' +
+        '<div class="vital-list-main vital-list-main--hour-detail">' +
+          '<div class="vital-list-measure-line">' + _steps.toLocaleString('pt-BR') + ' <span style="font-size:13px;font-weight:500;color:#64748b;">passos</span></div>' +
+          '<div class="vital-list-time-line">' + _dl + ' · ' + _pct + '% da meta</div>' +
+        '</div>' +
+        '<div class="vital-list-trail"><span class="vital-list-chevron" aria-hidden="true">›</span></div>' +
+      '</div>';
+    }).join('');
+    document.getElementById('vitalDetailContent').innerHTML = _clearFilterBtn + _dayListHtml;
     return;
   }
 

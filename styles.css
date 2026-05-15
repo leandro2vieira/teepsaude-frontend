@@ -2965,15 +2965,31 @@ body {
   gap: 4px;
 }
 
-#vitalDetailModal .vital-detail-modal-title {
+.vital-detail-modal-title-wrap {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 0 4px;
+}
+
+#vitalDetailModal .vital-detail-modal-title {
   text-align: center;
   font-size: 17px;
   font-weight: 700;
   color: #0f172a;
   letter-spacing: -0.02em;
-  padding: 0 4px;
+}
+
+.vital-detail-modal-subtitle {
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
 }
 
 /* BotÃ£o Voltar (seta) e Fechar: cÃ­rculos pequenos 36px */
@@ -3169,6 +3185,14 @@ body {
   margin-bottom: 12px;
 }
 
+.bat-hourly-date-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+  padding-left: 2px;
+}
+
 .bat-hourly-header {
   font-size: 13px;
   font-weight: 700;
@@ -3180,11 +3204,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  border-radius: 10px;
+  padding: 14px 16px;
+  border-radius: 14px;
   background: #f8fafc;
-  border: 1px solid #f1f5f9;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 
 .bat-hourly-left {
@@ -3194,23 +3217,27 @@ body {
 }
 
 .bat-hourly-right {
-  min-width: 24px;
   display: flex;
-  justify-content: flex-end;
   align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .bat-hourly-slot {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  color: #64748b;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+  margin-top: 3px;
   font-variant-numeric: tabular-nums;
 }
 
 .bat-hourly-range {
   font-size: 18px;
   font-weight: 700;
-  color: #64748b;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
   font-variant-numeric: tabular-nums;
 }
 
@@ -3336,6 +3363,15 @@ body {
   font-weight: 700;
   color: #fbbf24;
 }
+.bat-hd-time-ref {
+  text-align: right;
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+  padding: 4px 4px 2px;
+  font-variant-numeric: tabular-nums;
+}
+
 .bat-hd-chart-canvas {
   width: 100%;
   display: block;
@@ -7545,85 +7581,96 @@ body {
 
 .pressao-dia-coletas {
   margin-top: 10px;
-  border-top: 1px solid #f1f1f1;
 }
 
 .pressao-coleta-item {
-  padding: 10px 14px;
-  border-bottom: 1px solid #f3f3f3;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border-radius: 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background 0.12s;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .pressao-coleta-item:last-child {
-  border-bottom: none;
-}
-
-.pressao-coleta-item--clickable {
-  cursor: pointer;
-  transition: background 0.15s;
+  margin-bottom: 0;
 }
 
 .pressao-coleta-item--clickable:active {
-  background: #f8fafc;
+  background: #f1f5f9;
 }
 
-.pressao-coleta-chevron {
-  display: inline-flex;
-  align-items: center;
-  margin-left: 2px;
+/* Corpo central */
+.pc-body {
+  flex: 1;
+  min-width: 0;
 }
 
-.pressao-coleta-main {
+.pc-valor-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.pressao-coleta-left {
-  display: flex;
-  flex-wrap: wrap;
   align-items: baseline;
-  gap: 0 6px;
+  gap: 4px;
+  flex-wrap: wrap;
 }
 
-.pressao-coleta-valor {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1e293b;
-  line-height: 1.3;
+.pc-valor {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
 }
 
-.pressao-coleta-sep {
-  color: #cbd5e1;
-  font-size: 13px;
-}
-
-.pressao-coleta-fc {
-  font-size: 13px;
-  font-weight: 500;
-  color: #64748b;
-}
-
-.pressao-coleta-hora {
-  width: 100%;
-  margin-top: 1px;
+.pc-unit {
   font-size: 12px;
-  font-weight: 400;
+  font-weight: 500;
   color: #94a3b8;
 }
 
-.pressao-coleta-icons {
+.pc-fc {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  margin-left: 2px;
+}
+
+.pc-hora {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+  margin-top: 3px;
+}
+
+/* Lado direito: ícones + chevron */
+.pc-right {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
 }
 
-.pressao-icon {
+.pc-icons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pc-icon {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  line-height: 1;
+  color: #94a3b8;
+}
+
+/* Chevron */
+.pressao-coleta-chevron {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 /* â”€â”€ PressÃ£o: detail view header & list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
@@ -8959,55 +9006,92 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   margin: 8px 0 0;
 }
 
 .pi-med-card {
-  flex: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  background: #f8fafc;
-  border: 2.5px solid transparent;
-  border-radius: 20px;
+  gap: 14px;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.1s;
   font-family: inherit;
-  padding: 16px 12px;
+  padding: 16px 16px;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .pi-med-card:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
+  box-shadow: none;
 }
 
 .pi-med-card--active {
-  border-color: #f59e0b;
-  background: #fffbeb;
+  box-shadow: none;
 }
 
-.pi-med-card-icon {
-  font-size: 40px;
-  line-height: 1;
+.pi-med-card--active-green {
+  border-color: #16a34a;
+  background: #f0fdf4;
+}
+
+.pi-med-card--active-red {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.pi-med-card--active-gray {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.pi-med-card-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.pi-med-card-icon--svg {
-  width: 40px;
-  height: 40px;
-  stroke: #64748b;
-}
+.pi-med-card-icon-wrap--green { background: #dcfce7; }
+.pi-med-card-icon-wrap--red   { background: #fee2e2; }
+.pi-med-card-icon-wrap--gray  { background: #f1f5f9; }
 
 .pi-med-card-lbl {
+  flex: 1;
   font-size: 16px;
   font-weight: 600;
   color: #0f172a;
-  text-align: center;
-  line-height: 1.35;
+  line-height: 1.3;
+}
+
+.pi-med-card-chev {
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+
+.pi-med-card--active .pi-med-card-chev {
+  display: none;
+}
+
+.pi-med-card--active::after {
+  content: '';
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2316a34a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 /* ── STEP 4: Nota + Salvar ───────────────────────────────────────────────── */

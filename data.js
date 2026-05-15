@@ -1301,10 +1301,141 @@ function injectDemoMedicoesUltimas24h(data) {
       { ...at(20, 0), valor: 36.6, status: 'normal' }
     ],
     Passos: [
-      { ...at(1, 0), valor: 8840, status: 'normal' },
-      { ...at(8, 0), valor: 4120, status: 'normal' },
-      { ...at(16, 0), valor: 7260, status: 'normal' },
-      { ...at(22, 0), valor: 3180, status: 'normal' }
+      // Hoje (dia 0) — acumulado ao longo do dia
+      { ...atDaysAgo(0,  6,  0), valor: 1240, status: 'normal' },
+      { ...atDaysAgo(0,  9,  0), valor: 2180, status: 'normal' },
+      { ...atDaysAgo(0, 12,  0), valor: 3310, status: 'normal' },
+      { ...atDaysAgo(0, 15,  0), valor: 1450, status: 'normal' },
+      { ...atDaysAgo(0, 18,  0), valor:  660, status: 'normal' },
+      // Dia 1
+      { ...atDaysAgo(1,  7,  0), valor: 980,  status: 'normal' },
+      { ...atDaysAgo(1, 10,  0), valor: 2560, status: 'normal' },
+      { ...atDaysAgo(1, 13,  0), valor: 1840, status: 'normal' },
+      { ...atDaysAgo(1, 17,  0), valor: 1880, status: 'normal' },
+      // Dia 2
+      { ...atDaysAgo(2,  8,  0), valor: 4500, status: 'normal' },
+      { ...atDaysAgo(2, 12,  0), valor: 4800, status: 'normal' },
+      { ...atDaysAgo(2, 19,  0), valor: 3200, status: 'normal' },
+      // Dia 3
+      { ...atDaysAgo(3,  7, 30), valor: 1500, status: 'normal' },
+      { ...atDaysAgo(3, 11,  0), valor: 2900, status: 'normal' },
+      { ...atDaysAgo(3, 16,  0), valor: 3600, status: 'normal' },
+      { ...atDaysAgo(3, 20,  0), valor: 1200, status: 'normal' },
+      // Dia 4
+      { ...atDaysAgo(4,  6,  0), valor: 2100, status: 'normal' },
+      { ...atDaysAgo(4, 10,  0), valor: 3400, status: 'normal' },
+      { ...atDaysAgo(4, 14,  0), valor: 1800, status: 'normal' },
+      { ...atDaysAgo(4, 18,  0), valor: 2700, status: 'normal' },
+      // Dia 5
+      { ...atDaysAgo(5,  8,  0), valor: 5200, status: 'normal' },
+      { ...atDaysAgo(5, 13,  0), valor: 3800, status: 'normal' },
+      { ...atDaysAgo(5, 18,  0), valor: 2500, status: 'normal' },
+      // Dia 6
+      { ...atDaysAgo(6,  7,  0), valor: 1600, status: 'normal' },
+      { ...atDaysAgo(6, 11,  0), valor: 2400, status: 'normal' },
+      { ...atDaysAgo(6, 15,  0), valor: 3100, status: 'normal' },
+      { ...atDaysAgo(6, 20,  0), valor: 1100, status: 'normal' },
+      // Dia 7
+      { ...atDaysAgo(7,  8,  0), valor: 3300, status: 'normal' },
+      { ...atDaysAgo(7, 12,  0), valor: 2800, status: 'normal' },
+      { ...atDaysAgo(7, 17,  0), valor: 2200, status: 'normal' },
+      // Dia 8
+      { ...atDaysAgo(8,  6, 30), valor: 1800, status: 'normal' },
+      { ...atDaysAgo(8, 10,  0), valor: 3600, status: 'normal' },
+      { ...atDaysAgo(8, 14,  0), valor: 2100, status: 'normal' },
+      { ...atDaysAgo(8, 19,  0), valor: 1500, status: 'normal' },
+      // Dia 9
+      { ...atDaysAgo(9,  7,  0), valor: 2700, status: 'normal' },
+      { ...atDaysAgo(9, 11,  0), valor: 4200, status: 'normal' },
+      { ...atDaysAgo(9, 16,  0), valor: 1900, status: 'normal' },
+      // Dia 10
+      { ...atDaysAgo(10,  8,  0), valor: 1200, status: 'normal' },
+      { ...atDaysAgo(10, 12,  0), valor: 3800, status: 'normal' },
+      { ...atDaysAgo(10, 17,  0), valor: 2600, status: 'normal' },
+      { ...atDaysAgo(10, 21,  0), valor: 1100, status: 'normal' },
+      // Dia 11
+      { ...atDaysAgo(11,  7, 30), valor: 3100, status: 'normal' },
+      { ...atDaysAgo(11, 13,  0), valor: 2500, status: 'normal' },
+      { ...atDaysAgo(11, 18,  0), valor: 3400, status: 'normal' },
+      // Dia 12
+      { ...atDaysAgo(12,  6,  0), valor: 2200, status: 'normal' },
+      { ...atDaysAgo(12, 10,  0), valor: 1900, status: 'normal' },
+      { ...atDaysAgo(12, 15,  0), valor: 4100, status: 'normal' },
+      { ...atDaysAgo(12, 20,  0), valor: 1300, status: 'normal' },
+      // Dia 13
+      { ...atDaysAgo(13,  8,  0), valor: 3700, status: 'normal' },
+      { ...atDaysAgo(13, 12,  0), valor: 2900, status: 'normal' },
+      { ...atDaysAgo(13, 17,  0), valor: 2000, status: 'normal' },
+      // Dia 14
+      { ...atDaysAgo(14,  7,  0), valor: 1400, status: 'normal' },
+      { ...atDaysAgo(14, 11,  0), valor: 3200, status: 'normal' },
+      { ...atDaysAgo(14, 16,  0), valor: 2800, status: 'normal' },
+      { ...atDaysAgo(14, 21,  0), valor: 1600, status: 'normal' },
+      // Dia 15
+      { ...atDaysAgo(15,  8,  0), valor: 5800, status: 'normal' },
+      { ...atDaysAgo(15, 13,  0), valor: 3500, status: 'normal' },
+      { ...atDaysAgo(15, 18,  0), valor: 2100, status: 'normal' },
+      // Dia 16
+      { ...atDaysAgo(16,  6, 30), valor: 2600, status: 'normal' },
+      { ...atDaysAgo(16, 10,  0), valor: 3900, status: 'normal' },
+      { ...atDaysAgo(16, 15,  0), valor: 2200, status: 'normal' },
+      // Dia 17
+      { ...atDaysAgo(17,  7,  0), valor: 1800, status: 'normal' },
+      { ...atDaysAgo(17, 12,  0), valor: 4300, status: 'normal' },
+      { ...atDaysAgo(17, 18,  0), valor: 2100, status: 'normal' },
+      { ...atDaysAgo(17, 22,  0), valor: 800,  status: 'normal' },
+      // Dia 18
+      { ...atDaysAgo(18,  8,  0), valor: 3000, status: 'normal' },
+      { ...atDaysAgo(18, 14,  0), valor: 3500, status: 'normal' },
+      { ...atDaysAgo(18, 19,  0), valor: 1800, status: 'normal' },
+      // Dia 19
+      { ...atDaysAgo(19,  7, 30), valor: 2400, status: 'normal' },
+      { ...atDaysAgo(19, 11,  0), valor: 3700, status: 'normal' },
+      { ...atDaysAgo(19, 16,  0), valor: 2300, status: 'normal' },
+      // Dia 20
+      { ...atDaysAgo(20,  6,  0), valor: 1600, status: 'normal' },
+      { ...atDaysAgo(20, 10,  0), valor: 2800, status: 'normal' },
+      { ...atDaysAgo(20, 15,  0), valor: 3900, status: 'normal' },
+      { ...atDaysAgo(20, 20,  0), valor: 1200, status: 'normal' },
+      // Dia 21
+      { ...atDaysAgo(21,  8,  0), valor: 5500, status: 'normal' },
+      { ...atDaysAgo(21, 13,  0), valor: 4200, status: 'normal' },
+      { ...atDaysAgo(21, 18,  0), valor: 2800, status: 'normal' },
+      // Dia 22
+      { ...atDaysAgo(22,  7,  0), valor: 2100, status: 'normal' },
+      { ...atDaysAgo(22, 12,  0), valor: 3300, status: 'normal' },
+      { ...atDaysAgo(22, 17,  0), valor: 2600, status: 'normal' },
+      { ...atDaysAgo(22, 21,  0), valor: 900,  status: 'normal' },
+      // Dia 23
+      { ...atDaysAgo(23,  8,  0), valor: 3800, status: 'normal' },
+      { ...atDaysAgo(23, 14,  0), valor: 2900, status: 'normal' },
+      { ...atDaysAgo(23, 19,  0), valor: 1700, status: 'normal' },
+      // Dia 24
+      { ...atDaysAgo(24,  7, 30), valor: 1300, status: 'normal' },
+      { ...atDaysAgo(24, 11,  0), valor: 4000, status: 'normal' },
+      { ...atDaysAgo(24, 16,  0), valor: 2500, status: 'normal' },
+      // Dia 25
+      { ...atDaysAgo(25,  6,  0), valor: 2900, status: 'normal' },
+      { ...atDaysAgo(25, 10,  0), valor: 3600, status: 'normal' },
+      { ...atDaysAgo(25, 15,  0), valor: 2100, status: 'normal' },
+      { ...atDaysAgo(25, 20,  0), valor: 1400, status: 'normal' },
+      // Dia 26
+      { ...atDaysAgo(26,  8,  0), valor: 6200, status: 'normal' },
+      { ...atDaysAgo(26, 13,  0), valor: 4100, status: 'normal' },
+      { ...atDaysAgo(26, 18,  0), valor: 2700, status: 'normal' },
+      // Dia 27
+      { ...atDaysAgo(27,  7,  0), valor: 2300, status: 'normal' },
+      { ...atDaysAgo(27, 12,  0), valor: 3500, status: 'normal' },
+      { ...atDaysAgo(27, 17,  0), valor: 2700, status: 'normal' },
+      // Dia 28
+      { ...atDaysAgo(28,  8,  0), valor: 1700, status: 'normal' },
+      { ...atDaysAgo(28, 13,  0), valor: 3200, status: 'normal' },
+      { ...atDaysAgo(28, 18,  0), valor: 2900, status: 'normal' },
+      { ...atDaysAgo(28, 22,  0), valor: 700,  status: 'normal' },
+      // Dia 29
+      { ...atDaysAgo(29,  7, 30), valor: 5300, status: 'normal' },
+      { ...atDaysAgo(29, 12,  0), valor: 3800, status: 'normal' },
+      { ...atDaysAgo(29, 17,  0), valor: 2400, status: 'normal' },
     ],
     Oxigenação: [
       { ...at(0, 20), valor: 98, status: 'normal' },

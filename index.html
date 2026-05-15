@@ -189,7 +189,10 @@
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                 </button>
-                <span id="vitalDetailTitle" class="vital-detail-modal-title">Histórico de Sinal Vital</span>
+                <div class="vital-detail-modal-title-wrap">
+                  <span id="vitalDetailTitle" class="vital-detail-modal-title">Histórico de Sinal Vital</span>
+                  <span id="vitalDetailSubtitle" class="vital-detail-modal-subtitle"></span>
+                </div>
                 <button type="button" class="bat-share-btn" id="batShareBtn" aria-label="Compartilhar" style="display:none;" onclick="shareBatimentoCard()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
                 </button>
@@ -204,6 +207,7 @@
                 <div id="batDayPickerCard" class="bat-day-picker-card"></div>
                 <div id="batMinMaxCard" class="bat-minmax-card"></div>
                 <div id="batHourlyChart" class="bat-hourly-chart-card"></div>
+                <div id="batHourlyDateLabel" class="bat-hourly-date-label"></div>
                 <div id="batHourlyTable" class="bat-hourly-section"></div>
                 <div id="batRestingTrend" class="bat-resting-section" onclick="openBatRestingDetail()"></div>
 
@@ -312,6 +316,17 @@
                   <div id="pressaoColetaDetailContent"></div>
                 </div>
 
+                <!-- Detalhe de um dia específico de passos -->
+                <div id="passosDiaDetailView" style="display:none;">
+                  <div class="pressao-dia-det-header">
+                    <button type="button" class="pressao-dia-det-back-btn" onclick="closePassosDiaDetail()">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <span id="passosDiaDetailLabel" class="pressao-dia-det-label"></span>
+                  </div>
+                  <div id="passosDiaDetailContent"></div>
+                </div>
+
                 <!-- Formulário passo a passo: inserir apontamento de pressão -->
                 <div id="pressaoInsertView" style="display:none;">
 
@@ -400,26 +415,36 @@
                   <!-- STEP 3: Remédios -->
                   <div class="pi-step" id="piStep3" style="display:none;">
                     <div class="pi-step-head">
-                      <div class="pi-step-label">Remédios hoje?</div>
-                      <div class="pi-step-hint">Toque em uma opção para continuar</div>
+                      <div class="pi-step-label">Remédios?</div>
+                      <div class="pi-step-hint">Selecione uma opção</div>
                     </div>
                     <div class="pi-med-grid">
                       <button class="pi-med-card" id="piMed-tomados"
-                              onclick="pressaoInsSelectMed('tomados');pressaoInsGo(4)">
-                        <span class="pi-med-card-icon">&#128138;</span>
-                        <span class="pi-med-card-lbl">Tomei meus<br>remédios</span>
+                              onclick="pressaoInsSelectMed('tomados')">
+                        <span class="pi-med-card-icon-wrap pi-med-card-icon-wrap--green">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7.07-7.07l-10 10a4.95 4.95 0 1 0 7.07 7.07Z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg>
+                        </span>
+                        <span class="pi-med-card-lbl">Tomei meus remédios</span>
+                        <svg class="pi-med-card-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                       </button>
                       <button class="pi-med-card" id="piMed-nao_tomados"
-                              onclick="pressaoInsSelectMed('nao_tomados');pressaoInsGo(4)">
-                        <svg class="pi-med-card-icon pi-med-card-icon--svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        <span class="pi-med-card-lbl">Não tomei<br>hoje</span>
+                              onclick="pressaoInsSelectMed('nao_tomados')">
+                        <span class="pi-med-card-icon-wrap pi-med-card-icon-wrap--red">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </span>
+                        <span class="pi-med-card-lbl">Não tomei hoje</span>
+                        <svg class="pi-med-card-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                       </button>
                       <button class="pi-med-card" id="piMed-nenhum"
-                              onclick="pressaoInsSelectMed('nenhum');pressaoInsGo(4)">
-                        <span class="pi-med-card-icon">&#8212;</span>
-                        <span class="pi-med-card-lbl">Não tomo<br>remédios</span>
+                              onclick="pressaoInsSelectMed('nenhum')">
+                        <span class="pi-med-card-icon-wrap pi-med-card-icon-wrap--gray">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                        </span>
+                        <span class="pi-med-card-lbl">Não tomo remédios</span>
+                        <svg class="pi-med-card-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                       </button>
                     </div>
+                    <button id="piMedNextBtn" class="pi-next-btn" style="opacity:0.35;pointer-events:none;" onclick="pressaoInsGo(4)">Próximo &#8250;</button>
                   </div>
 
                   <!-- STEP 4: Nota -->
