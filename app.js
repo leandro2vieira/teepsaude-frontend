@@ -1420,10 +1420,35 @@ function renderCompartilhamentoInPerfil() {
   }
 }
 
+function togglePerfilMask(elId) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  var showing = el.dataset.showing === 'true';
+  el.textContent = showing ? el.dataset.masked : el.dataset.real;
+  el.dataset.showing = showing ? 'false' : 'true';
+}
+
+function togglePerfilMenuSection() {
+  var sec = document.getElementById('perfilMenuSection');
+  var chevron = document.getElementById('perfilMenuChevron');
+  if (!sec) return;
+  var open = sec.style.display !== 'none';
+  sec.style.display = open ? 'none' : '';
+  if (chevron) chevron.style.transform = open ? '' : 'rotate(90deg)';
+}
+
 function renderPerfil() {
   const usuario = mockData.usuario;
-  const diasVida = calcularIdade(usuario.dataNascimento);
+  const idade = calcularIdade(usuario.dataNascimento);
   ensureBottomNavConfig();
+
+  // Helpers para mascarar dados sensíveis
+  function maskCpf(cpf) {
+    return cpf ? cpf.replace(/(\d{3})\.(\d{3})\.(\d{3})-(\d{2})/, '•••.•••.$3-$4') : '—';
+  }
+  function maskTel(tel) {
+    return tel ? tel.replace(/(\(\d{2}\))\s(\d{4,5})-(\d{4})/, '$1 •••••-$3') : '—';
+  }
 
   const navControlItems = [
     {
@@ -1485,19 +1510,49 @@ function renderPerfil() {
     </div>`;
     })
     .join('');
-  
+
+  // Iniciais para o avatar
+  const iniciais = getIniciaisNome(usuario.nome);
+
+  // Avatar: foto ou iniciais
+  const avatarHtml = usuario.fotoPerfilUrl
+    ? `<img src="${usuario.fotoPerfilUrl}" class="perfil-hero-avatar" alt="Foto de perfil" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="perfil-hero-avatar perfil-hero-avatar--initials" style="display:none">${iniciais}</div>`
+    : `<div class="perfil-hero-avatar perfil-hero-avatar--initials">${iniciais}</div>`;
+
   let html = `
-    <div class="profile-card">
-      <div class="profile-avatar profile-avatar--initials">${getIniciaisNome(usuario.nome)}</div>
-      <div class="profile-info">
-        <div class="profile-name">${usuario.nome}</div>
-        <div class="profile-email">${usuario.email}</div>
-        <div class="profile-email">CPF: ${usuario.cpf}</div>
-        <div class="profile-email">Telefone: ${usuario.telefone}</div>
+    <!-- ── HERO ── -->
+    <div class="perfil-hero">
+      <div class="perfil-hero-avatar-wrap">
+        ${avatarHtml}
+      </div>
+      <div class="perfil-hero-name">${usuario.nome}</div>
+      <div class="perfil-hero-meta">${idade} anos · Paciente</div>
+
+      <!-- Dados pessoais com máscara -->
+      <div class="perfil-hero-dados">
+        <div class="perfil-dado-row">
+          <span class="perfil-dado-lbl">E-mail</span>
+          <span class="perfil-dado-val">${usuario.email}</span>
+        </div>
+        <div class="perfil-dado-row">
+          <span class="perfil-dado-lbl">CPF</span>
+          <span class="perfil-dado-val perfil-dado-masked" data-real="${usuario.cpf}" data-masked="${maskCpf(usuario.cpf)}" id="perfilCpf">${maskCpf(usuario.cpf)}</span>
+          <button type="button" class="perfil-reveal-btn" onclick="togglePerfilMask('perfilCpf')" aria-label="Revelar CPF">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="perfil-dado-row">
+          <span class="perfil-dado-lbl">Telefone</span>
+          <span class="perfil-dado-val perfil-dado-masked" data-real="${usuario.telefone}" data-masked="${maskTel(usuario.telefone)}" id="perfilTel">${maskTel(usuario.telefone)}</span>
+          <button type="button" class="perfil-reveal-btn" onclick="togglePerfilMask('perfilTel')" aria-label="Revelar telefone">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
       </div>
     </div>
 
-    <div class="section-title section-title--icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Configurações</div>
+    <!-- ── CONFIGURAÇÕES ── -->
+    <div class="perfil-section-title">Configurações</div>
     <div class="config-item" onclick="openMeusIndicadoresModal()" style="cursor:pointer;">
       <div class="config-item-content">
         <div class="config-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
@@ -1509,34 +1564,87 @@ function renderPerfil() {
       <div>›</div>
     </div>
 
-    <div class="section-title section-title--icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> Itens do Menu</div>
-    ${navControlsHtml}
+    <!-- Personalizar menu — colapsável -->
+    <div class="config-item config-item--collapsible" onclick="togglePerfilMenuSection()" style="cursor:pointer;" id="perfilMenuToggleRow">
+      <div class="config-item-content">
+        <div class="config-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div>
+        <div class="config-text">
+          <div class="config-title">Personalizar menu</div>
+          <div class="config-subtitle">Escolher o que aparece na barra inferior</div>
+        </div>
+      </div>
+      <span id="perfilMenuChevron" style="font-size:18px;color:#94a3b8;transition:transform 0.2s;">›</span>
+    </div>
+    <div id="perfilMenuSection" style="display:none;">
+      ${navControlsHtml}
+    </div>
 
-    <div class="section-title section-title--icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> Dispositivos</div>
-    <button class="button button-confirm" id="addDispositivoBtn" style="margin-bottom: 12px;">+ Cadastrar Dispositivo</button>
+    <!-- ── DISPOSITIVOS ── -->
+    <div class="perfil-section-title">Dispositivos</div>
+    <div class="config-item" onclick="openAddDispositivoModal()" style="cursor:pointer;">
+      <div class="config-item-content">
+        <div class="config-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 3 10 6.5 13.5"/><polyline points="17.5 6.5 21 10 17.5 13.5"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+        <div class="config-text">
+          <div class="config-title">Cadastrar Dispositivo</div>
+          <div class="config-subtitle">Conectar relógio, balança ou app</div>
+        </div>
+      </div>
+      <div>›</div>
+    </div>
     <div id="dispositivosContent"></div>
 
-    <div class="section-title section-title--icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Compartilhamento</div>
-    <button class="button button-confirm" id="addCompartilhamentoBtn">+ Compartilhar com Médico</button>
+    <!-- ── COMPARTILHAMENTO ── -->
+    <div class="perfil-section-title">Compartilhamento</div>
+    <div class="config-item" id="addCompartilhamentoBtn" style="cursor:pointer;">
+      <div class="config-item-content">
+        <div class="config-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+        <div class="config-text">
+          <div class="config-title">Compartilhar com Médico</div>
+          <div class="config-subtitle">Liberar acesso aos seus dados de saúde</div>
+        </div>
+      </div>
+      <div>›</div>
+    </div>
+    <div id="compartilhamentoContent" style="margin-top:8px;"></div>
 
-    <div id="compartilhamentoContent" style="margin-top: 16px;"></div>
-
-    <div class="section-title section-title--icon"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Exames Realizados</div>
+    <!-- ── CONTA ── -->
+    <div class="perfil-section-title">Conta</div>
+    <div class="config-item" style="cursor:pointer;">
+      <div class="config-item-content">
+        <div class="config-icon" style="color:#3b82f6;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+        <div class="config-text">
+          <div class="config-title">Notificações</div>
+          <div class="config-subtitle">Lembretes de medicação e alertas</div>
+        </div>
+      </div>
+      <div>›</div>
+    </div>
+    <div class="config-item" style="cursor:pointer;">
+      <div class="config-item-content">
+        <div class="config-icon" style="color:#6d28d9;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <div class="config-text">
+          <div class="config-title">Privacidade e Segurança</div>
+          <div class="config-subtitle">Gerenciar seus dados pessoais</div>
+        </div>
+      </div>
+      <div>›</div>
+    </div>
+    <div class="config-item config-item--danger" style="cursor:pointer; margin-bottom:32px;">
+      <div class="config-item-content">
+        <div class="config-icon" style="color:#ef4444;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+        <div class="config-text">
+          <div class="config-title" style="color:#ef4444;">Sair da conta</div>
+          <div class="config-subtitle">Encerrar sessão no app</div>
+        </div>
+      </div>
+    </div>
   `;
 
-  if (mockData.examesRealizados.length > 0) {
-    html += mockData.examesRealizados.map(e => createExameCard(e, true)).join('');
-  } else {
-    html += '<div class="empty-state"><div class="empty-text">Nenhum exame realizado</div></div>';
-  }
-
   document.getElementById('perfilContent').innerHTML = html;
-  
+
   document.getElementById('addCompartilhamentoBtn').addEventListener('click', () => {
     document.getElementById('addCompartilhamentoModal').classList.add('active');
   });
-
-  document.getElementById('addDispositivoBtn').addEventListener('click', openAddDispositivoModal);
 
   renderCompartilhamentoInPerfil();
   renderDispositivos();
