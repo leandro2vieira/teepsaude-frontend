@@ -327,6 +327,99 @@
                   <div id="passosDiaDetailContent"></div>
                 </div>
 
+                <!-- Wizard passo a passo: inserir glicemia -->
+                <div id="glicemiaInsertView" style="display:none;">
+
+                  <!-- Progresso -->
+                  <div class="pi-progress">
+                    <div class="pi-progress-dot pi-progress-dot--active glic-dot" data-glicdot="1"></div>
+                    <div class="pi-progress-dot glic-dot" data-glicdot="2"></div>
+                  </div>
+
+                  <!-- STEP 1: Valor + Contexto -->
+                  <div class="pi-step" id="glicStep1">
+                    <div class="pi-step-head">
+                      <div class="pi-step-icon-glic">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2.25c0 0-6.75 7.313-6.75 11.25a6.75 6.75 0 0 0 13.5 0C18.75 9.563 12 2.25 12 2.25Z"/></svg>
+                      </div>
+                      <div class="pi-step-label">Qual o valor?</div>
+                      <div class="pi-step-hint">Digite a glicemia &middot; Toque no número para editar</div>
+                    </div>
+                    <div class="glic-valor-row">
+                      <input type="number" class="glic-valor-big" id="glicemiaValorInput" min="20" max="600" placeholder="—" inputmode="decimal" autocomplete="off">
+                      <span class="glic-valor-unit">mg/dL</span>
+                    </div>
+                    <div class="glic-ctx-lbl">Quando foi medido?</div>
+                    <div class="glic-ctx-grid" id="glicemiaContextoBtns">
+                      <button type="button" class="pi-med-card glic-ctx-card" data-ctx="Jejum" onclick="selectGlicemiaContexto(this)">
+                        <span class="pi-med-card-icon-wrap pi-med-card-icon-wrap--yellow">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2M12 8v4m0 0 3 3m-3-3-3 3M5 20h14"/></svg>
+                        </span>
+                        <span class="pi-med-card-lbl">Em jejum</span>
+                        <svg class="pi-med-card-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </button>
+                      <button type="button" class="pi-med-card glic-ctx-card" data-ctx="Pré-refeição" onclick="selectGlicemiaContexto(this)">
+                        <span class="pi-med-card-icon-wrap pi-med-card-icon-wrap--gray">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 7h13"/></svg>
+                        </span>
+                        <span class="pi-med-card-lbl">Antes de comer</span>
+                        <svg class="pi-med-card-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </button>
+                      <button type="button" class="pi-med-card glic-ctx-card" data-ctx="Pós-refeição 1h" onclick="selectGlicemiaContexto(this)">
+                        <span class="pi-med-card-icon-wrap pi-med-card-icon-wrap--green">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </span>
+                        <span class="pi-med-card-lbl">1h após refeição</span>
+                        <svg class="pi-med-card-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </button>
+                      <button type="button" class="pi-med-card glic-ctx-card" data-ctx="Pós-refeição 2h" onclick="selectGlicemiaContexto(this)">
+                        <span class="pi-med-card-icon-wrap pi-med-card-icon-wrap--green">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </span>
+                        <span class="pi-med-card-lbl">2h após refeição</span>
+                        <svg class="pi-med-card-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </button>
+                      <button type="button" class="pi-med-card glic-ctx-card" data-ctx="Antes de dormir" onclick="selectGlicemiaContexto(this)">
+                        <span class="pi-med-card-icon-wrap pi-med-card-icon-wrap--gray">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                        </span>
+                        <span class="pi-med-card-lbl">Antes de dormir</span>
+                        <svg class="pi-med-card-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </button>
+                      <button type="button" class="pi-med-card glic-ctx-card" data-ctx="Aleatório" onclick="selectGlicemiaContexto(this)">
+                        <span class="pi-med-card-icon-wrap pi-med-card-icon-wrap--gray">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                        </span>
+                        <span class="pi-med-card-lbl">Outro momento</span>
+                        <svg class="pi-med-card-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </button>
+                    </div>
+                    <input type="hidden" id="glicemiaContextoInput" value="">
+                    <button id="glicNextBtn" class="pi-next-btn glic-next-btn" style="opacity:0.35;pointer-events:none;" onclick="glicemiaWizardNext()">Próximo &#8250;</button>
+                  </div>
+
+                  <!-- STEP 2: Data e Hora -->
+                  <div class="pi-step" id="glicStep2" style="display:none;">
+                    <div class="pi-step-head">
+                      <div class="pi-step-label">Quando foi medido?</div>
+                      <div class="pi-step-hint">Confirme a data e hora da medição</div>
+                    </div>
+                    <div class="glic-datetime-fields">
+                      <div class="form-group">
+                        <label class="form-label glic-field-lbl" for="glicemiaDataInput">Data</label>
+                        <input type="date" class="form-input glic-field-inp" id="glicemiaDataInput" required>
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label glic-field-lbl" for="glicemiaHoraInput">Hora</label>
+                        <input type="time" class="form-input glic-field-inp" id="glicemiaHoraInput" required>
+                      </div>
+                      <button type="button" class="glic-agora-btn" onclick="glicemiaSetAgora()">⏱&nbsp;Usar hora atual</button>
+                    </div>
+                    <button class="pi-save-btn glic-save-btn" onclick="saveGlicemiaEntry(event)">Salvar Medição</button>
+                  </div>
+
+                </div>
+
                 <!-- Formulário passo a passo: inserir apontamento de pressão -->
                 <div id="pressaoInsertView" style="display:none;">
 
@@ -707,64 +800,6 @@
                         <button type="button" class="button-secondary" id="addMedWizardBack" style="display:none;">Voltar</button>
                         <button type="button" class="button-submit" id="addMedWizardNext">Próximo</button>
                         <button type="submit" class="button-submit" id="addMedWizardSave" style="display:none;">Salvar</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Wizard Adicionar Glicemia (2 etapas) -->
-    <div class="modal" id="addGlicemiaModal">
-        <div class="modal-content modal-content--med-wizard" id="addGlicemiaModalContent">
-            <div class="modal-header modal-header--med-wizard">
-                <span id="addGlicemiaWizardTitle">Qual o valor?</span>
-            </div>
-            <form id="addGlicemiaForm" novalidate>
-                <div class="add-med-wizard-body">
-                    <div class="add-med-progress" aria-hidden="true">
-                        <span class="step-dot active" id="addGlicDot1"></span>
-                        <span class="step-dot" id="addGlicDot2"></span>
-                    </div>
-
-                    <!-- Etapa 1: valor + contexto -->
-                    <div class="add-med-step" id="addGlicStep1">
-                        <div class="form-group">
-                            <label class="form-label" for="glicemiaValorInput">Glicemia (mg/dL)</label>
-                            <input type="number" class="form-input add-glic-valor-input" id="glicemiaValorInput" min="20" max="600" placeholder="Ex: 95" inputmode="decimal" required>
-                        </div>
-                        <p class="add-med-step-hint" style="margin-top:4px;">Quando foi medido?</p>
-                        <div class="add-med-freq-options" id="glicemiaContextoBtns">
-                            <button type="button" class="add-med-freq-btn" data-ctx="Jejum" onclick="selectGlicemiaContexto(this)">Em jejum</button>
-                            <button type="button" class="add-med-freq-btn" data-ctx="Pré-refeição" onclick="selectGlicemiaContexto(this)">Antes de comer</button>
-                            <button type="button" class="add-med-freq-btn" data-ctx="Pós-refeição 1h" onclick="selectGlicemiaContexto(this)">1h após refeição</button>
-                            <button type="button" class="add-med-freq-btn" data-ctx="Pós-refeição 2h" onclick="selectGlicemiaContexto(this)">2h após refeição</button>
-                            <button type="button" class="add-med-freq-btn" data-ctx="Antes de dormir" onclick="selectGlicemiaContexto(this)">Antes de dormir</button>
-                            <button type="button" class="add-med-freq-btn" data-ctx="Aleatório" onclick="selectGlicemiaContexto(this)">Outro momento</button>
-                        </div>
-                        <input type="hidden" id="glicemiaContextoInput" value="">
-                    </div>
-
-                    <!-- Etapa 2: data e hora -->
-                    <div class="add-med-step" id="addGlicStep2" style="display:none;">
-                        <p class="add-med-step-hint">Quando foi feita a medição?</p>
-                        <div class="form-group">
-                            <label class="form-label" for="glicemiaDataInput">Data</label>
-                            <input type="date" class="form-input" id="glicemiaDataInput" required>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" for="glicemiaHoraInput">Hora</label>
-                            <input type="time" class="form-input" id="glicemiaHoraInput" required>
-                        </div>
-                        <button type="button" class="add-med-freq-btn add-glic-agora-btn" onclick="glicemiaSetAgora()">⏱ Usar hora atual</button>
-                    </div>
-                </div>
-
-                <div class="add-med-wizard-footer" id="addGlicemiaFooter">
-                    <button type="button" class="button-cancel" id="cancelAddGlicemiaBtn" onclick="closeAddGlicemiaModal()">Cancelar</button>
-                    <div class="add-med-wizard-footer-right">
-                        <button type="button" class="button-secondary" id="addGlicWizardBack" style="display:none;" onclick="glicemiaWizardGoStep(1)">Voltar</button>
-                        <button type="button" class="button-submit" id="addGlicWizardNext" onclick="glicemiaWizardNext()">Próximo</button>
-                        <button type="submit" class="button-submit" id="addGlicWizardSave" style="display:none;" onclick="saveGlicemiaEntry(event)">Salvar</button>
                     </div>
                 </div>
             </form>

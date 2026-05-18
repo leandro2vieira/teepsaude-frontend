@@ -274,49 +274,91 @@ function clearGlicemiaDaySelection() {
   renderVitalDetailContent(currentVitalHistoricoView);
 }
 
-// ── Wizard Adicionar Glicemia ──────────────────────────────
+// ── Wizard inline Glicemia ─────────────────────────────────
 let _addGlicStep = 1;
 
 function openAddGlicemiaWizard() {
   _addGlicStep = 1;
-  const now = new Date();
-  const val = document.getElementById('glicemiaValorInput');
-  const ctx = document.getElementById('glicemiaContextoInput');
-  const dat = document.getElementById('glicemiaDataInput');
-  const hor = document.getElementById('glicemiaHoraInput');
+  var now = new Date();
+
+  // Reset fields
+  var val = document.getElementById('glicemiaValorInput');
+  var ctx = document.getElementById('glicemiaContextoInput');
+  var dat = document.getElementById('glicemiaDataInput');
+  var hor = document.getElementById('glicemiaHoraInput');
   if (val) val.value = '';
   if (ctx) ctx.value = '';
   if (dat) dat.value = now.toISOString().slice(0, 10);
   if (hor) hor.value = now.toTimeString().slice(0, 5);
-  document.querySelectorAll('#glicemiaContextoBtns .add-med-freq-btn')
+  document.querySelectorAll('#glicemiaContextoBtns .glic-ctx-card')
     .forEach(function(b) { b.classList.remove('glic-ctx-active'); });
+
+  // Hide normal chart/list views
+  var chart = document.getElementById('pressaoHistoricoView');
+  if (chart) chart.style.display = 'none';
+  var filters = document.getElementById('vitalDefaultPeriodControls');
+  if (filters) filters.style.display = 'none';
+  var content = document.getElementById('vitalDetailContent');
+  if (content) content.style.display = 'none';
+  var addRow = document.querySelector('#vitalDetailModal .vital-detail-add-row');
+  if (addRow) addRow.style.display = 'none';
+
+  // Show inline wizard
+  var insertView = document.getElementById('glicemiaInsertView');
+  if (insertView) insertView.style.display = 'flex';
+
+  window._glicemiaInsertActive = true;
+  var titleEl = document.getElementById('vitalDetailTitle');
+  if (titleEl) titleEl.textContent = 'Inserir Glicemia';
+
   glicemiaWizardGoStep(1);
-  document.getElementById('addGlicemiaModal').classList.add('active');
   setTimeout(function() {
     var v = document.getElementById('glicemiaValorInput');
     if (v) v.focus();
   }, 120);
 }
 
+function closeAddGlicemiaWizard() {
+  var insertView = document.getElementById('glicemiaInsertView');
+  if (insertView) insertView.style.display = 'none';
+  window._glicemiaInsertActive = false;
+
+  // Restore chart + period chips + add row
+  var chart = document.getElementById('pressaoHistoricoView');
+  if (chart) chart.style.display = '';
+  var filters = document.getElementById('vitalDefaultPeriodControls');
+  if (filters) filters.style.display = '';
+  var content = document.getElementById('vitalDetailContent');
+  if (content) content.style.display = '';
+  var addRow = document.querySelector('#vitalDetailModal .vital-detail-add-row');
+  if (addRow) addRow.style.display = '';
+
+  var titleEl = document.getElementById('vitalDetailTitle');
+  if (titleEl && currentVitalDetail) titleEl.textContent = 'Histórico de ' + currentVitalDetail.tipo;
+}
+
 function glicemiaWizardGoStep(step) {
   _addGlicStep = step;
   [1, 2].forEach(function(s) {
-    var el = document.getElementById('addGlicStep' + s);
-    var dot = document.getElementById('addGlicDot' + s);
+    var el = document.getElementById('glicStep' + s);
     if (el) el.style.display = s === step ? '' : 'none';
+    var dot = document.querySelector('[data-glicdot="' + s + '"]');
     if (dot) {
-      dot.classList.toggle('active', s === step);
+      dot.classList.toggle('pi-progress-dot--active', s === step);
       dot.classList.toggle('done', s < step);
     }
   });
-  var back = document.getElementById('addGlicWizardBack');
-  var next = document.getElementById('addGlicWizardNext');
-  var save = document.getElementById('addGlicWizardSave');
-  var title = document.getElementById('addGlicemiaWizardTitle');
-  if (back) back.style.display = step > 1 ? '' : 'none';
-  if (next) next.style.display = step < 2 ? '' : 'none';
-  if (save) save.style.display = step === 2 ? '' : 'none';
-  if (title) title.textContent = step === 1 ? 'Qual o valor?' : 'Quando foi medido?';
+  // Enable/disable next btn on step 1 depending on context selection
+  if (step === 1) _glicemiaUpdateNextBtn();
+}
+
+function _glicemiaUpdateNextBtn() {
+  var ctx = (document.getElementById('glicemiaContextoInput') || {}).value;
+  var btn = document.getElementById('glicNextBtn');
+  if (!btn) return;
+  var hasCtx = ctx && ctx.length > 0;
+  btn.style.opacity = hasCtx ? '1' : '0.35';
+  btn.style.pointerEvents = hasCtx ? '' : 'none';
 }
 
 function glicemiaWizardNext() {
@@ -324,27 +366,23 @@ function glicemiaWizardNext() {
   if (!val || val < 20 || val > 600) {
     var inp = document.getElementById('glicemiaValorInput');
     if (inp) { inp.focus(); inp.select(); }
-    alert('Informe um valor válido entre 20 e 600 mg/dL.');
     return;
   }
   glicemiaWizardGoStep(2);
 }
 
 function selectGlicemiaContexto(btn) {
-  document.querySelectorAll('#glicemiaContextoBtns .add-med-freq-btn')
+  document.querySelectorAll('#glicemiaContextoBtns .glic-ctx-card')
     .forEach(function(b) { b.classList.remove('glic-ctx-active'); });
   btn.classList.add('glic-ctx-active');
   document.getElementById('glicemiaContextoInput').value = btn.dataset.ctx;
+  _glicemiaUpdateNextBtn();
 }
 
 function glicemiaSetAgora() {
   var now = new Date();
   document.getElementById('glicemiaDataInput').value = now.toISOString().slice(0, 10);
   document.getElementById('glicemiaHoraInput').value = now.toTimeString().slice(0, 5);
-}
-
-function closeAddGlicemiaModal() {
-  document.getElementById('addGlicemiaModal').classList.remove('active');
 }
 
 function saveGlicemiaEntry(ev) {
@@ -354,32 +392,21 @@ function saveGlicemiaEntry(ev) {
   var horaVal = document.getElementById('glicemiaHoraInput').value;
   var contexto = document.getElementById('glicemiaContextoInput').value;
   if (!valorRaw || valorRaw < 20 || valorRaw > 600) {
-    alert('Informe um valor válido entre 20 e 600 mg/dL.');
     glicemiaWizardGoStep(1);
     return;
   }
-  if (!dataVal) {
-    alert('Informe a data da medição.');
-    return;
-  }
+  if (!dataVal) return;
   if (!horaVal) {
-    var now = new Date();
-    horaVal = now.toTimeString().slice(0, 5);
+    horaVal = new Date().toTimeString().slice(0, 5);
     document.getElementById('glicemiaHoraInput').value = horaVal;
   }
   var status = valorRaw > 125 ? 'alto' : valorRaw > 99 ? 'atencao' : 'normal';
-  var entry = {
-    data: dataVal,
-    hora: horaVal,
-    valor: valorRaw,
-    status: status
-  };
+  var entry = { data: dataVal, hora: horaVal, valor: valorRaw, status: status };
   if (contexto) entry.contexto = contexto;
 
   var vital = mockData.sinaisVitais.find(function(v) { return v.tipo === 'Glicemia'; });
   if (vital) {
     vital.historico.unshift(entry);
-    // Update current card value if this is today
     var today = new Date().toISOString().slice(0, 10);
     if (dataVal === today) {
       vital.valor = valorRaw;
@@ -389,7 +416,7 @@ function saveGlicemiaEntry(ev) {
     checkVitalAlert(vital);
   }
 
-  closeAddGlicemiaModal();
+  closeAddGlicemiaWizard();
 
   renderSaude();
   if (currentVitalDetail && currentVitalDetail.tipo === 'Glicemia' && vital) {
@@ -2533,6 +2560,7 @@ document.addEventListener('DOMContentLoaded', () => {
     closeVitalDetailModal.addEventListener('click', () => {
       if (window._batHdActive) { closeBatHourlyDetail(); return; }
       if (window._pressaoInsertActive) { closePressaoInsertForm(); return; }
+      if (window._glicemiaInsertActive) { closeAddGlicemiaWizard(); return; }
       if (window._pressaoColetaActive) { closePressaoColetaDetail(); return; }
       if (window._passaosDiaActive) { closePassosDiaDetail(); return; }
       document.getElementById('vitalDetailModal').classList.remove('active');
@@ -7639,9 +7667,12 @@ function openVitalDetailModal(tipoVital, vitalId) {
   if (_pcv) _pcv.style.display = 'none';
   var _passv = document.getElementById('passosDiaDetailView');
   if (_passv) _passv.style.display = 'none';
+  var _giv = document.getElementById('glicemiaInsertView');
+  if (_giv) _giv.style.display = 'none';
   window._pressaoDiaActive = false;
   window._pressaoColetaActive = false;
   window._passaosDiaActive = false;
+  window._glicemiaInsertActive = false;
   if (vitalDetailContentEl) vitalDetailContentEl.style.display = bc ? 'none' : '';
   if (vitalDetailAddRowEl) vitalDetailAddRowEl.style.display = (bc || isPassos) ? 'none' : '';
 

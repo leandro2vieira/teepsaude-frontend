@@ -7393,118 +7393,152 @@ body {
   padding: 10px 8px;
 }
 
-/* ── Wizard Adicionar Glicemia ─────────────────────────── */
-#addGlicemiaModal .modal-content--med-wizard {
-  padding: 0;
-  max-width: 420px;
-  width: 92%;
-  max-height: min(92vh, 680px);
+/* ── Wizard inline Glicemia (dentro do vitalDetailModal) ─── */
+#glicemiaInsertView {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-height: calc(100dvh - 56px);
+  background: #fff;
 }
 
-#addGlicemiaModal .modal-header--med-wizard {
-  margin: 0;
-  padding: 16px 20px 12px;
-  border-bottom: 1px solid #ececec;
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--text-title);
-  flex-shrink: 0;
-}
-
-#addGlicemiaModal .modal-content--med-wizard > #addGlicemiaForm {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  flex: 1 1 auto;
-}
-
-#addGlicemiaModal .add-med-wizard-body .form-group {
-  margin-bottom: 14px;
-}
-
-#addGlicemiaModal .step-dot.active {
+#glicemiaInsertView .pi-progress-dot--active,
+#glicemiaInsertView .glic-dot.pi-progress-dot--active {
   background: #7c3aed;
+  width: 20px;
+  border-radius: 4px;
 }
 
-#addGlicemiaModal .step-dot.done {
+#glicemiaInsertView .glic-dot.done {
   background: #a78bfa;
 }
 
-#addGlicemiaModal .add-med-wizard-footer {
-  margin-top: 0;
-  padding: 14px 20px 18px;
-  border-top: 1px solid #ececec;
-  background: #fff;
-  flex-shrink: 0;
+/* Ícone droplet roxo */
+.pi-step-icon-glic {
   display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: stretch;
-  gap: 8px;
-  justify-content: space-between;
-}
-
-#addGlicemiaModal .add-med-wizard-footer > .button-cancel {
-  flex: 0 0 auto;
-  margin: 0;
-  padding: 12px 14px;
-  min-width: 100px;
-  align-self: stretch;
-}
-
-#addGlicemiaModal .add-med-wizard-footer-right {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  flex: 1 1 auto;
-  justify-content: flex-end;
-  align-items: stretch;
-  gap: 8px;
-  min-width: 0;
-}
-
-#addGlicemiaModal .add-med-wizard-footer-right .button-secondary,
-#addGlicemiaModal .add-med-wizard-footer-right .button-submit {
-  flex: 1 1 0;
-  min-width: 0;
-  margin: 0;
-  padding: 12px 14px;
-  background: #7c3aed;
-  border-color: #7c3aed;
-}
-
-#addGlicemiaModal .add-med-wizard-footer-right .button-secondary {
-  background: #f3f0ff;
+  justify-content: center;
+  margin-bottom: 8px;
   color: #7c3aed;
-  border-color: #ddd6fe;
 }
 
-#addGlicemiaModal .add-med-freq-btn.glic-ctx-active {
-  background: #f3f0ff;
-  border-color: #7c3aed;
-  color: #5b21b6;
-  box-shadow: 0 0 0 1.5px #7c3aed33;
+.pi-step-icon-glic svg {
+  width: 40px;
+  height: 40px;
 }
 
-.add-glic-valor-input {
-  font-size: 28px !important;
-  font-weight: 700 !important;
+/* Input de valor grande centralizado */
+.glic-valor-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+  flex-shrink: 0;
+  margin: 4px 0 20px;
+}
+
+.glic-valor-big {
+  font-size: 72px;
+  font-weight: 700;
+  color: #7c3aed;
+  letter-spacing: -3px;
+  width: 180px;
   text-align: center;
-  letter-spacing: 1px;
-  padding: 16px 14px !important;
-  color: #7c3aed !important;
+  background: transparent;
+  border: none;
+  outline: none;
+  border-bottom: 3px solid #ddd6fe;
+  padding: 0;
+  font-family: inherit;
+  line-height: 1;
+  -moz-appearance: textfield;
 }
 
-.add-glic-agora-btn {
-  background: #f3f0ff !important;
-  border-color: #ddd6fe !important;
-  color: #5b21b6 !important;
-  font-size: 15px !important;
-  padding: 11px 16px !important;
+.glic-valor-big::-webkit-inner-spin-button,
+.glic-valor-big::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+.glic-valor-big:focus { border-bottom-color: #7c3aed; }
+
+.glic-valor-unit {
+  font-size: 18px;
+  font-weight: 600;
+  color: #94a3b8;
 }
+
+.glic-ctx-lbl {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  text-align: center;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.glic-ctx-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Card selecionado */
+.glic-ctx-card.glic-ctx-active {
+  border-color: #7c3aed;
+  background: #f3f0ff;
+}
+
+.glic-ctx-card.glic-ctx-active .pi-med-card-lbl { color: #5b21b6; }
+
+/* Botão Próximo roxo */
+.glic-next-btn {
+  background: #7c3aed !important;
+  margin-top: 16px;
+}
+
+.glic-next-btn:active { background: #5b21b6 !important; }
+
+/* Step 2: data/hora */
+.glic-datetime-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+}
+
+.glic-field-lbl {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.glic-field-inp {
+  font-size: 20px !important;
+  padding: 14px 16px !important;
+  border-radius: 14px !important;
+}
+
+.glic-agora-btn {
+  display: block;
+  width: 100%;
+  padding: 13px 16px;
+  background: #f3f0ff;
+  border: 1.5px solid #ddd6fe;
+  border-radius: 12px;
+  color: #5b21b6;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  margin-top: 4px;
+}
+
+/* Botão Salvar roxo escuro */
+.glic-save-btn {
+  background: #6d28d9 !important;
+  margin-top: auto;
+}
+
+.glic-save-btn:active { background: #4c1d95 !important; }
 
 /* ===== ABAS PRESSÃƒO DIÃRIA ===== */
 .pressao-tab-nav {
