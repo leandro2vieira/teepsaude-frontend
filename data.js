@@ -1450,10 +1450,114 @@ function injectDemoMedicoesUltimas24h(data) {
       { ...at(23, 0), valor: 1420, status: 'normal' }
     ],
     Glicemia: [
-      { ...at(0, 30), valor: 92, status: 'normal' },
-      { ...at(6, 0), valor: 104, status: 'atencao' },
-      { ...at(13, 0), valor: 88, status: 'normal' },
-      { ...at(20, 0), valor: 97, status: 'normal' }
+      // Hoje (dia 0)
+      { ...atDaysAgo(0,  7,  0), valor:  92, status: 'normal' },
+      { ...atDaysAgo(0, 12, 30), valor: 118, status: 'atencao' },
+      { ...atDaysAgo(0, 19,  0), valor:  96, status: 'normal' },
+      // Dia 1
+      { ...atDaysAgo(1,  7, 15), valor:  86, status: 'normal' },
+      { ...atDaysAgo(1, 13,  0), valor: 108, status: 'atencao' },
+      // Dia 2
+      { ...atDaysAgo(2,  7, 30), valor:  90, status: 'normal' },
+      { ...atDaysAgo(2, 12,  0), valor:  98, status: 'normal' },
+      { ...atDaysAgo(2, 19, 30), valor:  94, status: 'normal' },
+      // Dia 3
+      { ...atDaysAgo(3,  7,  0), valor:  88, status: 'normal' },
+      { ...atDaysAgo(3, 13, 15), valor: 115, status: 'atencao' },
+      { ...atDaysAgo(3, 20,  0), valor:  95, status: 'normal' },
+      // Dia 4
+      { ...atDaysAgo(4,  7, 45), valor:  94, status: 'normal' },
+      { ...atDaysAgo(4, 12, 30), valor: 126, status: 'atencao' },
+      // Dia 5
+      { ...atDaysAgo(5,  7,  0), valor:  82, status: 'normal' },
+      { ...atDaysAgo(5, 13,  0), valor:  89, status: 'normal' },
+      { ...atDaysAgo(5, 19,  0), valor:  87, status: 'normal' },
+      // Dia 6
+      { ...atDaysAgo(6,  7, 20), valor:  96, status: 'normal' },
+      { ...atDaysAgo(6, 12,  0), valor: 112, status: 'atencao' },
+      { ...atDaysAgo(6, 20,  0), valor:  99, status: 'normal' },
+      // Dia 7
+      { ...atDaysAgo(7,  7,  0), valor:  88, status: 'normal' },
+      { ...atDaysAgo(7, 13, 30), valor: 104, status: 'atencao' },
+      // Dia 8
+      { ...atDaysAgo(8,  7, 10), valor:  91, status: 'normal' },
+      { ...atDaysAgo(8, 12,  0), valor:  97, status: 'normal' },
+      { ...atDaysAgo(8, 19, 45), valor:  93, status: 'normal' },
+      // Dia 9
+      { ...atDaysAgo(9,  7,  0), valor:  84, status: 'normal' },
+      { ...atDaysAgo(9, 13,  0), valor: 122, status: 'atencao' },
+      { ...atDaysAgo(9, 20, 30), valor:  94, status: 'normal' },
+      // Dia 10
+      { ...atDaysAgo(10,  7, 30), valor:  76, status: 'normal' },
+      { ...atDaysAgo(10, 12, 15), valor:  93, status: 'normal' },
+      // Dia 11
+      { ...atDaysAgo(11,  7,  0), valor:  85, status: 'normal' },
+      { ...atDaysAgo(11, 13,  0), valor: 109, status: 'atencao' },
+      { ...atDaysAgo(11, 19,  0), valor:  88, status: 'normal' },
+      // Dia 12
+      { ...atDaysAgo(12,  7, 15), valor:  92, status: 'normal' },
+      { ...atDaysAgo(12, 12,  0), valor: 131, status: 'atencao' },
+      // Dia 13
+      { ...atDaysAgo(13,  7,  0), valor:  78, status: 'normal' },
+      { ...atDaysAgo(13, 13, 30), valor:  96, status: 'normal' },
+      { ...atDaysAgo(13, 20,  0), valor:  91, status: 'normal' },
+      // Dia 14
+      { ...atDaysAgo(14,  7, 30), valor:  87, status: 'normal' },
+      { ...atDaysAgo(14, 12,  0), valor: 118, status: 'atencao' },
+      { ...atDaysAgo(14, 19, 15), valor:  93, status: 'normal' },
+      // Dia 15
+      { ...atDaysAgo(15,  7,  0), valor:  80, status: 'normal' },
+      { ...atDaysAgo(15, 13,  0), valor:  95, status: 'normal' },
+      // Dia 16
+      { ...atDaysAgo(16,  7, 20), valor:  94, status: 'normal' },
+      { ...atDaysAgo(16, 12, 30), valor: 128, status: 'atencao' },
+      { ...atDaysAgo(16, 20,  0), valor:  97, status: 'normal' },
+      // Dia 17
+      { ...atDaysAgo(17,  7,  0), valor:  86, status: 'normal' },
+      { ...atDaysAgo(17, 13,  0), valor: 102, status: 'atencao' },
+      { ...atDaysAgo(17, 19, 30), valor:  91, status: 'normal' },
+      // Dia 18
+      { ...atDaysAgo(18,  7, 45), valor:  82, status: 'normal' },
+      { ...atDaysAgo(18, 12,  0), valor:  87, status: 'normal' },
+      // Dia 19
+      { ...atDaysAgo(19,  7,  0), valor:  91, status: 'normal' },
+      { ...atDaysAgo(19, 13, 15), valor: 113, status: 'atencao' },
+      { ...atDaysAgo(19, 20,  0), valor:  89, status: 'normal' },
+      // Dia 20
+      { ...atDaysAgo(20,  7, 30), valor:  78, status: 'normal' },
+      { ...atDaysAgo(20, 12,  0), valor:  94, status: 'normal' },
+      // Dia 21
+      { ...atDaysAgo(21,  7,  0), valor:  86, status: 'normal' },
+      { ...atDaysAgo(21, 13,  0), valor: 105, status: 'atencao' },
+      { ...atDaysAgo(21, 19, 45), valor:  88, status: 'normal' },
+      // Dia 22
+      { ...atDaysAgo(22,  7, 15), valor:  83, status: 'normal' },
+      { ...atDaysAgo(22, 12, 30), valor:  97, status: 'normal' },
+      // Dia 23
+      { ...atDaysAgo(23,  7,  0), valor:  90, status: 'normal' },
+      { ...atDaysAgo(23, 13,  0), valor: 120, status: 'atencao' },
+      { ...atDaysAgo(23, 20, 15), valor:  96, status: 'normal' },
+      // Dia 24
+      { ...atDaysAgo(24,  7, 30), valor:  85, status: 'normal' },
+      { ...atDaysAgo(24, 12,  0), valor:  92, status: 'normal' },
+      // Dia 25
+      { ...atDaysAgo(25,  7,  0), valor:  88, status: 'normal' },
+      { ...atDaysAgo(25, 13, 30), valor: 108, status: 'atencao' },
+      { ...atDaysAgo(25, 19,  0), valor:  90, status: 'normal' },
+      // Dia 26
+      { ...atDaysAgo(26,  7, 20), valor:  76, status: 'normal' },
+      { ...atDaysAgo(26, 12,  0), valor:  89, status: 'normal' },
+      // Dia 27
+      { ...atDaysAgo(27,  7,  0), valor:  84, status: 'normal' },
+      { ...atDaysAgo(27, 13,  0), valor: 116, status: 'atencao' },
+      { ...atDaysAgo(27, 20, 30), valor:  92, status: 'normal' },
+      // Dia 28
+      { ...atDaysAgo(28,  7, 45), valor:  80, status: 'normal' },
+      { ...atDaysAgo(28, 12, 15), valor:  95, status: 'normal' },
+      // Dia 29
+      { ...atDaysAgo(29,  7,  0), valor:  86, status: 'normal' },
+      { ...atDaysAgo(29, 13,  0), valor:  98, status: 'normal' },
+      { ...atDaysAgo(29, 19, 30), valor:  91, status: 'normal' }
     ],
     HRV: [
       { ...at(1, 0), valor: 54, status: 'normal' },

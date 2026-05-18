@@ -26,6 +26,7 @@ let pendingConfirmAction = null;
 let currentDailyScheduleFilter = 'todos';
 let passosSelectedDayIso = null;
 let passosSelectedHour = null;
+let glicemiaSelectedDayIso = null;
 let pressaoSelectedDay = null; // ISO date of selected day in the pressure sparkline
 let pressaoColetaEntries = []; // sorted entries of the currently open day detail
 let pressaoColetaDayIso = null; // ISO date of the currently open day detail
@@ -83,6 +84,25 @@ function aggregatePassosByDay(entries) {
     g.entries.push(h);
   });
   return Array.from(byDay.values()).sort((a, b) => b.day.localeCompare(a.day));
+}
+
+function aggregateGlicemiaByDay(entries) {
+  const byDay = new Map();
+  (Array.isArray(entries) ? entries : []).forEach((h) => {
+    const dayIso = (typeof historicoEntryDayISO === 'function') ? historicoEntryDayISO(h) : String(h?.data || '').slice(0, 10);
+    const v = Number(h?.valor);
+    if (!dayIso || !Number.isFinite(v)) return;
+    if (!byDay.has(dayIso)) byDay.set(dayIso, { day: dayIso, readings: [], sum: 0, count: 0, min: v, max: v });
+    const g = byDay.get(dayIso);
+    g.readings.push(h);
+    g.sum += v;
+    g.count++;
+    if (v < g.min) g.min = v;
+    if (v > g.max) g.max = v;
+  });
+  return Array.from(byDay.values())
+    .sort((a, b) => a.day.localeCompare(b.day))
+    .map((d) => ({ ...d, avg: Math.round(d.sum / d.count) }));
 }
 
 function buildPassosHourlyBucketsForDay(dayEntries) {
@@ -218,6 +238,19 @@ function setPassosDayFromChart(dayIso) {
   if (!currentVitalDetail || currentVitalDetail.tipo !== 'Passos') return;
   passosSelectedDayIso = passosSelectedDayIso === dayIso ? null : dayIso;
   passosSelectedHour = null;
+  renderSparklineChart(currentVitalHistoricoView);
+  renderVitalDetailContent(currentVitalHistoricoView);
+}
+
+function selectGlicemiaDay(dayIso) {
+  if (!currentVitalDetail || currentVitalDetail.tipo !== 'Glicemia') return;
+  glicemiaSelectedDayIso = glicemiaSelectedDayIso === dayIso ? null : dayIso;
+  renderSparklineChart(currentVitalHistoricoView);
+  renderVitalDetailContent(currentVitalHistoricoView);
+}
+
+function clearGlicemiaDaySelection() {
+  glicemiaSelectedDayIso = null;
   renderSparklineChart(currentVitalHistoricoView);
   renderVitalDetailContent(currentVitalHistoricoView);
 }
@@ -389,7 +422,7 @@ function getVitalDefaultPeriodRange() {
 }
 
 function applyVitalDefaultPeriodView() {
-  if (!currentVitalDetail || (currentVitalDetail.tipo !== 'Pressão Arterial' && currentVitalDetail.tipo !== 'Passos')) return;
+  if (!currentVitalDetail || (currentVitalDetail.tipo !== 'Pressão Arterial' && currentVitalDetail.tipo !== 'Passos' && currentVitalDetail.tipo !== 'Glicemia')) return;
   const { start, end } = getVitalDefaultPeriodRange();
   const filtrado = filterHistoricoByInclusiveDate(currentVitalDetail.historico, start, end);
   renderVitalDetailContent(filtrado);
@@ -7427,6 +7460,7 @@ function openVitalDetailModal(tipoVital, vitalId) {
   const bc = tipoVital === 'Batimento Cardíaco';
   const isPressao = tipoVital === 'Pressão Arterial';
   const isPassos = tipoVital === 'Passos';
+  const isGlicemia = tipoVital === 'Glicemia';
   const bcChrome = document.getElementById('vitalDetailBatimentoChrome');
   const defChrome = document.getElementById('vitalDetailDefaultChrome');
   const batimentoBackBtn = document.getElementById('vitalBatimentoHeaderBackBtn');
@@ -7444,13 +7478,13 @@ function openVitalDetailModal(tipoVital, vitalId) {
   if (bcChrome) bcChrome.style.display = bc ? 'block' : 'none';
   if (defChrome) defChrome.style.display = bc ? 'none' : 'block';
   if (batimentoBackBtn && !bc) batimentoBackBtn.hidden = true;
-  if (defaultPeriodControls) defaultPeriodControls.style.display = !bc && (isPressao || isPassos) ? 'block' : 'none';
-  if (defaultDateFilterRow) defaultDateFilterRow.style.display = !bc && !isPressao && !isPassos ? 'block' : 'none';
+  if (defaultPeriodControls) defaultPeriodControls.style.display = !bc && (isPressao || isPassos || isGlicemia) ? 'block' : 'none';
+  if (defaultDateFilterRow) defaultDateFilterRow.style.display = !bc && !isPressao && !isPassos && !isGlicemia ? 'block' : 'none';
 
   const vitalDetailContentEl = document.getElementById('vitalDetailContent');
   const vitalDetailAddRowEl = document.querySelector('#vitalDetailModal .vital-detail-add-row');
   if (vitalDetailContentEl) vitalDetailContentEl.style.display = bc ? 'none' : '';
-  if (vitalDetailAddRowEl) vitalDetailAddRowEl.style.display = (bc || isPassos) ? 'none' : '';
+  if (vitalDetailAddRowEl) vitalDetailAddRowEl.style.display = (bc || isPassos || isGlicemia) ? 'none' : '';
 
   if (pressaoHistoricoView) pressaoHistoricoView.style.display = 'block';
 
@@ -7465,7 +7499,7 @@ function openVitalDetailModal(tipoVital, vitalId) {
   window._pressaoColetaActive = false;
   window._passaosDiaActive = false;
   if (vitalDetailContentEl) vitalDetailContentEl.style.display = bc ? 'none' : '';
-  if (vitalDetailAddRowEl) vitalDetailAddRowEl.style.display = (bc || isPassos) ? 'none' : '';
+  if (vitalDetailAddRowEl) vitalDetailAddRowEl.style.display = (bc || isPassos || isGlicemia) ? 'none' : '';
 
   if (bc) {
     vitalBatimentoChartSelection = null;
@@ -7491,11 +7525,14 @@ function openVitalDetailModal(tipoVital, vitalId) {
       summaryEl.style.cursor = '';
       summaryEl.removeAttribute('title');
     }
-    if (isPressao || isPassos) {
+    if (isPressao || isPassos || isGlicemia) {
       vitalDefaultPeriod = '7d';
       if (isPassos) {
         passosSelectedDayIso = null;
         passosSelectedHour = null;
+      }
+      if (isGlicemia) {
+        glicemiaSelectedDayIso = null;
       }
       if (defaultLivreRow) defaultLivreRow.style.display = 'none';
       const di = document.getElementById('filterVitalLivreInicio');
@@ -8705,6 +8742,177 @@ function renderSparklineChart(historico) {
     return;
   }
 
+  if (currentVitalDetail && currentVitalDetail.tipo === 'Glicemia') {
+    const glicDayRows = aggregateGlicemiaByDay(historico);
+    if (glicDayRows.length === 0) return;
+
+    const _glicChartView = document.getElementById('pressaoHistoricoView');
+    if (_glicChartView) {
+      _glicChartView.style.overflowX = 'auto';
+      _glicChartView.style.overflowY = 'hidden';
+      _glicChartView.style.webkitOverflowScrolling = 'touch';
+    }
+
+    requestAnimationFrame(() => {
+      const dpr = window.devicePixelRatio || 1;
+      const n = glicDayRows.length;
+      const containerW = _glicChartView ? _glicChartView.offsetWidth : (canvas.parentElement ? canvas.parentElement.offsetWidth : 320);
+      const padL = 32, padR = 12, padT = 30, padB = 20;
+      const minColW = 36;
+      const W = Math.max(containerW, padL + n * minColW + padR);
+      const H = 180;
+      const gw = W - padL - padR;
+      const gh = H - padT - padB;
+
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+
+      const allAvgs = glicDayRows.map((r) => r.avg);
+      const yLow = 0;
+      const yHigh = Math.max(Math.max(...allAvgs) * 1.15, 145);
+      const span = yHigh - yLow;
+      const toY = (v) => padT + ((yHigh - v) / span) * gh;
+
+      const slot = gw / Math.max(1, n);
+      const barW = Math.min(18, Math.max(7, slot * 0.58));
+      const barR = Math.min(5, barW / 2 - 0.5);
+      const selIso = glicemiaSelectedDayIso;
+
+      const _gCtx = canvas.getContext('2d');
+      _gCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      _gCtx.clearRect(0, 0, W, H);
+      _gCtx.fillStyle = '#F8F9FA';
+      _gCtx.fillRect(0, 0, W, H);
+
+      // Ideal zone band (70–99)
+      const idealLow = 70, idealHigh = 99;
+      _gCtx.fillStyle = 'rgba(34, 197, 94, 0.10)';
+      _gCtx.fillRect(padL, toY(idealHigh), gw, toY(idealLow) - toY(idealHigh));
+      _gCtx.strokeStyle = 'rgba(34, 197, 94, 0.35)';
+      _gCtx.lineWidth = 1;
+      _gCtx.setLineDash([3, 3]);
+      _gCtx.beginPath(); _gCtx.moveTo(padL, toY(idealHigh)); _gCtx.lineTo(padL + gw, toY(idealHigh)); _gCtx.stroke();
+      _gCtx.beginPath(); _gCtx.moveTo(padL, toY(idealLow)); _gCtx.lineTo(padL + gw, toY(idealLow)); _gCtx.stroke();
+      _gCtx.setLineDash([]);
+
+      // Bars
+      const hitBoxes = [];
+      glicDayRows.forEach((row, i) => {
+        const isSelected = row.day === selIso;
+        const cx = padL + slot * i + slot / 2;
+        const x0 = cx - barW / 2;
+        const yTop = toY(row.avg);
+        const yBot = toY(0);
+        const hBar = Math.max(1, yBot - yTop);
+
+        const g2 = _gCtx.createLinearGradient(0, yTop, 0, yBot);
+        if (row.avg > 125) {
+          g2.addColorStop(0, isSelected ? '#dc2626' : '#f87171');
+          g2.addColorStop(1, isSelected ? '#991b1b' : '#ef4444');
+        } else if (row.avg > 99) {
+          g2.addColorStop(0, isSelected ? '#d97706' : '#fbbf24');
+          g2.addColorStop(1, isSelected ? '#92400e' : '#f59e0b');
+        } else {
+          g2.addColorStop(0, isSelected ? '#6d28d9' : '#8b5cf6');
+          g2.addColorStop(1, isSelected ? '#4c1d95' : '#7c3aed');
+        }
+        _gCtx.fillStyle = g2;
+        _gCtx.globalAlpha = selIso && !isSelected ? 0.35 : 1;
+        if (typeof _gCtx.roundRect === 'function') {
+          _gCtx.beginPath();
+          _gCtx.roundRect(x0, yTop, barW, hBar, [barR, barR, 2, 2]);
+          _gCtx.fill();
+        } else {
+          _gCtx.fillRect(x0, yTop, barW, hBar);
+        }
+        _gCtx.globalAlpha = 1;
+        hitBoxes.push({ x0: padL + slot * i, x1: padL + slot * i + slot, dayIso: row.day });
+      });
+
+      // Tooltip bubble for selected day
+      if (selIso) {
+        const selIdx = glicDayRows.findIndex((r) => r.day === selIso);
+        if (selIdx >= 0) {
+          const selRow = glicDayRows[selIdx];
+          const _cx = padL + slot * selIdx + slot / 2;
+          const _avgStr = String(selRow.avg);
+          _gCtx.font = 'bold 10px Inter, sans-serif';
+          const _nw = _gCtx.measureText(_avgStr).width;
+          _gCtx.font = '9px Inter, sans-serif';
+          const _sw = _gCtx.measureText(' mg/dL').width;
+          const _bw = Math.max(_nw + _sw + 18, 76);
+          const _bh = 20;
+          const _arr = 5;
+          let _bx = _cx - _bw / 2;
+          if (_bx < padL) _bx = padL;
+          if (_bx + _bw > padL + gw) _bx = padL + gw - _bw;
+          const _by = padT - _arr - 2;
+          const _br = 4;
+          _gCtx.fillStyle = '#1e293b';
+          _gCtx.beginPath();
+          _gCtx.moveTo(_bx + _br, _by - _bh);
+          _gCtx.lineTo(_bx + _bw - _br, _by - _bh);
+          _gCtx.quadraticCurveTo(_bx + _bw, _by - _bh, _bx + _bw, _by - _bh + _br);
+          _gCtx.lineTo(_bx + _bw, _by - _br);
+          _gCtx.quadraticCurveTo(_bx + _bw, _by, _bx + _bw - _br, _by);
+          const _ax = Math.min(Math.max(_cx, _bx + 10), _bx + _bw - 10);
+          _gCtx.lineTo(_ax + 5, _by); _gCtx.lineTo(_ax, _by + _arr); _gCtx.lineTo(_ax - 5, _by);
+          _gCtx.lineTo(_bx + _br, _by);
+          _gCtx.quadraticCurveTo(_bx, _by, _bx, _by - _br);
+          _gCtx.lineTo(_bx, _by - _bh + _br);
+          _gCtx.quadraticCurveTo(_bx, _by - _bh, _bx + _br, _by - _bh);
+          _gCtx.closePath(); _gCtx.fill();
+          const _ty = _by - _bh / 2;
+          let _tx = _bx + (_bw - _nw - _sw) / 2;
+          _gCtx.textBaseline = 'middle'; _gCtx.textAlign = 'left';
+          _gCtx.font = 'bold 10px Inter, sans-serif';
+          _gCtx.fillStyle = '#c4b5fd'; _gCtx.fillText(_avgStr, _tx, _ty); _tx += _nw;
+          _gCtx.font = '9px Inter, sans-serif';
+          _gCtx.fillStyle = '#94a3b8'; _gCtx.fillText(' mg/dL', _tx, _ty);
+        }
+      }
+
+      // Y labels (ideal zone boundaries)
+      _gCtx.fillStyle = '#94a3b8';
+      _gCtx.font = '8px sans-serif';
+      _gCtx.textAlign = 'right';
+      _gCtx.textBaseline = 'middle';
+      _gCtx.fillText('70', padL - 4, toY(idealLow));
+      _gCtx.fillText('99', padL - 4, toY(idealHigh));
+
+      // X labels (day numbers)
+      const labelEvery = Math.max(1, Math.ceil(n / 8));
+      _gCtx.fillStyle = '#666';
+      _gCtx.font = '8px sans-serif';
+      _gCtx.textAlign = 'center';
+      _gCtx.textBaseline = 'alphabetic';
+      glicDayRows.forEach((row, i) => {
+        if (i % labelEvery !== 0 && i !== n - 1) return;
+        const cx = padL + slot * i + slot / 2;
+        const parts = row.day.split('-');
+        const short = parts.length === 3 ? String(Number(parts[2])) : '';
+        _gCtx.fillText(short, cx, H - 4);
+      });
+
+      canvas.style.cursor = 'pointer';
+      canvas.onclick = (ev) => {
+        const rect = canvas.getBoundingClientRect();
+        const sx = W / Math.max(1, rect.width);
+        const x = (ev.clientX - rect.left) * sx;
+        const hit = hitBoxes.find((b) => x >= b.x0 && x <= b.x1);
+        if (hit && hit.dayIso) selectGlicemiaDay(hit.dayIso);
+      };
+
+      // Scroll to show most recent (rightmost) bars
+      if (_glicChartView && !selIso) {
+        _glicChartView.scrollLeft = Math.max(0, W - containerW);
+      }
+    }); // end rAF
+    return;
+  }
+
   const values = historico.slice(0, 10).reverse().map(h => {
     if (typeof h.valor === 'object' && h.valor.sistolica != null) return parseInt(h.valor.sistolica, 10);
     if (typeof h.valor === 'string' && h.valor.includes('/')) return parseInt(h.valor.split('/')[0], 10);
@@ -9071,6 +9279,51 @@ function renderVitalDetailContent(historico) {
       '</div>';
     }).join('');
     document.getElementById('vitalDetailContent').innerHTML = _clearFilterBtn + _dayListHtml;
+    return;
+  }
+
+  if (currentVitalDetail?.tipo === 'Glicemia') {
+    const _glicRows = aggregateGlicemiaByDay(currentVitalHistoricoView);
+    if (_glicRows.length === 0) {
+      document.getElementById('vitalDetailContent').innerHTML =
+        '<div class="empty-state"><div class="empty-text">Nenhum registro encontrado</div></div>';
+      return;
+    }
+    const _dias3g = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    const _meses3g = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+    const _selIsoG = glicemiaSelectedDayIso;
+    const _glicFiltered = _selIsoG
+      ? _glicRows.filter(function(r) { return r.day === _selIsoG; })
+      : _glicRows.slice().reverse();
+    let _glicClearBtn = '';
+    if (_selIsoG) {
+      _glicClearBtn = '<div style="text-align:center;padding:8px 0 4px;"><button type="button" onclick="clearGlicemiaDaySelection()" style="font-size:13px;color:#7c3aed;background:none;border:none;cursor:pointer;padding:4px 8px;">Ver todas as medições</button></div>';
+    }
+    const _glicRowsHtml = _glicFiltered.map(function(row) {
+      const _pp = row.day.split('-').map(Number);
+      const _do = new Date(_pp[0], _pp[1] - 1, _pp[2]);
+      const _dl = _dias3g[_do.getDay()] + ', ' + String(_pp[2]).padStart(2, '0') + ' ' + _meses3g[_pp[1] - 1];
+      const _avg = row.avg;
+      let _vColor = '#7c3aed';
+      let _sLabel = 'Normal';
+      if (_avg > 125) { _vColor = '#ef4444'; _sLabel = 'Alto'; }
+      else if (_avg > 99) { _vColor = '#f59e0b'; _sLabel = 'Atenção'; }
+      const _rangeHtml = (row.min !== row.max)
+        ? '<span style="font-size:11px;color:#94a3b8;margin-left:4px;">(' + row.min + '–' + row.max + ')</span>'
+        : '';
+      return '<div class="vital-list-item vital-list-item--day-nav vital-list-item--hour-bucket" role="button" tabindex="0" onclick="selectGlicemiaDay(\'' + row.day + '\')">' +
+        '<div class="vital-list-main vital-list-main--hour-detail">' +
+          '<div class="vital-list-measure-line">' +
+            '<span style="color:' + _vColor + ';font-weight:600;">' + _avg + '</span>' +
+            ' <span style="font-size:13px;font-weight:500;color:#64748b;">mg/dL</span>' +
+            _rangeHtml +
+          '</div>' +
+          '<div class="vital-list-time-line">' + _dl + ' · ' + _sLabel + '</div>' +
+        '</div>' +
+        '<div class="vital-list-trail"><span class="vital-list-chevron" aria-hidden="true">›</span></div>' +
+      '</div>';
+    }).join('');
+    document.getElementById('vitalDetailContent').innerHTML = _glicClearBtn + _glicRowsHtml;
     return;
   }
 
