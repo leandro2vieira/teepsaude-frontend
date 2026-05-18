@@ -276,24 +276,35 @@ function clearGlicemiaDaySelection() {
 
 // ── Wizard inline Glicemia ─────────────────────────────────
 let _addGlicStep = 1;
+let _glicNumpadValue = '';
 
 function openAddGlicemiaWizard() {
   _addGlicStep = 1;
-  var now = new Date();
+  _glicNumpadValue = '';
 
-  // Reset fields
-  var val = document.getElementById('glicemiaValorInput');
+  // Reset context
   var ctx = document.getElementById('glicemiaContextoInput');
-  var dat = document.getElementById('glicemiaDataInput');
-  var hor = document.getElementById('glicemiaHoraInput');
-  if (val) val.value = '';
   if (ctx) ctx.value = '';
-  if (dat) dat.value = now.toISOString().slice(0, 10);
-  if (hor) hor.value = now.toTimeString().slice(0, 5);
   document.querySelectorAll('#glicemiaContextoBtns .glic-ctx-card')
     .forEach(function(b) { b.classList.remove('glic-ctx-active'); });
 
-  // Hide normal chart/list views
+  // Reset numpad display
+  _glicemiaUpdateDisplay();
+
+  // Pre-fill date/time to now (for the optional panel in step 3)
+  var now = new Date();
+  var dat = document.getElementById('glicemiaDataInput');
+  var hor = document.getElementById('glicemiaHoraInput');
+  if (dat) dat.value = now.toISOString().slice(0, 10);
+  if (hor) hor.value = now.toTimeString().slice(0, 5);
+
+  // Reset step-3 edit panel
+  var etp = document.getElementById('glicEditTimePanel');
+  if (etp) etp.style.display = 'none';
+  var etl = document.querySelector('.glic-edit-time-link');
+  if (etl) etl.textContent = 'Medida em outro horário ▾';
+
+  // Hide chart/list views
   var chart = document.getElementById('pressaoHistoricoView');
   if (chart) chart.style.display = 'none';
   var filters = document.getElementById('vitalDefaultPeriodControls');
@@ -306,16 +317,12 @@ function openAddGlicemiaWizard() {
   // Show inline wizard
   var insertView = document.getElementById('glicemiaInsertView');
   if (insertView) insertView.style.display = 'flex';
-
   window._glicemiaInsertActive = true;
+
   var titleEl = document.getElementById('vitalDetailTitle');
   if (titleEl) titleEl.textContent = 'Inserir Glicemia';
 
   glicemiaWizardGoStep(1);
-  setTimeout(function() {
-    var v = document.getElementById('glicemiaValorInput');
-    if (v) v.focus();
-  }, 120);
 }
 
 function closeAddGlicemiaWizard() {
@@ -323,7 +330,6 @@ function closeAddGlicemiaWizard() {
   if (insertView) insertView.style.display = 'none';
   window._glicemiaInsertActive = false;
 
-  // Restore chart + period chips + add row
   var chart = document.getElementById('pressaoHistoricoView');
   if (chart) chart.style.display = '';
   var filters = document.getElementById('vitalDefaultPeriodControls');
@@ -339,36 +345,80 @@ function closeAddGlicemiaWizard() {
 
 function glicemiaWizardGoStep(step) {
   _addGlicStep = step;
-  [1, 2].forEach(function(s) {
+  [1, 2, 3].forEach(function(s) {
     var el = document.getElementById('glicStep' + s);
     if (el) el.style.display = s === step ? '' : 'none';
     var dot = document.querySelector('[data-glicdot="' + s + '"]');
     if (dot) {
       dot.classList.toggle('pi-progress-dot--active', s === step);
       dot.classList.toggle('done', s < step);
+      if (s === step) dot.classList.remove('done');
     }
   });
-  // Enable/disable next btn on step 1 depending on context selection
-  if (step === 1) _glicemiaUpdateNextBtn();
 }
 
-function _glicemiaUpdateNextBtn() {
-  var ctx = (document.getElementById('glicemiaContextoInput') || {}).value;
-  var btn = document.getElementById('glicNextBtn');
+// Teclado numérico customizado
+function glicNumpadPress(key) {
+  if (key === 'back') {
+    _glicNumpadValue = _glicNumpadValue.slice(0, -1);
+  } else {
+    if (_glicNumpadValue.length >= 3) return; // max 3 dígitos
+    _glicNumpadValue += key;
+  }
+  _glicemiaUpdateDisplay();
+  _glicemiaUpdateValorNextBtn();
+}
+
+function _glicemiaUpdateDisplay() {
+  var disp = document.getElementById('glicDisplay');
+  var badge = document.getElementById('glicRangeBadge');
+  if (!disp) return;
+  if (!_glicNumpadValue) {
+    disp.textContent = '—';
+    disp.className = 'glic-display';
+    if (badge) { badge.textContent = ''; badge.className = 'glic-range-badge'; }
+    return;
+  }
+  var val = parseInt(_glicNumpadValue, 10);
+  disp.textContent = _glicNumpadValue;
+  if (val < 20 || val > 600) {
+    disp.className = 'glic-display glic-display--alto';
+    if (badge) { badge.textContent = 'Valor fora do intervalo (20–600 mg/dL)'; badge.className = 'glic-range-badge glic-range-badge--alto'; }
+  } else if (val <= 99) {
+    disp.className = 'glic-display glic-display--normal';
+    if (badge) { badge.textContent = '● Normal (70–99)'; badge.className = 'glic-range-badge glic-range-badge--normal'; }
+  } else if (val <= 125) {
+    disp.className = 'glic-display glic-display--atencao';
+    if (badge) { badge.textContent = '● Atenção (100–125)'; badge.className = 'glic-range-badge glic-range-badge--atencao'; }
+  } else {
+    disp.className = 'glic-display glic-display--alto';
+    if (badge) { badge.textContent = '● Alto (acima de 125)'; badge.className = 'glic-range-badge glic-range-badge--alto'; }
+  }
+}
+
+function _glicemiaUpdateValorNextBtn() {
+  var val = parseInt(_glicNumpadValue, 10);
+  var btn = document.getElementById('glicValorNextBtn');
   if (!btn) return;
-  var hasCtx = ctx && ctx.length > 0;
-  btn.style.opacity = hasCtx ? '1' : '0.35';
-  btn.style.pointerEvents = hasCtx ? '' : 'none';
+  var ok = _glicNumpadValue.length > 0 && val >= 20 && val <= 600;
+  btn.style.opacity = ok ? '1' : '0.35';
+  btn.style.pointerEvents = ok ? '' : 'none';
 }
 
 function glicemiaWizardNext() {
-  var val = parseFloat(document.getElementById('glicemiaValorInput').value);
-  if (!val || val < 20 || val > 600) {
-    var inp = document.getElementById('glicemiaValorInput');
-    if (inp) { inp.focus(); inp.select(); }
-    return;
-  }
-  glicemiaWizardGoStep(2);
+  var val = parseInt(_glicNumpadValue, 10);
+  if (!_glicNumpadValue || val < 20 || val > 600) return;
+  // Update step-3 summary badge
+  var ctx = (document.getElementById('glicemiaContextoInput') || {}).value || '';
+  var badge = document.getElementById('glicStep3ValorBadge');
+  if (badge) badge.textContent = _glicNumpadValue + ' mg/dL' + (ctx ? ' · ' + ctx : '');
+  // Refresh datetime to now
+  var now = new Date();
+  var dat = document.getElementById('glicemiaDataInput');
+  var hor = document.getElementById('glicemiaHoraInput');
+  if (dat) dat.value = now.toISOString().slice(0, 10);
+  if (hor) hor.value = now.toTimeString().slice(0, 5);
+  glicemiaWizardGoStep(3);
 }
 
 function selectGlicemiaContexto(btn) {
@@ -376,30 +426,49 @@ function selectGlicemiaContexto(btn) {
     .forEach(function(b) { b.classList.remove('glic-ctx-active'); });
   btn.classList.add('glic-ctx-active');
   document.getElementById('glicemiaContextoInput').value = btn.dataset.ctx;
-  _glicemiaUpdateNextBtn();
+  // Auto-avança para o step de valor após pequena pausa (feedback visual)
+  setTimeout(function() {
+    // Mostra o contexto escolhido como dica no step 2
+    var lbl = document.getElementById('glicCtxLabel');
+    if (lbl) lbl.textContent = btn.dataset.ctx;
+    // Reseta numpad ao entrar no step
+    _glicNumpadValue = '';
+    _glicemiaUpdateDisplay();
+    _glicemiaUpdateValorNextBtn();
+    glicemiaWizardGoStep(2);
+  }, 220);
 }
 
-function glicemiaSetAgora() {
-  var now = new Date();
-  document.getElementById('glicemiaDataInput').value = now.toISOString().slice(0, 10);
-  document.getElementById('glicemiaHoraInput').value = now.toTimeString().slice(0, 5);
+function glicToggleEditTime(btnEl) {
+  var panel = document.getElementById('glicEditTimePanel');
+  if (!panel) return;
+  var showing = panel.style.display !== 'none';
+  panel.style.display = showing ? 'none' : '';
+  if (btnEl) btnEl.textContent = showing ? 'Medida em outro horário ▾' : 'Medida em outro horário ▴';
 }
 
-function saveGlicemiaEntry(ev) {
+function saveGlicemiaEntry(ev, useNow) {
   if (ev) ev.preventDefault();
-  var valorRaw = parseFloat(document.getElementById('glicemiaValorInput').value);
-  var dataVal = document.getElementById('glicemiaDataInput').value;
-  var horaVal = document.getElementById('glicemiaHoraInput').value;
-  var contexto = document.getElementById('glicemiaContextoInput').value;
-  if (!valorRaw || valorRaw < 20 || valorRaw > 600) {
-    glicemiaWizardGoStep(1);
+  var valorRaw = parseInt(_glicNumpadValue, 10);
+  if (!_glicNumpadValue || valorRaw < 20 || valorRaw > 600) {
+    glicemiaWizardGoStep(2);
     return;
   }
-  if (!dataVal) return;
-  if (!horaVal) {
-    horaVal = new Date().toTimeString().slice(0, 5);
-    document.getElementById('glicemiaHoraInput').value = horaVal;
+  var dataVal, horaVal;
+  if (useNow !== false) {
+    var now = new Date();
+    dataVal = now.toISOString().slice(0, 10);
+    horaVal = now.toTimeString().slice(0, 5);
+  } else {
+    dataVal = document.getElementById('glicemiaDataInput').value;
+    horaVal = document.getElementById('glicemiaHoraInput').value;
+    if (!dataVal) return;
+    if (!horaVal) {
+      horaVal = new Date().toTimeString().slice(0, 5);
+      document.getElementById('glicemiaHoraInput').value = horaVal;
+    }
   }
+  var contexto = (document.getElementById('glicemiaContextoInput') || {}).value || '';
   var status = valorRaw > 125 ? 'alto' : valorRaw > 99 ? 'atencao' : 'normal';
   var entry = { data: dataVal, hora: horaVal, valor: valorRaw, status: status };
   if (contexto) entry.contexto = contexto;

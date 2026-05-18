@@ -7425,60 +7425,13 @@ body {
   height: 40px;
 }
 
-/* Input de valor grande centralizado */
-.glic-valor-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 10px;
-  flex-shrink: 0;
-  margin: 4px 0 20px;
-}
-
-.glic-valor-big {
-  font-size: 72px;
-  font-weight: 700;
-  color: #7c3aed;
-  letter-spacing: -3px;
-  width: 180px;
-  text-align: center;
-  background: transparent;
-  border: none;
-  outline: none;
-  border-bottom: 3px solid #ddd6fe;
-  padding: 0;
-  font-family: inherit;
-  line-height: 1;
-  -moz-appearance: textfield;
-}
-
-.glic-valor-big::-webkit-inner-spin-button,
-.glic-valor-big::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-
-.glic-valor-big:focus { border-bottom-color: #7c3aed; }
-
-.glic-valor-unit {
-  font-size: 18px;
-  font-weight: 600;
-  color: #94a3b8;
-}
-
-.glic-ctx-lbl {
-  font-size: 14px;
-  font-weight: 600;
-  color: #64748b;
-  text-align: center;
-  margin-bottom: 10px;
-  flex-shrink: 0;
-}
-
+/* Step 1: contexto */
 .glic-ctx-grid {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-/* Card selecionado */
 .glic-ctx-card.glic-ctx-active {
   border-color: #7c3aed;
   background: #f3f0ff;
@@ -7486,21 +7439,149 @@ body {
 
 .glic-ctx-card.glic-ctx-active .pi-med-card-lbl { color: #5b21b6; }
 
-/* Botão Próximo roxo */
+/* Step 2: display do valor */
+.glic-display-wrap {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  flex-shrink: 0;
+}
+
+.glic-display {
+  font-size: 80px;
+  font-weight: 700;
+  line-height: 1;
+  color: #cbd5e1;
+  letter-spacing: -3px;
+  min-width: 3ch;
+  text-align: right;
+  font-family: inherit;
+  transition: color 0.12s;
+}
+
+.glic-display--normal  { color: #16a34a; }
+.glic-display--atencao { color: #d97706; }
+.glic-display--alto    { color: #dc2626; }
+
+.glic-display-unit {
+  font-size: 18px;
+  font-weight: 600;
+  color: #94a3b8;
+  flex-shrink: 0;
+  padding-bottom: 6px;
+}
+
+.glic-range-badge {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  min-height: 22px;
+  margin-bottom: 6px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.glic-range-badge--normal  { color: #16a34a; }
+.glic-range-badge--atencao { color: #d97706; }
+.glic-range-badge--alto    { color: #dc2626; }
+
+/* Teclado numérico */
+.glic-numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.glic-numpad-btn {
+  height: 60px;
+  border-radius: 16px;
+  border: none;
+  background: #f1f5f9;
+  font-size: 26px;
+  font-weight: 600;
+  color: #0f172a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  transition: background 0.08s, transform 0.07s;
+}
+
+.glic-numpad-btn:active {
+  background: #ddd6fe;
+  transform: scale(0.93);
+}
+
+.glic-numpad-btn--back {
+  background: #f8fafc;
+  color: #64748b;
+}
+
+.glic-numpad-btn--back:active { background: #e2e8f0; }
+
+.glic-numpad-btn--empty {
+  background: transparent;
+  pointer-events: none;
+}
+
+/* Botão Próximo (step 2) */
 .glic-next-btn {
   background: #7c3aed !important;
-  margin-top: 16px;
+  margin-top: 12px;
+  flex-shrink: 0;
 }
 
 .glic-next-btn:active { background: #5b21b6 !important; }
 
-/* Step 2: data/hora */
+/* Step 3: badge resumo */
+.glic-step3-badge {
+  display: inline-block;
+  background: #f3f0ff;
+  border-radius: 12px;
+  padding: 8px 20px;
+  font-size: 22px;
+  font-weight: 700;
+  color: #5b21b6;
+  margin-bottom: 4px;
+}
+
+/* Botão principal verde "Salvar agora" */
+.glic-save-agora {
+  background: #16a34a !important;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+
+.glic-save-agora:active { background: #15803d !important; }
+
+/* Link "Medida em outro horário" */
+.glic-edit-time-link {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: none;
+  color: #7c3aed;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Painel de data/hora customizada */
 .glic-datetime-fields {
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding-top: 8px;
+  padding-top: 4px;
 }
 
 .glic-field-lbl {
@@ -7516,26 +7597,10 @@ body {
   border-radius: 14px !important;
 }
 
-.glic-agora-btn {
-  display: block;
-  width: 100%;
-  padding: 13px 16px;
-  background: #f3f0ff;
-  border: 1.5px solid #ddd6fe;
-  border-radius: 12px;
-  color: #5b21b6;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  text-align: center;
-  font-family: inherit;
-  margin-top: 4px;
-}
-
-/* Botão Salvar roxo escuro */
+/* Botão Salvar roxo escuro (painel expandido) */
 .glic-save-btn {
   background: #6d28d9 !important;
-  margin-top: auto;
+  margin-top: 12px;
 }
 
 .glic-save-btn:active { background: #4c1d95 !important; }

@@ -330,26 +330,22 @@
                 <!-- Wizard passo a passo: inserir glicemia -->
                 <div id="glicemiaInsertView" style="display:none;">
 
-                  <!-- Progresso -->
+                  <!-- Progresso: 3 etapas -->
                   <div class="pi-progress">
                     <div class="pi-progress-dot pi-progress-dot--active glic-dot" data-glicdot="1"></div>
                     <div class="pi-progress-dot glic-dot" data-glicdot="2"></div>
+                    <div class="pi-progress-dot glic-dot" data-glicdot="3"></div>
                   </div>
 
-                  <!-- STEP 1: Valor + Contexto -->
+                  <!-- STEP 1: Contexto — quando foi medido? -->
                   <div class="pi-step" id="glicStep1">
                     <div class="pi-step-head">
                       <div class="pi-step-icon-glic">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2.25c0 0-6.75 7.313-6.75 11.25a6.75 6.75 0 0 0 13.5 0C18.75 9.563 12 2.25 12 2.25Z"/></svg>
                       </div>
-                      <div class="pi-step-label">Qual o valor?</div>
-                      <div class="pi-step-hint">Digite a glicemia &middot; Toque no número para editar</div>
+                      <div class="pi-step-label">Quando mediu?</div>
+                      <div class="pi-step-hint">Toque para selecionar o momento</div>
                     </div>
-                    <div class="glic-valor-row">
-                      <input type="number" class="glic-valor-big" id="glicemiaValorInput" min="20" max="600" placeholder="—" inputmode="decimal" autocomplete="off">
-                      <span class="glic-valor-unit">mg/dL</span>
-                    </div>
-                    <div class="glic-ctx-lbl">Quando foi medido?</div>
                     <div class="glic-ctx-grid" id="glicemiaContextoBtns">
                       <button type="button" class="pi-med-card glic-ctx-card" data-ctx="Jejum" onclick="selectGlicemiaContexto(this)">
                         <span class="pi-med-card-icon-wrap pi-med-card-icon-wrap--yellow">
@@ -395,27 +391,64 @@
                       </button>
                     </div>
                     <input type="hidden" id="glicemiaContextoInput" value="">
-                    <button id="glicNextBtn" class="pi-next-btn glic-next-btn" style="opacity:0.35;pointer-events:none;" onclick="glicemiaWizardNext()">Próximo &#8250;</button>
                   </div>
 
-                  <!-- STEP 2: Data e Hora -->
+                  <!-- STEP 2: Valor — teclado numérico customizado -->
                   <div class="pi-step" id="glicStep2" style="display:none;">
                     <div class="pi-step-head">
+                      <div class="pi-step-label">Qual o valor?</div>
+                      <div class="pi-step-hint" id="glicCtxLabel">&nbsp;</div>
+                    </div>
+                    <div class="glic-display-wrap">
+                      <div class="glic-display" id="glicDisplay">—</div>
+                      <div class="glic-display-unit">mg/dL</div>
+                    </div>
+                    <div class="glic-range-badge" id="glicRangeBadge"></div>
+                    <div class="glic-numpad">
+                      <button type="button" class="glic-numpad-btn" onclick="glicNumpadPress('1')">1</button>
+                      <button type="button" class="glic-numpad-btn" onclick="glicNumpadPress('2')">2</button>
+                      <button type="button" class="glic-numpad-btn" onclick="glicNumpadPress('3')">3</button>
+                      <button type="button" class="glic-numpad-btn" onclick="glicNumpadPress('4')">4</button>
+                      <button type="button" class="glic-numpad-btn" onclick="glicNumpadPress('5')">5</button>
+                      <button type="button" class="glic-numpad-btn" onclick="glicNumpadPress('6')">6</button>
+                      <button type="button" class="glic-numpad-btn" onclick="glicNumpadPress('7')">7</button>
+                      <button type="button" class="glic-numpad-btn" onclick="glicNumpadPress('8')">8</button>
+                      <button type="button" class="glic-numpad-btn" onclick="glicNumpadPress('9')">9</button>
+                      <button type="button" class="glic-numpad-btn glic-numpad-btn--empty" disabled></button>
+                      <button type="button" class="glic-numpad-btn" onclick="glicNumpadPress('0')">0</button>
+                      <button type="button" class="glic-numpad-btn glic-numpad-btn--back" onclick="glicNumpadPress('back')">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+                      </button>
+                    </div>
+                    <button id="glicValorNextBtn" class="pi-next-btn glic-next-btn" style="opacity:0.35;pointer-events:none;" onclick="glicemiaWizardNext()">Próximo ›</button>
+                  </div>
+
+                  <!-- STEP 3: Confirmar data/hora -->
+                  <div class="pi-step" id="glicStep3" style="display:none;">
+                    <div class="pi-step-head">
+                      <div class="glic-step3-badge" id="glicStep3ValorBadge">— mg/dL</div>
                       <div class="pi-step-label">Quando foi medido?</div>
-                      <div class="pi-step-hint">Confirme a data e hora da medição</div>
+                      <div class="pi-step-hint">Na dúvida, use "agora"</div>
                     </div>
-                    <div class="glic-datetime-fields">
-                      <div class="form-group">
-                        <label class="form-label glic-field-lbl" for="glicemiaDataInput">Data</label>
-                        <input type="date" class="form-input glic-field-inp" id="glicemiaDataInput" required>
+                    <button type="button" class="pi-save-btn glic-save-agora" onclick="saveGlicemiaEntry(event, true)">
+                      Salvar — medido agora
+                    </button>
+                    <button type="button" class="glic-edit-time-link" onclick="glicToggleEditTime(this)">
+                      Medida em outro horário ▾
+                    </button>
+                    <div id="glicEditTimePanel" style="display:none;">
+                      <div class="glic-datetime-fields">
+                        <div class="form-group">
+                          <label class="form-label glic-field-lbl" for="glicemiaDataInput">Data</label>
+                          <input type="date" class="form-input glic-field-inp" id="glicemiaDataInput" required>
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label glic-field-lbl" for="glicemiaHoraInput">Hora</label>
+                          <input type="time" class="form-input glic-field-inp" id="glicemiaHoraInput" required>
+                        </div>
                       </div>
-                      <div class="form-group">
-                        <label class="form-label glic-field-lbl" for="glicemiaHoraInput">Hora</label>
-                        <input type="time" class="form-input glic-field-inp" id="glicemiaHoraInput" required>
-                      </div>
-                      <button type="button" class="glic-agora-btn" onclick="glicemiaSetAgora()">⏱&nbsp;Usar hora atual</button>
+                      <button class="pi-save-btn glic-save-btn" onclick="saveGlicemiaEntry(event, false)">Salvar Medição</button>
                     </div>
-                    <button class="pi-save-btn glic-save-btn" onclick="saveGlicemiaEntry(event)">Salvar Medição</button>
                   </div>
 
                 </div>
