@@ -7393,6 +7393,119 @@ body {
   padding: 10px 8px;
 }
 
+/* ── Wizard Adicionar Glicemia ─────────────────────────── */
+#addGlicemiaModal .modal-content--med-wizard {
+  padding: 0;
+  max-width: 420px;
+  width: 92%;
+  max-height: min(92vh, 680px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#addGlicemiaModal .modal-header--med-wizard {
+  margin: 0;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid #ececec;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-title);
+  flex-shrink: 0;
+}
+
+#addGlicemiaModal .modal-content--med-wizard > #addGlicemiaForm {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+#addGlicemiaModal .add-med-wizard-body .form-group {
+  margin-bottom: 14px;
+}
+
+#addGlicemiaModal .step-dot.active {
+  background: #7c3aed;
+}
+
+#addGlicemiaModal .step-dot.done {
+  background: #a78bfa;
+}
+
+#addGlicemiaModal .add-med-wizard-footer {
+  margin-top: 0;
+  padding: 14px 20px 18px;
+  border-top: 1px solid #ececec;
+  background: #fff;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+#addGlicemiaModal .add-med-wizard-footer > .button-cancel {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 12px 14px;
+  min-width: 100px;
+  align-self: stretch;
+}
+
+#addGlicemiaModal .add-med-wizard-footer-right {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+}
+
+#addGlicemiaModal .add-med-wizard-footer-right .button-secondary,
+#addGlicemiaModal .add-med-wizard-footer-right .button-submit {
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 14px;
+  background: #7c3aed;
+  border-color: #7c3aed;
+}
+
+#addGlicemiaModal .add-med-wizard-footer-right .button-secondary {
+  background: #f3f0ff;
+  color: #7c3aed;
+  border-color: #ddd6fe;
+}
+
+#addGlicemiaModal .add-med-freq-btn.glic-ctx-active {
+  background: #f3f0ff;
+  border-color: #7c3aed;
+  color: #5b21b6;
+  box-shadow: 0 0 0 1.5px #7c3aed33;
+}
+
+.add-glic-valor-input {
+  font-size: 28px !important;
+  font-weight: 700 !important;
+  text-align: center;
+  letter-spacing: 1px;
+  padding: 16px 14px !important;
+  color: #7c3aed !important;
+}
+
+.add-glic-agora-btn {
+  background: #f3f0ff !important;
+  border-color: #ddd6fe !important;
+  color: #5b21b6 !important;
+  font-size: 15px !important;
+  padding: 11px 16px !important;
+}
+
 /* ===== ABAS PRESSÃƒO DIÃRIA ===== */
 .pressao-tab-nav {
   display: flex;

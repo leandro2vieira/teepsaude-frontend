@@ -713,6 +713,64 @@
         </div>
     </div>
 
+    <!-- Modal Wizard Adicionar Glicemia (2 etapas) -->
+    <div class="modal" id="addGlicemiaModal">
+        <div class="modal-content modal-content--med-wizard" id="addGlicemiaModalContent">
+            <div class="modal-header modal-header--med-wizard">
+                <span id="addGlicemiaWizardTitle">Qual o valor?</span>
+            </div>
+            <form id="addGlicemiaForm" novalidate>
+                <div class="add-med-wizard-body">
+                    <div class="add-med-progress" aria-hidden="true">
+                        <span class="step-dot active" id="addGlicDot1"></span>
+                        <span class="step-dot" id="addGlicDot2"></span>
+                    </div>
+
+                    <!-- Etapa 1: valor + contexto -->
+                    <div class="add-med-step" id="addGlicStep1">
+                        <div class="form-group">
+                            <label class="form-label" for="glicemiaValorInput">Glicemia (mg/dL)</label>
+                            <input type="number" class="form-input add-glic-valor-input" id="glicemiaValorInput" min="20" max="600" placeholder="Ex: 95" inputmode="decimal" required>
+                        </div>
+                        <p class="add-med-step-hint" style="margin-top:4px;">Quando foi medido?</p>
+                        <div class="add-med-freq-options" id="glicemiaContextoBtns">
+                            <button type="button" class="add-med-freq-btn" data-ctx="Jejum" onclick="selectGlicemiaContexto(this)">Em jejum</button>
+                            <button type="button" class="add-med-freq-btn" data-ctx="Pré-refeição" onclick="selectGlicemiaContexto(this)">Antes de comer</button>
+                            <button type="button" class="add-med-freq-btn" data-ctx="Pós-refeição 1h" onclick="selectGlicemiaContexto(this)">1h após refeição</button>
+                            <button type="button" class="add-med-freq-btn" data-ctx="Pós-refeição 2h" onclick="selectGlicemiaContexto(this)">2h após refeição</button>
+                            <button type="button" class="add-med-freq-btn" data-ctx="Antes de dormir" onclick="selectGlicemiaContexto(this)">Antes de dormir</button>
+                            <button type="button" class="add-med-freq-btn" data-ctx="Aleatório" onclick="selectGlicemiaContexto(this)">Outro momento</button>
+                        </div>
+                        <input type="hidden" id="glicemiaContextoInput" value="">
+                    </div>
+
+                    <!-- Etapa 2: data e hora -->
+                    <div class="add-med-step" id="addGlicStep2" style="display:none;">
+                        <p class="add-med-step-hint">Quando foi feita a medição?</p>
+                        <div class="form-group">
+                            <label class="form-label" for="glicemiaDataInput">Data</label>
+                            <input type="date" class="form-input" id="glicemiaDataInput" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="glicemiaHoraInput">Hora</label>
+                            <input type="time" class="form-input" id="glicemiaHoraInput" required>
+                        </div>
+                        <button type="button" class="add-med-freq-btn add-glic-agora-btn" onclick="glicemiaSetAgora()">⏱ Usar hora atual</button>
+                    </div>
+                </div>
+
+                <div class="add-med-wizard-footer" id="addGlicemiaFooter">
+                    <button type="button" class="button-cancel" id="cancelAddGlicemiaBtn" onclick="closeAddGlicemiaModal()">Cancelar</button>
+                    <div class="add-med-wizard-footer-right">
+                        <button type="button" class="button-secondary" id="addGlicWizardBack" style="display:none;" onclick="glicemiaWizardGoStep(1)">Voltar</button>
+                        <button type="button" class="button-submit" id="addGlicWizardNext" onclick="glicemiaWizardNext()">Próximo</button>
+                        <button type="submit" class="button-submit" id="addGlicWizardSave" style="display:none;" onclick="saveGlicemiaEntry(event)">Salvar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal de Editar Medicação -->
     <div class="modal" id="editMedicacaoModal">
         <div class="modal-content">

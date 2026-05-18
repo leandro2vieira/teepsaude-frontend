@@ -274,6 +274,130 @@ function clearGlicemiaDaySelection() {
   renderVitalDetailContent(currentVitalHistoricoView);
 }
 
+// ── Wizard Adicionar Glicemia ──────────────────────────────
+let _addGlicStep = 1;
+
+function openAddGlicemiaWizard() {
+  _addGlicStep = 1;
+  const now = new Date();
+  const val = document.getElementById('glicemiaValorInput');
+  const ctx = document.getElementById('glicemiaContextoInput');
+  const dat = document.getElementById('glicemiaDataInput');
+  const hor = document.getElementById('glicemiaHoraInput');
+  if (val) val.value = '';
+  if (ctx) ctx.value = '';
+  if (dat) dat.value = now.toISOString().slice(0, 10);
+  if (hor) hor.value = now.toTimeString().slice(0, 5);
+  document.querySelectorAll('#glicemiaContextoBtns .add-med-freq-btn')
+    .forEach(function(b) { b.classList.remove('glic-ctx-active'); });
+  glicemiaWizardGoStep(1);
+  document.getElementById('addGlicemiaModal').classList.add('active');
+  setTimeout(function() {
+    var v = document.getElementById('glicemiaValorInput');
+    if (v) v.focus();
+  }, 120);
+}
+
+function glicemiaWizardGoStep(step) {
+  _addGlicStep = step;
+  [1, 2].forEach(function(s) {
+    var el = document.getElementById('addGlicStep' + s);
+    var dot = document.getElementById('addGlicDot' + s);
+    if (el) el.style.display = s === step ? '' : 'none';
+    if (dot) {
+      dot.classList.toggle('active', s === step);
+      dot.classList.toggle('done', s < step);
+    }
+  });
+  var back = document.getElementById('addGlicWizardBack');
+  var next = document.getElementById('addGlicWizardNext');
+  var save = document.getElementById('addGlicWizardSave');
+  var title = document.getElementById('addGlicemiaWizardTitle');
+  if (back) back.style.display = step > 1 ? '' : 'none';
+  if (next) next.style.display = step < 2 ? '' : 'none';
+  if (save) save.style.display = step === 2 ? '' : 'none';
+  if (title) title.textContent = step === 1 ? 'Qual o valor?' : 'Quando foi medido?';
+}
+
+function glicemiaWizardNext() {
+  var val = parseFloat(document.getElementById('glicemiaValorInput').value);
+  if (!val || val < 20 || val > 600) {
+    var inp = document.getElementById('glicemiaValorInput');
+    if (inp) { inp.focus(); inp.select(); }
+    alert('Informe um valor válido entre 20 e 600 mg/dL.');
+    return;
+  }
+  glicemiaWizardGoStep(2);
+}
+
+function selectGlicemiaContexto(btn) {
+  document.querySelectorAll('#glicemiaContextoBtns .add-med-freq-btn')
+    .forEach(function(b) { b.classList.remove('glic-ctx-active'); });
+  btn.classList.add('glic-ctx-active');
+  document.getElementById('glicemiaContextoInput').value = btn.dataset.ctx;
+}
+
+function glicemiaSetAgora() {
+  var now = new Date();
+  document.getElementById('glicemiaDataInput').value = now.toISOString().slice(0, 10);
+  document.getElementById('glicemiaHoraInput').value = now.toTimeString().slice(0, 5);
+}
+
+function closeAddGlicemiaModal() {
+  document.getElementById('addGlicemiaModal').classList.remove('active');
+}
+
+function saveGlicemiaEntry(ev) {
+  if (ev) ev.preventDefault();
+  var valorRaw = parseFloat(document.getElementById('glicemiaValorInput').value);
+  var dataVal = document.getElementById('glicemiaDataInput').value;
+  var horaVal = document.getElementById('glicemiaHoraInput').value;
+  var contexto = document.getElementById('glicemiaContextoInput').value;
+  if (!valorRaw || valorRaw < 20 || valorRaw > 600) {
+    alert('Informe um valor válido entre 20 e 600 mg/dL.');
+    glicemiaWizardGoStep(1);
+    return;
+  }
+  if (!dataVal) {
+    alert('Informe a data da medição.');
+    return;
+  }
+  if (!horaVal) {
+    var now = new Date();
+    horaVal = now.toTimeString().slice(0, 5);
+    document.getElementById('glicemiaHoraInput').value = horaVal;
+  }
+  var status = valorRaw > 125 ? 'alto' : valorRaw > 99 ? 'atencao' : 'normal';
+  var entry = {
+    data: dataVal,
+    hora: horaVal,
+    valor: valorRaw,
+    status: status
+  };
+  if (contexto) entry.contexto = contexto;
+
+  var vital = mockData.sinaisVitais.find(function(v) { return v.tipo === 'Glicemia'; });
+  if (vital) {
+    vital.historico.unshift(entry);
+    // Update current card value if this is today
+    var today = new Date().toISOString().slice(0, 10);
+    if (dataVal === today) {
+      vital.valor = valorRaw;
+      vital.tempo = 'Agora';
+      vital.dataHora = dataVal + 'T' + horaVal + ':00';
+    }
+    checkVitalAlert(vital);
+  }
+
+  closeAddGlicemiaModal();
+
+  renderSaude();
+  if (currentVitalDetail && currentVitalDetail.tipo === 'Glicemia' && vital) {
+    currentVitalDetail = vital;
+    applyVitalDefaultPeriodView();
+  }
+}
+
 function setPassosDayFromList(dayIso) {
   if (!dayIso) return;
   if (!currentVitalDetail || currentVitalDetail.tipo !== 'Passos') return;
@@ -7504,7 +7628,7 @@ function openVitalDetailModal(tipoVital, vitalId) {
   const vitalDetailContentEl = document.getElementById('vitalDetailContent');
   const vitalDetailAddRowEl = document.querySelector('#vitalDetailModal .vital-detail-add-row');
   if (vitalDetailContentEl) vitalDetailContentEl.style.display = bc ? 'none' : '';
-  if (vitalDetailAddRowEl) vitalDetailAddRowEl.style.display = (bc || isPassos || isGlicemia) ? 'none' : '';
+  if (vitalDetailAddRowEl) vitalDetailAddRowEl.style.display = (bc || isPassos) ? 'none' : '';
 
   if (pressaoHistoricoView) pressaoHistoricoView.style.display = 'block';
 
@@ -7519,7 +7643,7 @@ function openVitalDetailModal(tipoVital, vitalId) {
   window._pressaoColetaActive = false;
   window._passaosDiaActive = false;
   if (vitalDetailContentEl) vitalDetailContentEl.style.display = bc ? 'none' : '';
-  if (vitalDetailAddRowEl) vitalDetailAddRowEl.style.display = (bc || isPassos || isGlicemia) ? 'none' : '';
+  if (vitalDetailAddRowEl) vitalDetailAddRowEl.style.display = (bc || isPassos) ? 'none' : '';
 
   if (bc) {
     vitalBatimentoChartSelection = null;
@@ -7582,8 +7706,12 @@ function openVitalDetailModal(tipoVital, vitalId) {
     });
   }
 
-  document.getElementById('addVitalMedicaoBtn').onclick = () => {
-    openAddVitalModal(tipoVital);
+  document.getElementById('addVitalMedicaoBtn').onclick = function() {
+    if (tipoVital === 'Glicemia') {
+      openAddGlicemiaWizard();
+    } else {
+      openAddVitalModal(tipoVital);
+    }
   };
 }
 
