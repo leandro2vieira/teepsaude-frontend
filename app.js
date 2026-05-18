@@ -105,6 +105,25 @@ function aggregateGlicemiaByDay(entries) {
     .map((d) => ({ ...d, avg: Math.round(d.sum / d.count) }));
 }
 
+function aggregateGlicemiaByMonth(entries) {
+  const byMonth = new Map();
+  (Array.isArray(entries) ? entries : []).forEach((h) => {
+    const dayIso = (typeof historicoEntryDayISO === 'function') ? historicoEntryDayISO(h) : String(h?.data || '').slice(0, 10);
+    const v = Number(h?.valor);
+    if (!dayIso || !Number.isFinite(v)) return;
+    const monthKey = dayIso.slice(0, 7); // 'YYYY-MM'
+    if (!byMonth.has(monthKey)) byMonth.set(monthKey, { month: monthKey, sum: 0, count: 0, min: v, max: v });
+    const m = byMonth.get(monthKey);
+    m.sum += v;
+    m.count++;
+    if (v < m.min) m.min = v;
+    if (v > m.max) m.max = v;
+  });
+  return Array.from(byMonth.values())
+    .sort((a, b) => a.month.localeCompare(b.month))
+    .map((m) => ({ ...m, avg: Math.round(m.sum / m.count) }));
+}
+
 function buildPassosHourlyBucketsForDay(dayEntries) {
   const buckets = Array.from({ length: 24 }, () => 0);
   const list = (Array.isArray(dayEntries) ? dayEntries : [])
@@ -423,6 +442,7 @@ function getVitalDefaultPeriodRange() {
 
 function applyVitalDefaultPeriodView() {
   if (!currentVitalDetail || (currentVitalDetail.tipo !== 'Pressão Arterial' && currentVitalDetail.tipo !== 'Passos' && currentVitalDetail.tipo !== 'Glicemia')) return;
+  if (currentVitalDetail.tipo === 'Glicemia') glicemiaSelectedDayIso = null;
   const { start, end } = getVitalDefaultPeriodRange();
   const filtrado = filterHistoricoByInclusiveDate(currentVitalDetail.historico, start, end);
   renderVitalDetailContent(filtrado);
@@ -8743,7 +8763,9 @@ function renderSparklineChart(historico) {
   }
 
   if (currentVitalDetail && currentVitalDetail.tipo === 'Glicemia') {
-    const glicDayRows = aggregateGlicemiaByDay(historico);
+    const _isYearView = vitalDefaultPeriod === 'year';
+    const _is7dView = vitalDefaultPeriod === '7d';
+    const glicDayRows = _isYearView ? aggregateGlicemiaByMonth(historico) : aggregateGlicemiaByDay(historico);
     if (glicDayRows.length === 0) return;
 
     const _glicChartView = document.getElementById('pressaoHistoricoView');
@@ -8800,7 +8822,7 @@ function renderSparklineChart(historico) {
       // Bars
       const hitBoxes = [];
       glicDayRows.forEach((row, i) => {
-        const isSelected = row.day === selIso;
+        const isSelected = !_isYearView && row.day === selIso;
         const cx = padL + slot * i + slot / 2;
         const x0 = cx - barW / 2;
         const yTop = toY(row.avg);
@@ -8819,7 +8841,7 @@ function renderSparklineChart(historico) {
           g2.addColorStop(1, isSelected ? '#4c1d95' : '#7c3aed');
         }
         _gCtx.fillStyle = g2;
-        _gCtx.globalAlpha = selIso && !isSelected ? 0.35 : 1;
+        _gCtx.globalAlpha = !_isYearView && selIso && !isSelected ? 0.35 : 1;
         if (typeof _gCtx.roundRect === 'function') {
           _gCtx.beginPath();
           _gCtx.roundRect(x0, yTop, barW, hBar, [barR, barR, 2, 2]);
@@ -8828,7 +8850,7 @@ function renderSparklineChart(historico) {
           _gCtx.fillRect(x0, yTop, barW, hBar);
         }
         _gCtx.globalAlpha = 1;
-        hitBoxes.push({ x0: padL + slot * i, x1: padL + slot * i + slot, dayIso: row.day });
+        hitBoxes.push({ x0: padL + slot * i, x1: padL + slot * i + slot, dayIso: _isYearView ? null : row.day });
       });
 
       // Tooltip bubble for selected day
@@ -8882,8 +8904,10 @@ function renderSparklineChart(historico) {
       _gCtx.fillText('70', padL - 4, toY(idealLow));
       _gCtx.fillText('99', padL - 4, toY(idealHigh));
 
-      // X labels (day numbers)
-      const labelEvery = Math.max(1, Math.ceil(n / 8));
+      // X labels
+      const _ptBrMonths = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+      const _ptBrWeekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+      const labelEvery = _isYearView ? 1 : Math.max(1, Math.ceil(n / 8));
       _gCtx.fillStyle = '#666';
       _gCtx.font = '8px sans-serif';
       _gCtx.textAlign = 'center';
@@ -8891,9 +8915,18 @@ function renderSparklineChart(historico) {
       glicDayRows.forEach((row, i) => {
         if (i % labelEvery !== 0 && i !== n - 1) return;
         const cx = padL + slot * i + slot / 2;
-        const parts = row.day.split('-');
-        const short = parts.length === 3 ? String(Number(parts[2])) : '';
-        _gCtx.fillText(short, cx, H - 4);
+        let _xLabel = '';
+        if (_isYearView) {
+          const mIdx = parseInt((row.month || '').split('-')[1] || '1', 10) - 1;
+          _xLabel = _ptBrMonths[mIdx] || '';
+        } else if (_is7dView) {
+          const _d = new Date((row.day || '') + 'T12:00:00');
+          _xLabel = isNaN(_d.getTime()) ? '' : _ptBrWeekdays[_d.getDay()];
+        } else {
+          const parts = (row.day || '').split('-');
+          _xLabel = parts.length === 3 ? String(Number(parts[2])) : '';
+        }
+        _gCtx.fillText(_xLabel, cx, H - 4);
       });
 
       canvas.style.cursor = 'pointer';
