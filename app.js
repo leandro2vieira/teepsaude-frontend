@@ -302,11 +302,11 @@ function openAddGlicemiaWizard() {
   if (dat) dat.value = now.toISOString().slice(0, 10);
   if (hor) hor.value = now.toTimeString().slice(0, 5);
 
-  // Reset step-3 edit panel
+  // Reset step-3: mostrar opções, ocultar painel de data/hora
+  var glicOpts = document.getElementById('glicS3Options');
+  if (glicOpts) glicOpts.style.display = '';
   var etp = document.getElementById('glicEditTimePanel');
   if (etp) etp.style.display = 'none';
-  var etl = document.querySelector('.glic-edit-time-link');
-  if (etl) etl.textContent = 'Medida em outro horário ▾';
 
   // Hide chart/list views
   var chart = document.getElementById('pressaoHistoricoView');
@@ -422,6 +422,15 @@ function glicemiaWizardNext() {
   var hor = document.getElementById('glicemiaHoraInput');
   if (dat) dat.value = now.toISOString().slice(0, 10);
   if (hor) hor.value = now.toTimeString().slice(0, 5);
+  // Update "Medido agora" button subtitle with current time
+  var agoraLbl = document.getElementById('glicAgoraLabel');
+  if (agoraLbl) {
+    var dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    var meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    var h = String(now.getHours()).padStart(2,'0');
+    var m = String(now.getMinutes()).padStart(2,'0');
+    agoraLbl.textContent = dias[now.getDay()] + ', ' + now.getDate() + ' ' + meses[now.getMonth()] + ' · ' + h + ':' + m;
+  }
   glicemiaWizardGoStep(3);
 }
 
@@ -448,12 +457,22 @@ function glicemiaConfirmContexto() {
   glicemiaWizardGoStep(2);
 }
 
-function glicToggleEditTime(btnEl) {
+function glicShowOutroHorario() {
+  var opts = document.getElementById('glicS3Options');
+  if (opts) opts.style.display = 'none';
   var panel = document.getElementById('glicEditTimePanel');
-  if (!panel) return;
-  var showing = panel.style.display !== 'none';
-  panel.style.display = showing ? 'none' : '';
-  if (btnEl) btnEl.textContent = showing ? 'Medida em outro horário ▾' : 'Medida em outro horário ▴';
+  if (panel) panel.style.display = '';
+}
+
+function glicHideOutroHorario() {
+  var panel = document.getElementById('glicEditTimePanel');
+  if (panel) panel.style.display = 'none';
+  var opts = document.getElementById('glicS3Options');
+  if (opts) opts.style.display = '';
+}
+
+function glicToggleEditTime(btnEl) {
+  glicShowOutroHorario();
 }
 
 function saveGlicemiaEntry(ev, useNow) {

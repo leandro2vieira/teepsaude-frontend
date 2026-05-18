@@ -426,17 +426,30 @@
 
                   <!-- STEP 3: Confirmar data/hora -->
                   <div class="pi-step" id="glicStep3" style="display:none;">
-                    <div class="pi-step-head">
+                    <div class="glic-s3-header">
                       <div class="glic-step3-badge" id="glicStep3ValorBadge">— mg/dL</div>
                       <div class="pi-step-label">Quando foi medido?</div>
-                      <div class="pi-step-hint">Na dúvida, use "agora"</div>
                     </div>
-                    <button type="button" class="pi-save-btn glic-save-agora" onclick="saveGlicemiaEntry(event, true)">
-                      Salvar — medido agora
-                    </button>
-                    <button type="button" class="glic-edit-time-link" onclick="glicToggleEditTime(this)">
-                      Medida em outro horário ▾
-                    </button>
+
+                    <!-- Painel A: duas opções -->
+                    <div id="glicS3Options">
+                      <button type="button" class="glic-s3-opt-btn glic-s3-agora" onclick="saveGlicemiaEntry(event, true)">
+                        <span class="glic-s3-opt-icon">✓</span>
+                        <span class="glic-s3-opt-text">
+                          <span class="glic-s3-opt-main">Medido agora</span>
+                          <span class="glic-s3-opt-sub" id="glicAgoraLabel">—</span>
+                        </span>
+                      </button>
+                      <button type="button" class="glic-s3-opt-btn glic-s3-outro" onclick="glicShowOutroHorario()">
+                        <span class="glic-s3-opt-icon">🕐</span>
+                        <span class="glic-s3-opt-text">
+                          <span class="glic-s3-opt-main">Outro horário</span>
+                          <span class="glic-s3-opt-sub">Alterar data e hora</span>
+                        </span>
+                      </button>
+                    </div>
+
+                    <!-- Painel B: data/hora manual -->
                     <div id="glicEditTimePanel" style="display:none;">
                       <div class="glic-datetime-fields">
                         <div class="form-group">
@@ -449,6 +462,7 @@
                         </div>
                       </div>
                       <button class="pi-save-btn glic-save-btn" onclick="saveGlicemiaEntry(event, false)">Salvar Medição</button>
+                      <button type="button" class="glic-s3-back-link" onclick="glicHideOutroHorario()">← Voltar</button>
                     </div>
                   </div>
 

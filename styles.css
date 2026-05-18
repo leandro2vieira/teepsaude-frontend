@@ -7551,6 +7551,88 @@ body {
   margin-bottom: 4px;
 }
 
+/* Cabeçalho do step 3 */
+.glic-s3-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+/* Botões de opção grandes */
+.glic-s3-opt-btn {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 20px 20px;
+  border-radius: 18px;
+  border: 2px solid transparent;
+  font-family: inherit;
+  cursor: pointer;
+  margin-bottom: 14px;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s;
+}
+.glic-s3-opt-btn:active { opacity: 0.8; }
+
+.glic-s3-opt-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+  width: 36px;
+  text-align: center;
+  line-height: 1;
+}
+
+.glic-s3-opt-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.glic-s3-opt-main {
+  font-size: 18px;
+  font-weight: 700;
+  display: block;
+}
+
+.glic-s3-opt-sub {
+  font-size: 13px;
+  font-weight: 500;
+  display: block;
+  opacity: 0.75;
+}
+
+/* Variante verde — Medido agora */
+.glic-s3-agora {
+  background: #16a34a;
+  color: #fff;
+}
+
+/* Variante cinza — Outro horário */
+.glic-s3-outro {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #e2e8f0;
+}
+
+/* Link "← Voltar" no painel de data/hora */
+.glic-s3-back-link {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  margin-top: 4px;
+}
+.glic-s3-back-link:active { opacity: 0.6; }
+
 /* Botão principal verde "Salvar agora" */
 .glic-save-agora {
   background: #16a34a !important;
