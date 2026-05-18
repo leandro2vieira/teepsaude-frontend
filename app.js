@@ -9529,7 +9529,7 @@ function renderVitalDetailContent(historico) {
     const _meses3 = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
     const _filteredRows = passosSelectedDayIso
       ? dayRows.filter(function(r) { return r.day === passosSelectedDayIso; })
-      : dayRows.slice().reverse();
+      : dayRows; // aggregatePassosByDay já retorna do mais recente ao mais antigo
     let _clearFilterBtn = '';
     if (passosSelectedDayIso) {
       _clearFilterBtn = '<div style="text-align:center;padding:8px 0 4px;"><button type="button" onclick="setPassosDayFromChart(null)" style="font-size:13px;color:#3b82f6;background:none;border:none;cursor:pointer;padding:4px 8px;">Ver todos os dias</button></div>';
@@ -9597,7 +9597,12 @@ function renderVitalDetailContent(historico) {
     return;
   }
 
-  const html = currentVitalHistoricoView.map((h, idx) => {
+  const sortedView = currentVitalHistoricoView.slice().sort(function(a, b) {
+    var ta = typeof historicoEntryToMs === 'function' ? historicoEntryToMs(a) : 0;
+    var tb = typeof historicoEntryToMs === 'function' ? historicoEntryToMs(b) : 0;
+    return tb - ta; // mais recente primeiro
+  });
+  const html = sortedView.map((h, idx) => {
     const dataFormatada = formatDateForUI(h.data);
     const hora = h.hora ? ` ${h.hora}` : '';
     const fullDateTimeLine = `${dataFormatada}${hora}`.trim();
