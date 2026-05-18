@@ -769,7 +769,8 @@ body {
 
 .home-status-card--warning {
   background: #fff7ed;
-  border: 1px solid #fed7aa;
+  border: 1px solid #fdba74;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.12);
 }
 
 .home-status-icon {
@@ -790,8 +791,9 @@ body {
 }
 
 .home-status-icon--warning {
-  background: #f97316;
+  background: #ea580c;
   color: #fff;
+  font-size: 13px;
 }
 
 .home-status-title {
@@ -801,8 +803,21 @@ body {
   line-height: 1.2;
 }
 
+.home-status-card--warning .home-status-title {
+  color: #9a3412;
+}
+
 .home-status-sub {
   display: none;
+}
+
+.home-status-card--warning .home-status-sub {
+  display: block;
+  font-size: 11px;
+  color: #ea580c;
+  font-weight: 500;
+  line-height: 1.2;
+  margin-top: 1px;
 }
 
 /* Home â€” alinhado Ã  legibilidade para leitura rÃ¡pida */
@@ -5866,12 +5881,6 @@ body {
 }
 
 /* Estoque */
-.med-estoque-aviso {
-  font-size: 14px;
-  margin-left: 4px;
-  vertical-align: middle;
-}
-
 .med-estoque {
   margin-bottom: 8px;
   padding: 7px 9px;
@@ -5886,8 +5895,37 @@ body {
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  padding: 5px 10px;
+  padding: 7px 12px;
   margin-bottom: 0;
+  border-radius: 10px;
+}
+
+.med-estoque--aviso {
+  background: #fffbeb;
+  border-color: #fcd34d;
+}
+
+.med-estoque--aviso .estoque-text {
+  color: #92400e;
+}
+
+.med-estoque--aviso strong {
+  color: #b45309;
+}
+
+.med-estoque-badge-aviso {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .estoque-label {
@@ -6037,19 +6075,19 @@ body {
 }
 
 .horario-item.status-atrasado {
-  background: #e8e8e8;
-  border-color: #cfcfcf;
-  color: var(--text-title);
+  background: #fff7ed;
+  border-color: #fdba74;
+  color: #c2410c;
 }
 
 .horario-item.status-atrasado .horario-time {
-  color: var(--text-title);
+  color: #c2410c;
 }
 
 .horario-item.status-atrasado .horario-status {
-  color: var(--text-body);
+  color: #ea580c;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .horario-item.status-a-tomar {
