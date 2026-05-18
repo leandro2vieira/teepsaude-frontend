@@ -288,6 +288,10 @@ function openAddGlicemiaWizard() {
   document.querySelectorAll('#glicemiaContextoBtns .glic-ctx-card')
     .forEach(function(b) { b.classList.remove('glic-ctx-active'); });
 
+  // Reset confirm button
+  var cfm = document.getElementById('glicConfirmCtxBtn');
+  if (cfm) { cfm.style.opacity = '0.35'; cfm.style.pointerEvents = 'none'; }
+
   // Reset numpad display
   _glicemiaUpdateDisplay();
 
@@ -426,17 +430,22 @@ function selectGlicemiaContexto(btn) {
     .forEach(function(b) { b.classList.remove('glic-ctx-active'); });
   btn.classList.add('glic-ctx-active');
   document.getElementById('glicemiaContextoInput').value = btn.dataset.ctx;
-  // Auto-avança para o step de valor após pequena pausa (feedback visual)
-  setTimeout(function() {
-    // Mostra o contexto escolhido como dica no step 2
-    var lbl = document.getElementById('glicCtxLabel');
-    if (lbl) lbl.textContent = btn.dataset.ctx;
-    // Reseta numpad ao entrar no step
-    _glicNumpadValue = '';
-    _glicemiaUpdateDisplay();
-    _glicemiaUpdateValorNextBtn();
-    glicemiaWizardGoStep(2);
-  }, 220);
+  // Ativa botão Confirmar
+  var cfm = document.getElementById('glicConfirmCtxBtn');
+  if (cfm) { cfm.style.opacity = '1'; cfm.style.pointerEvents = ''; }
+}
+
+function glicemiaConfirmContexto() {
+  var ctx = (document.getElementById('glicemiaContextoInput') || {}).value;
+  if (!ctx) return;
+  // Mostra o contexto escolhido como dica no step 2
+  var lbl = document.getElementById('glicCtxLabel');
+  if (lbl) lbl.textContent = ctx;
+  // Reseta numpad ao entrar no step
+  _glicNumpadValue = '';
+  _glicemiaUpdateDisplay();
+  _glicemiaUpdateValorNextBtn();
+  glicemiaWizardGoStep(2);
 }
 
 function glicToggleEditTime(btnEl) {
