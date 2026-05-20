@@ -255,10 +255,7 @@ function renderPassosHourlyCanvas(dayIso, dayEntries, goal) {
 function setPassosDayFromChart(dayIso) {
   if (!dayIso) return;
   if (!currentVitalDetail || currentVitalDetail.tipo !== 'Passos') return;
-  passosSelectedDayIso = passosSelectedDayIso === dayIso ? null : dayIso;
-  passosSelectedHour = null;
-  renderSparklineChart(currentVitalHistoricoView);
-  renderVitalDetailContent(currentVitalHistoricoView);
+  openPassosDiaDetail(dayIso);
 }
 
 function selectGlicemiaDay(dayIso) {
@@ -277,10 +274,19 @@ function clearGlicemiaDaySelection() {
 // ── Wizard inline Glicemia ─────────────────────────────────
 let _addGlicStep = 1;
 let _glicNumpadValue = '';
+var glicemiaInsertData = { glicemia: 96 };
 
 function openAddGlicemiaWizard() {
   _addGlicStep = 1;
-  _glicNumpadValue = '';
+  glicemiaInsertData = { glicemia: 96, insulina: 0, medicamentos: null, _useNow: true };
+
+  // Reset notas
+  var nota = document.getElementById('glicNotaInput');
+  if (nota) nota.value = '';
+  // Reset medicamentos
+  document.querySelectorAll('#glicStep5 .pi-med-card').forEach(function(b) { b.classList.remove('pi-med-card--active'); });
+  var glicMedBtn = document.getElementById('glicMedNextBtn');
+  if (glicMedBtn) { glicMedBtn.style.opacity = '0.35'; glicMedBtn.style.pointerEvents = 'none'; }
 
   // Reset context
   var ctx = document.getElementById('glicemiaContextoInput');
@@ -292,14 +298,15 @@ function openAddGlicemiaWizard() {
   var cfm = document.getElementById('glicConfirmCtxBtn');
   if (cfm) { cfm.style.opacity = '0.35'; cfm.style.pointerEvents = 'none'; }
 
-  // Reset numpad display
-  _glicemiaUpdateDisplay();
+  // Reset drum input overlay
+  var glicDrumInp = document.getElementById('piDcInput-glicemia');
+  if (glicDrumInp) { glicDrumInp.style.pointerEvents = 'none'; glicDrumInp.style.opacity = '0'; }
 
   // Pre-fill date/time to now (for the optional panel in step 3)
   var now = new Date();
   var dat = document.getElementById('glicemiaDataInput');
   var hor = document.getElementById('glicemiaHoraInput');
-  if (dat) dat.value = now.toISOString().slice(0, 10);
+  if (dat) dat.value = String(now.getDate()).padStart(2,'0') + '/' + String(now.getMonth()+1).padStart(2,'0') + '/' + now.getFullYear();
   if (hor) hor.value = now.toTimeString().slice(0, 5);
 
   // Reset step-3: mostrar opções, ocultar painel de data/hora
@@ -307,6 +314,10 @@ function openAddGlicemiaWizard() {
   if (glicOpts) glicOpts.style.display = '';
   var etp = document.getElementById('glicEditTimePanel');
   if (etp) etp.style.display = 'none';
+  _glicS3Mode = null;
+  var cfm = document.getElementById('glicS3ConfirmBtn');
+  if (cfm) cfm.style.display = 'none';
+  document.querySelectorAll('.glic-s3-opt-btn').forEach(function(b) { b.classList.remove('glic-s3-selected'); });
 
   // Hide chart/list views
   var chart = document.getElementById('pressaoHistoricoView');
@@ -324,9 +335,18 @@ function openAddGlicemiaWizard() {
   window._glicemiaInsertActive = true;
 
   var titleEl = document.getElementById('vitalDetailTitle');
-  if (titleEl) titleEl.textContent = 'Inserir Glicemia';
+  if (titleEl) titleEl.style.display = 'none';
+  var _glicSubEl = document.getElementById('vitalDetailSubtitle');
+  if (_glicSubEl) {
+    var _dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    var _meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+    _glicSubEl.textContent = _dias[now.getDay()] + ', ' + now.getDate() + ' de ' + _meses[now.getMonth()] + ' · ' + now.toTimeString().slice(0, 5);
+  }
 
   glicemiaWizardGoStep(1);
+  _piDrumRender('glicemia');
+  _piDrumRender('insulina');
+  _glicDrumUpdateBadge();
 }
 
 function closeAddGlicemiaWizard() {
@@ -344,12 +364,17 @@ function closeAddGlicemiaWizard() {
   if (addRow) addRow.style.display = '';
 
   var titleEl = document.getElementById('vitalDetailTitle');
-  if (titleEl && currentVitalDetail) titleEl.textContent = 'Histórico de ' + currentVitalDetail.tipo;
+  if (titleEl) {
+    titleEl.style.display = '';
+    if (currentVitalDetail) titleEl.textContent = currentVitalDetail.tipo === 'Glicemia' ? 'Glicose no Sangue' : ('Histórico de ' + currentVitalDetail.tipo);
+  }
+  var _closeSubEl = document.getElementById('vitalDetailSubtitle');
+  if (_closeSubEl) _closeSubEl.textContent = '';
 }
 
 function glicemiaWizardGoStep(step) {
   _addGlicStep = step;
-  [1, 2, 3].forEach(function(s) {
+  [1, 2, 3, 4, 5, 6].forEach(function(s) {
     var el = document.getElementById('glicStep' + s);
     if (el) el.style.display = s === step ? '' : 'none';
     var dot = document.querySelector('[data-glicdot="' + s + '"]');
@@ -359,6 +384,10 @@ function glicemiaWizardGoStep(step) {
       if (s === step) dot.classList.remove('done');
     }
   });
+  // Render insulina drum when entering step 4
+  if (step === 4) {
+    _piDrumRender('insulina');
+  }
 }
 
 // Teclado numérico customizado
@@ -410,28 +439,14 @@ function _glicemiaUpdateValorNextBtn() {
 }
 
 function glicemiaWizardNext() {
-  var val = parseInt(_glicNumpadValue, 10);
-  if (!_glicNumpadValue || val < 20 || val > 600) return;
-  // Update step-3 summary badge
-  var ctx = (document.getElementById('glicemiaContextoInput') || {}).value || '';
-  var badge = document.getElementById('glicStep3ValorBadge');
-  if (badge) badge.textContent = _glicNumpadValue + ' mg/dL' + (ctx ? ' · ' + ctx : '');
-  // Refresh datetime to now
-  var now = new Date();
-  var dat = document.getElementById('glicemiaDataInput');
-  var hor = document.getElementById('glicemiaHoraInput');
-  if (dat) dat.value = now.toISOString().slice(0, 10);
-  if (hor) hor.value = now.toTimeString().slice(0, 5);
-  // Update "Medido agora" button subtitle with current time
-  var agoraLbl = document.getElementById('glicAgoraLabel');
-  if (agoraLbl) {
-    var dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-    var meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-    var h = String(now.getHours()).padStart(2,'0');
-    var m = String(now.getMinutes()).padStart(2,'0');
-    agoraLbl.textContent = dias[now.getDay()] + ', ' + now.getDate() + ' ' + meses[now.getMonth()] + ' · ' + h + ':' + m;
-  }
-  glicemiaWizardGoStep(3);
+  // Reset context selection before showing step 2
+  var ctxInput = document.getElementById('glicemiaContextoInput');
+  if (ctxInput) ctxInput.value = '';
+  document.querySelectorAll('#glicemiaContextoBtns .glic-ctx-card')
+    .forEach(function(b) { b.classList.remove('glic-ctx-active'); });
+  var cfm = document.getElementById('glicConfirmCtxBtn');
+  if (cfm) { cfm.style.opacity = '0.35'; cfm.style.pointerEvents = 'none'; }
+  glicemiaWizardGoStep(2);
 }
 
 function selectGlicemiaContexto(btn) {
@@ -447,28 +462,97 @@ function selectGlicemiaContexto(btn) {
 function glicemiaConfirmContexto() {
   var ctx = (document.getElementById('glicemiaContextoInput') || {}).value;
   if (!ctx) return;
-  // Mostra o contexto escolhido como dica no step 2
-  var lbl = document.getElementById('glicCtxLabel');
-  if (lbl) lbl.textContent = ctx;
-  // Reseta numpad ao entrar no step
-  _glicNumpadValue = '';
-  _glicemiaUpdateDisplay();
-  _glicemiaUpdateValorNextBtn();
-  glicemiaWizardGoStep(2);
+  // Update step-3 summary badge
+  var badge = document.getElementById('glicStep3ValorBadge');
+  if (badge) badge.textContent = _glicNumpadValue + ' mg/dL · ' + ctx;
+  // Refresh datetime to now
+  var now = new Date();
+  var dat = document.getElementById('glicemiaDataInput');
+  var hor = document.getElementById('glicemiaHoraInput');
+  if (dat) dat.value = String(now.getDate()).padStart(2,'0') + '/' + String(now.getMonth()+1).padStart(2,'0') + '/' + now.getFullYear();
+  if (hor) hor.value = now.toTimeString().slice(0, 5);
+  // Update "Medido agora" button subtitle with current time
+  var agoraLbl = document.getElementById('glicAgoraLabel');
+  if (agoraLbl) {
+    var dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    var meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    var h = String(now.getHours()).padStart(2,'0');
+    var m = String(now.getMinutes()).padStart(2,'0');
+    agoraLbl.textContent = dias[now.getDay()] + ', ' + now.getDate() + ' ' + meses[now.getMonth()] + ' · ' + h + ':' + m;
+  }
+  glicemiaWizardGoStep(3);
+}
+
+var _glicS3Mode = null;
+
+function glicSelectAgora() {
+  _glicS3Mode = 'agora';
+  document.querySelectorAll('.glic-s3-opt-btn').forEach(function(b) { b.classList.remove('glic-s3-selected'); });
+  var agoraBtn = document.getElementById('glicAgoraBtn');
+  if (agoraBtn) agoraBtn.classList.add('glic-s3-selected');
+  var cfm = document.getElementById('glicS3ConfirmBtn');
+  if (cfm) cfm.style.display = '';
+}
+
+function glicS3Confirm() {
+  if (_glicS3Mode === 'agora') { glicemiaInsertData._useNow = true; }
+  else if (_glicS3Mode === 'outro') { glicemiaInsertData._useNow = false; }
+  glicemiaWizardGoStep(4);
 }
 
 function glicShowOutroHorario() {
+  _glicS3Mode = 'outro';
   var opts = document.getElementById('glicS3Options');
   if (opts) opts.style.display = 'none';
   var panel = document.getElementById('glicEditTimePanel');
   if (panel) panel.style.display = '';
+  var cfm = document.getElementById('glicS3ConfirmBtn');
+  if (cfm) cfm.style.display = '';
+}
+
+function glicDataInputMask(inp) {
+  var v = inp.value.replace(/\D/g, '').slice(0, 8);
+  if (v.length > 4) v = v.slice(0,2) + '/' + v.slice(2,4) + '/' + v.slice(4);
+  else if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+  inp.value = v;
+}
+
+function glicSelectMed(val) {
+  document.querySelectorAll('#glicStep5 .pi-med-card').forEach(function(b) { b.classList.remove('pi-med-card--active'); });
+  var btn = document.getElementById('glicMed-' + val);
+  if (btn) btn.classList.add('pi-med-card--active');
+  glicemiaInsertData.medicamentos = val;
+  var nxt = document.getElementById('glicMedNextBtn');
+  if (nxt) { nxt.style.opacity = '1'; nxt.style.pointerEvents = ''; }
+}
+
+function glicOpenDatePicker() {
+  var picker = document.getElementById('glicemiaDataPicker');
+  if (!picker) return;
+  // Sync current text value to picker before opening
+  var txt = document.getElementById('glicemiaDataInput').value;
+  if (txt && txt.length === 10) {
+    var p = txt.split('/');
+    picker.value = p[2] + '-' + p[1] + '-' + p[0];
+  }
+  if (picker.showPicker) { picker.showPicker(); } else { picker.click(); }
+}
+
+function glicDatePickerChange(picker) {
+  if (!picker.value) return;
+  var p = picker.value.split('-');
+  document.getElementById('glicemiaDataInput').value = p[2] + '/' + p[1] + '/' + p[0];
 }
 
 function glicHideOutroHorario() {
+  _glicS3Mode = null;
   var panel = document.getElementById('glicEditTimePanel');
   if (panel) panel.style.display = 'none';
   var opts = document.getElementById('glicS3Options');
   if (opts) opts.style.display = '';
+  document.querySelectorAll('.glic-s3-opt-btn').forEach(function(b) { b.classList.remove('glic-s3-selected'); });
+  var cfm = document.getElementById('glicS3ConfirmBtn');
+  if (cfm) cfm.style.display = 'none';
 }
 
 function glicToggleEditTime(btnEl) {
@@ -477,29 +561,38 @@ function glicToggleEditTime(btnEl) {
 
 function saveGlicemiaEntry(ev, useNow) {
   if (ev) ev.preventDefault();
-  var valorRaw = parseInt(_glicNumpadValue, 10);
-  if (!_glicNumpadValue || valorRaw < 20 || valorRaw > 600) {
-    glicemiaWizardGoStep(2);
+  var valorRaw = glicemiaInsertData.glicemia;
+  if (!valorRaw || valorRaw < 20 || valorRaw > 600) {
+    glicemiaWizardGoStep(1);
     return;
   }
+  var useNow = glicemiaInsertData._useNow !== false;
   var dataVal, horaVal;
-  if (useNow !== false) {
+  if (useNow) {
     var now = new Date();
     dataVal = now.toISOString().slice(0, 10);
     horaVal = now.toTimeString().slice(0, 5);
   } else {
-    dataVal = document.getElementById('glicemiaDataInput').value;
+    var _rawData = document.getElementById('glicemiaDataInput').value;
     horaVal = document.getElementById('glicemiaHoraInput').value;
-    if (!dataVal) return;
+    if (!_rawData || _rawData.length < 10) return;
+    var _dp = _rawData.split('/');
+    dataVal = _dp[2] + '-' + _dp[1] + '-' + _dp[0];
     if (!horaVal) {
       horaVal = new Date().toTimeString().slice(0, 5);
       document.getElementById('glicemiaHoraInput').value = horaVal;
     }
   }
   var contexto = (document.getElementById('glicemiaContextoInput') || {}).value || '';
+  var nota = (document.getElementById('glicNotaInput') || {}).value || '';
+  var insulinaVal = glicemiaInsertData.insulina || null;
+  var medicamentosVal = glicemiaInsertData.medicamentos || null;
   var status = valorRaw > 125 ? 'alto' : valorRaw > 99 ? 'atencao' : 'normal';
   var entry = { data: dataVal, hora: horaVal, valor: valorRaw, status: status };
   if (contexto) entry.contexto = contexto;
+  if (nota) entry.nota = nota;
+  if (insulinaVal) entry.insulina = insulinaVal;
+  if (medicamentosVal) entry.medicamentos = medicamentosVal;
 
   var vital = mockData.sinaisVitais.find(function(v) { return v.tipo === 'Glicemia'; });
   if (vital) {
@@ -1638,6 +1731,21 @@ function renderPerfil() {
         </div>
       </div>
     </div>
+
+    <!-- ── DEMO ── -->
+    <div class="perfil-section-title" style="color:#64748b;font-size:11px;letter-spacing:0.5px;">Demo</div>
+    <div class="config-item" onclick="simulatePushNotification()" style="cursor:pointer;margin-bottom:40px;">
+      <div class="config-item-content">
+        <div class="config-icon" style="color:#f59e0b;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="12" y1="2" x2="12" y2="3"/></svg>
+        </div>
+        <div class="config-text">
+          <div class="config-title">Simular Notificação Push</div>
+          <div class="config-subtitle">Demonstração de alerta de medição</div>
+        </div>
+      </div>
+      <div style="color:#64748b;font-size:13px;">›</div>
+    </div>
   `;
 
   document.getElementById('perfilContent').innerHTML = html;
@@ -1648,6 +1756,65 @@ function renderPerfil() {
 
   renderCompartilhamentoInPerfil();
   renderDispositivos();
+}
+
+function simulatePushNotification() {
+  // Remove any existing banner
+  var _old = document.getElementById('pushNotifBanner');
+  if (_old) { _old.remove(); }
+
+  var _dur = 5000; // ms visible
+  var _banner = document.createElement('div');
+  _banner.id = 'pushNotifBanner';
+  _banner.className = 'push-notif-banner';
+  _banner.innerHTML = [
+    '<div class="push-notif-header">',
+      '<div class="push-notif-icon">',
+        '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+      '</div>',
+      '<span class="push-notif-appname">Teep Sa\u00fade</span>',
+      '<span class="push-notif-time">agora</span>',
+      '<button class="push-notif-dismiss" onclick="(function(){var b=document.getElementById(\'pushNotifBanner\');if(b)b.classList.remove(\'show\');setTimeout(function(){if(b)b.remove();},420);})()" aria-label="Fechar notifica\u00e7\u00e3o">\u2715</button>',
+    '</div>',
+    '<div class="push-notif-title">\ud83d\udc89 Lembrete de Sa\u00fade</div>',
+    '<div class="push-notif-body">Est\u00e1 na hora de medir sua press\u00e3o arterial. Toque para registrar agora.</div>',
+    '<div class="push-notif-progress"><div class="push-notif-progress-bar" id="pushNotifProgressBar"></div></div>'
+  ].join('');
+  document.body.appendChild(_banner);
+
+  // Vibrate on mobile if available
+  if (navigator.vibrate) navigator.vibrate([120, 60, 80]);
+
+  // Show with animation
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      _banner.classList.add('show');
+      // Animate shrinking progress bar over _dur ms
+      var _bar = document.getElementById('pushNotifProgressBar');
+      if (_bar) {
+        _bar.style.transition = 'none';
+        _bar.style.width = '100%';
+        requestAnimationFrame(function() {
+          _bar.style.transition = 'width ' + (_dur / 1000) + 's linear';
+          _bar.style.width = '0%';
+        });
+      }
+    });
+  });
+
+  // Auto-dismiss
+  var _tid = setTimeout(function() {
+    _banner.classList.remove('show');
+    setTimeout(function() { if (_banner.parentNode) _banner.remove(); }, 420);
+  }, _dur);
+
+  // Clicking banner body navigates to PA (optional demo touch)
+  _banner.addEventListener('click', function(e) {
+    if (e.target.classList.contains('push-notif-dismiss')) return;
+    clearTimeout(_tid);
+    _banner.classList.remove('show');
+    setTimeout(function() { if (_banner.parentNode) _banner.remove(); }, 420);
+  });
 }
 
 // ===== NAVEGAÇÃO =====
@@ -7829,7 +7996,7 @@ function openVitalDetailModal(tipoVital, vitalId) {
   }
 
   window.__vitalDetailModalTipoLabel = tipoVital;
-  document.getElementById('vitalDetailTitle').textContent = tipoVital === 'Passos' ? tipoVital : `Histórico de ${tipoVital}`;
+  document.getElementById('vitalDetailTitle').textContent = tipoVital === 'Passos' ? tipoVital : (tipoVital === 'Glicemia' ? 'Glicose no Sangue' : `Histórico de ${tipoVital}`);
   document.getElementById('vitalDetailSubtitle').textContent = '';
   document.getElementById('filterVitalDataInicio').value = '';
   document.getElementById('filterVitalDataFim').value = '';
@@ -8359,7 +8526,9 @@ function _piRenderSummary() {
 function piDcInputBlur(field, inp) {
   var v = parseInt(inp.value, 10);
   if (!isNaN(v)) {
-    if (field === 'sis') pressaoInsertData.sis = Math.max(60, Math.min(250, v));
+    if (field === 'glicemia') { glicemiaInsertData.glicemia = Math.max(20, Math.min(600, v)); _glicDrumUpdateBadge(); }
+    else if (field === 'insulina') { glicemiaInsertData.insulina = Math.max(0, Math.min(200, v)); }
+    else if (field === 'sis') pressaoInsertData.sis = Math.max(60, Math.min(250, v));
     else if (field === 'dia') pressaoInsertData.dia = Math.max(30, Math.min(160, v));
     else if (field === 'hr')  pressaoInsertData.hr  = Math.max(30, Math.min(250, v));
   }
@@ -8369,8 +8538,21 @@ function piDcInputBlur(field, inp) {
 }
 
 /* ── Drum picker ─────────────────────────────────────────────────────────── */
+function _glicDrumUpdateBadge() {
+  var badge = document.getElementById('glicRangeBadge');
+  if (!badge) return;
+  var val = glicemiaInsertData.glicemia;
+  if (val <= 99) {
+    badge.textContent = '\u25cf Normal (70\u201399)'; badge.className = 'glic-range-badge glic-range-badge--normal';
+  } else if (val <= 125) {
+    badge.textContent = '\u25cf Aten\u00e7\u00e3o (100\u2013125)'; badge.className = 'glic-range-badge glic-range-badge--atencao';
+  } else {
+    badge.textContent = '\u25cf Alto (acima de 125)'; badge.className = 'glic-range-badge glic-range-badge--alto';
+  }
+}
+
 function _piDrumRender(field) {
-  var val = pressaoInsertData[field];
+  var val = field === 'glicemia' ? glicemiaInsertData.glicemia : (field === 'insulina' ? (glicemiaInsertData.insulina || 0) : pressaoInsertData[field]);
   var track = document.getElementById('piDrumTrack-' + field);
   if (!track) return;
   // Reset any leftover keyboard-input overlay
@@ -8392,7 +8574,9 @@ function _piDrumRender(field) {
 }
 
 function _piDrumStep(field, delta) {
-  if (field === 'sis') pressaoInsertData.sis = Math.max(60, Math.min(250, pressaoInsertData.sis + delta));
+  if (field === 'glicemia') { glicemiaInsertData.glicemia = Math.max(20, Math.min(600, glicemiaInsertData.glicemia + delta)); _glicDrumUpdateBadge(); }
+  else if (field === 'insulina') { glicemiaInsertData.insulina = Math.max(0, Math.min(200, (glicemiaInsertData.insulina || 0) + delta)); }
+  else if (field === 'sis') pressaoInsertData.sis = Math.max(60, Math.min(250, pressaoInsertData.sis + delta));
   else if (field === 'dia') pressaoInsertData.dia = Math.max(30, Math.min(160, pressaoInsertData.dia + delta));
   else if (field === 'hr') pressaoInsertData.hr = Math.max(30, Math.min(250, pressaoInsertData.hr + delta));
 }
@@ -8670,11 +8854,11 @@ function renderSparklineChart(historico) {
       const dpr = window.devicePixelRatio || 1;
       const n = renderRows.length;
       const containerW = _chartView ? _chartView.offsetWidth : (canvas.parentElement ? canvas.parentElement.offsetWidth : 320);
-      // padT=30 leaves room for the tooltip bubble above the chart area
-      const padL = 30, padR = 20, padT = 30, padB = 22;
-      const minColW = _isYearView ? 30 : 44;
-      // Force scroll in day-views: canvas width = max(container, paddings + n * minColW)
-      const W = Math.max(containerW, padL + n * minColW + padR);
+      // padT=44 leaves room for the two-line tooltip bubble above the chart area
+      const padL = 30, padR = 20, padT = 44, padB = 22;
+      const minColW = _isYearView ? 30 : Math.max(10, (containerW - padL - padR) / Math.max(1, n));
+      // Fit all columns in the container when possible; scroll only if minColW floor (10px) forces wider canvas
+      const W = Math.max(containerW, padL + Math.ceil(n * minColW) + padR);
       const gw = W - padL - padR;
       const colW = gw / n;  // columns perfectly fill the padded area
       const H = 180;
@@ -8805,8 +8989,20 @@ function renderSparklineChart(historico) {
             ctx.font = '10px Inter, sans-serif';
             const unitW = ctx.measureText(' mmHg').width;
             const totalTxtW = sisW + sepW + diaW + unitW;
-            const bw = Math.max(totalTxtW + 18, 88);
-            const bh = 20;
+            // Date label
+            const _ptBrWP = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+            let dateLbl = '';
+            if (!_isYearView && selRow.dayIso) {
+              const _dp = new Date(selRow.dayIso + 'T12:00:00');
+              if (!isNaN(_dp.getTime())) dateLbl = _ptBrWP[_dp.getDay()] + ', ' + _dp.getDate() + ' ' + _mAbr[_dp.getMonth()];
+            } else if (_isYearView && selRow.monthKey) {
+              const [_my, _mm] = selRow.monthKey.split('-').map(Number);
+              dateLbl = _mAbr[_mm - 1] + ' ' + _my;
+            }
+            ctx.font = '10px Inter, sans-serif';
+            const dateLblW = dateLbl ? ctx.measureText(dateLbl).width : 0;
+            const bh = dateLbl ? 34 : 22;
+            const bw = Math.max(totalTxtW + 18, dateLblW + 18, 88);
             const arrowH = 5;
             let bx = x - bw / 2;
             if (bx < padL) bx = padL;
@@ -8824,16 +9020,21 @@ function renderSparklineChart(historico) {
             ctx.lineTo(bx + br, by); ctx.quadraticCurveTo(bx, by, bx, by - br);
             ctx.lineTo(bx, by - bh + br); ctx.quadraticCurveTo(bx, by - bh, bx + br, by - bh);
             ctx.closePath(); ctx.fill();
-            // Colored text: SIS amber / DIA blue / mmHg gray
-            const txtY = by - bh / 2;
+            // Colored text: SIS amber / DIA blue / mmHg gray + date below
             ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+            const txtY1 = dateLbl ? by - bh + 11 : by - bh / 2;
             let cx2 = bx + bw / 2 - totalTxtW / 2;
             ctx.font = 'bold 11px Inter, sans-serif';
-            ctx.fillStyle = '#fbbf24'; ctx.fillText(sisStr, cx2, txtY); cx2 += sisW;
-            ctx.fillStyle = '#94a3b8'; ctx.fillText(' / ', cx2, txtY); cx2 += sepW;
-            ctx.fillStyle = '#60a5fa'; ctx.fillText(diaStr, cx2, txtY); cx2 += diaW;
+            ctx.fillStyle = '#fbbf24'; ctx.fillText(sisStr, cx2, txtY1); cx2 += sisW;
+            ctx.fillStyle = '#94a3b8'; ctx.fillText(' / ', cx2, txtY1); cx2 += sepW;
+            ctx.fillStyle = '#60a5fa'; ctx.fillText(diaStr, cx2, txtY1); cx2 += diaW;
             ctx.font = '10px Inter, sans-serif';
-            ctx.fillStyle = '#94a3b8'; ctx.fillText(' mmHg', cx2, txtY);
+            ctx.fillStyle = '#94a3b8'; ctx.fillText(' mmHg', cx2, txtY1);
+            if (dateLbl) {
+              const txtY2 = by - bh + 25;
+              ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#94a3b8';
+              ctx.fillText(dateLbl, bx + (bw - dateLblW) / 2, txtY2);
+            }
           }
         }
 
@@ -8978,9 +9179,11 @@ function renderSparklineChart(historico) {
     const dpr = window.devicePixelRatio || 1;
     const n = rows.length;
     const containerW = _passChartView ? _passChartView.offsetWidth : (canvas.parentElement ? canvas.parentElement.offsetWidth : 320);
-    const padL = 28, padR = 12, padT = 30, padB = 20;
-    const minColW = 36;
-    const W = Math.max(containerW, padL + n * minColW + padR);
+    const padL = 28, padR = 12, padT = 44, padB = 20;
+    const _isYearView = typeof vitalDefaultPeriod !== 'undefined' && vitalDefaultPeriod === 'year';
+    const minColW = _isYearView ? 20 : Math.max(10, (containerW - padL - padR) / Math.max(1, n));
+    // Fit all columns in the container when possible; scroll only if minColW floor forces wider canvas
+    const W = Math.max(containerW, padL + Math.ceil(n * minColW) + padR);
     const H = 180;
     const gw = W - padL - padR;
     const gh = H - padT - padB;
@@ -9052,12 +9255,17 @@ function renderSparklineChart(historico) {
         const _selRow = rows[_selIdx];
         const _cx = padL + slot * _selIdx + slot / 2;
         const _numStr = _selRow.v.toLocaleString('pt-BR');
+        const _ptBrWS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+        const _mAbrS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+        const [_sy, _smo, _sdd] = _selRow.day.split('-').map(Number);
+        const _sDateLbl = _isYearView ? '' : `${_ptBrWS[new Date(_sy, _smo - 1, _sdd).getDay()]}, ${_sdd} ${_mAbrS[_smo - 1]}`;
         ctx.font = 'bold 10px Inter, sans-serif';
         const _nw = ctx.measureText(_numStr).width;
         ctx.font = '9px Inter, sans-serif';
         const _sw = ctx.measureText(' passos').width;
-        const _bw = Math.max(_nw + _sw + 18, 76);
-        const _bh = 20;
+        const _sdlw = _sDateLbl ? ctx.measureText(_sDateLbl).width : 0;
+        const _bw = Math.max(_nw + _sw + 18, _sdlw + 18, 76);
+        const _bh = _sDateLbl ? 34 : 20;
         const _arr = 5;
         let _bx = _cx - _bw / 2;
         if (_bx < padL) _bx = padL;
@@ -9078,13 +9286,20 @@ function renderSparklineChart(historico) {
         ctx.lineTo(_bx, _by - _bh + _br);
         ctx.quadraticCurveTo(_bx, _by - _bh, _bx + _br, _by - _bh);
         ctx.closePath(); ctx.fill();
-        const _ty = _by - _bh / 2;
-        let _tx = _bx + (_bw - _nw - _sw) / 2;
         ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
-        ctx.font = 'bold 10px Inter, sans-serif';
-        ctx.fillStyle = '#34d399'; ctx.fillText(_numStr, _tx, _ty); _tx += _nw;
-        ctx.font = '9px Inter, sans-serif';
-        ctx.fillStyle = '#94a3b8'; ctx.fillText(' passos', _tx, _ty);
+        if (_sDateLbl) {
+          const _ty1 = _by - _bh + 11;
+          let _tx = _bx + (_bw - _nw - _sw) / 2;
+          ctx.font = 'bold 10px Inter, sans-serif'; ctx.fillStyle = '#34d399'; ctx.fillText(_numStr, _tx, _ty1); _tx += _nw;
+          ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#94a3b8'; ctx.fillText(' passos', _tx, _ty1);
+          ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#6ee7b7';
+          ctx.textAlign = 'center'; ctx.fillText(_sDateLbl, _bx + _bw / 2, _by - _bh + 25);
+        } else {
+          const _ty = _by - _bh / 2;
+          let _tx = _bx + (_bw - _nw - _sw) / 2;
+          ctx.font = 'bold 10px Inter, sans-serif'; ctx.fillStyle = '#34d399'; ctx.fillText(_numStr, _tx, _ty); _tx += _nw;
+          ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#94a3b8'; ctx.fillText(' passos', _tx, _ty);
+        }
       }
     }
 
@@ -9118,6 +9333,169 @@ function renderSparklineChart(historico) {
       if (hit && hit.dayIso) setPassosDayFromChart(hit.dayIso);
     };
 
+    // Hover: crosshair dotted line + tooltip
+    canvas.__drawPassHover = function(hovIdx) {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = '#F8F9FA';
+      ctx.fillRect(0, 0, W, H);
+      // Goal zone
+      ctx.fillStyle = 'rgba(34, 197, 94, 0.08)';
+      ctx.fillRect(padL, toY(goal), gw, gh - (toY(goal) - padT));
+      ctx.strokeStyle = 'rgba(34, 197, 94, 0.55)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(padL, toY(goal)); ctx.lineTo(padL + gw, toY(goal)); ctx.stroke();
+      ctx.setLineDash([]);
+      // Bars
+      rows.forEach((row, i) => {
+        const isSelected = row.day === passosSelectedDayIso;
+        const isHov = i === hovIdx;
+        const cx2 = padL + slot * i + slot / 2;
+        const x02 = cx2 - barW / 2;
+        const yTop2 = toY(row.v);
+        const yBot2 = toY(0);
+        const hBar2 = Math.max(1, yBot2 - yTop2);
+        const g2 = ctx.createLinearGradient(0, yTop2, 0, yBot2);
+        g2.addColorStop(0, isSelected ? '#34d399' : '#6ee7a0');
+        g2.addColorStop(1, isSelected ? '#16a34a' : '#22c55e');
+        ctx.fillStyle = g2;
+        ctx.globalAlpha = passosSelectedDayIso && !isSelected ? 0.35 : (hovIdx >= 0 && !isSelected && !isHov ? 0.5 : 1);
+        if (typeof ctx.roundRect === 'function') { ctx.beginPath(); ctx.roundRect(x02, yTop2, barW, hBar2, [barR, barR, 2, 2]); ctx.fill(); }
+        else { ctx.fillRect(x02, yTop2, barW, hBar2); }
+        ctx.globalAlpha = 1;
+        if (isSelected) {
+          ctx.strokeStyle = '#16a34a'; ctx.lineWidth = 1;
+          ctx.strokeRect(x02 - 0.5, yTop2 - 0.5, barW + 1, hBar2 + 1);
+        }
+      });
+      // Y labels
+      ctx.fillStyle = '#8e8e8e'; ctx.font = '8px sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillText('0', padL - 4, toY(0));
+      ctx.fillText(String(Math.round(goal)), padL - 4, toY(goal));
+      // X labels
+      const _lbEvery = Math.max(1, Math.ceil(n / 8));
+      ctx.fillStyle = '#666'; ctx.font = '8px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+      rows.forEach((row, i) => {
+        if (i % _lbEvery !== 0 && i !== n - 1) return;
+        const cxL = padL + slot * i + slot / 2;
+        const d = String(row.h.data || '');
+        const parts = d.split('-');
+        const short = parts.length === 3 ? String(Number(parts[2])) : '';
+        ctx.fillText(short, cxL, H - 4);
+      });
+      // Sel-day tooltip bubble
+      if (passosSelectedDayIso) {
+        const _si = rows.findIndex(r => r.day === passosSelectedDayIso);
+        if (_si >= 0 && _si !== hovIdx) {
+          const _sr = rows[_si];
+          const _cx = padL + slot * _si + slot / 2;
+          const _numStr = _sr.v.toLocaleString('pt-BR');
+          const _ptBrWD = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+          const _mAbrD = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+          const [_dy, _dmo, _ddd] = _sr.day.split('-').map(Number);
+          const _sdDateLbl = _isYearView ? '' : `${_ptBrWD[new Date(_dy, _dmo - 1, _ddd).getDay()]}, ${_ddd} ${_mAbrD[_dmo - 1]}`;
+          ctx.font = 'bold 10px Inter, sans-serif'; const _nw = ctx.measureText(_numStr).width;
+          ctx.font = '9px Inter, sans-serif'; const _sw = ctx.measureText(' passos').width;
+          const _sdlw2 = _sdDateLbl ? ctx.measureText(_sdDateLbl).width : 0;
+          const _bw = Math.max(_nw + _sw + 18, _sdlw2 + 18, 76), _bh = _sdDateLbl ? 34 : 20, _arr = 5;
+          let _bx = _cx - _bw / 2;
+          if (_bx < padL) _bx = padL;
+          if (_bx + _bw > padL + gw) _bx = padL + gw - _bw;
+          const _by = padT - _arr - 2, _br = 4;
+          ctx.fillStyle = '#1e293b';
+          ctx.beginPath();
+          ctx.moveTo(_bx + _br, _by - _bh); ctx.lineTo(_bx + _bw - _br, _by - _bh);
+          ctx.quadraticCurveTo(_bx + _bw, _by - _bh, _bx + _bw, _by - _bh + _br);
+          ctx.lineTo(_bx + _bw, _by - _br); ctx.quadraticCurveTo(_bx + _bw, _by, _bx + _bw - _br, _by);
+          const _ax = Math.min(Math.max(_cx, _bx + 10), _bx + _bw - 10);
+          ctx.lineTo(_ax + 5, _by); ctx.lineTo(_ax, _by + _arr); ctx.lineTo(_ax - 5, _by);
+          ctx.lineTo(_bx + _br, _by); ctx.quadraticCurveTo(_bx, _by, _bx, _by - _br);
+          ctx.lineTo(_bx, _by - _bh + _br); ctx.quadraticCurveTo(_bx, _by - _bh, _bx + _br, _by - _bh);
+          ctx.closePath(); ctx.fill();
+          ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+          if (_sdDateLbl) {
+            const _ty1 = _by - _bh + 11;
+            let _tx = _bx + (_bw - _nw - _sw) / 2;
+            ctx.font = 'bold 10px Inter, sans-serif'; ctx.fillStyle = '#34d399'; ctx.fillText(_numStr, _tx, _ty1); _tx += _nw;
+            ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#94a3b8'; ctx.fillText(' passos', _tx, _ty1);
+            ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#6ee7b7';
+            ctx.textAlign = 'center'; ctx.fillText(_sdDateLbl, _bx + _bw / 2, _by - _bh + 25);
+          } else {
+            const _ty = _by - _bh / 2; let _tx = _bx + (_bw - _nw - _sw) / 2;
+            ctx.font = 'bold 10px Inter, sans-serif'; ctx.fillStyle = '#34d399'; ctx.fillText(_numStr, _tx, _ty); _tx += _nw;
+            ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#94a3b8'; ctx.fillText(' passos', _tx, _ty);
+          }
+        }
+      }
+      // Hover crosshair + tooltip
+      if (hovIdx >= 0) {
+        const _hRow = rows[hovIdx];
+        const _hCx = padL + slot * hovIdx + slot / 2;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(100,116,139,0.55)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.moveTo(_hCx, padT); ctx.lineTo(_hCx, H - padB); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+        const _hNum = _hRow.v.toLocaleString('pt-BR');
+        const _ptBrWH = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+        const _mAbrH = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+        const [_hy, _hmo, _hdd] = _hRow.day.split('-').map(Number);
+        const _hDateLbl = _isYearView ? '' : `${_ptBrWH[new Date(_hy, _hmo - 1, _hdd).getDay()]}, ${_hdd} ${_mAbrH[_hmo - 1]}`;
+        ctx.font = 'bold 10px Inter, sans-serif'; const _hnw = ctx.measureText(_hNum).width;
+        ctx.font = '9px Inter, sans-serif'; const _hsw = ctx.measureText(' passos').width;
+        const _hdlw = _hDateLbl ? ctx.measureText(_hDateLbl).width : 0;
+        const _hbw = Math.max(_hnw + _hsw + 18, _hdlw + 18, 76), _hbh = _hDateLbl ? 34 : 20, _harr = 5;
+        let _hbx = _hCx - _hbw / 2;
+        if (_hbx < padL) _hbx = padL;
+        if (_hbx + _hbw > padL + gw) _hbx = padL + gw - _hbw;
+        const _hby = padT - _harr - 2, _hbr = 4;
+        ctx.fillStyle = '#14532d';
+        ctx.beginPath();
+        ctx.moveTo(_hbx + _hbr, _hby - _hbh); ctx.lineTo(_hbx + _hbw - _hbr, _hby - _hbh);
+        ctx.quadraticCurveTo(_hbx + _hbw, _hby - _hbh, _hbx + _hbw, _hby - _hbh + _hbr);
+        ctx.lineTo(_hbx + _hbw, _hby - _hbr); ctx.quadraticCurveTo(_hbx + _hbw, _hby, _hbx + _hbw - _hbr, _hby);
+        const _hax = Math.min(Math.max(_hCx, _hbx + 10), _hbx + _hbw - 10);
+        ctx.lineTo(_hax + 5, _hby); ctx.lineTo(_hax, _hby + _harr); ctx.lineTo(_hax - 5, _hby);
+        ctx.lineTo(_hbx + _hbr, _hby); ctx.quadraticCurveTo(_hbx, _hby, _hbx, _hby - _hbr);
+        ctx.lineTo(_hbx, _hby - _hbh + _hbr); ctx.quadraticCurveTo(_hbx, _hby - _hbh, _hbx + _hbr, _hby - _hbh);
+        ctx.closePath(); ctx.fill();
+        ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+        if (_hDateLbl) {
+          const _hty1 = _hby - _hbh + 11;
+          let _htx = _hbx + (_hbw - _hnw - _hsw) / 2;
+          ctx.font = 'bold 10px Inter, sans-serif'; ctx.fillStyle = '#86efac'; ctx.fillText(_hNum, _htx, _hty1); _htx += _hnw;
+          ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#bbf7d0'; ctx.fillText(' passos', _htx, _hty1);
+          ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#6ee7b7';
+          ctx.textAlign = 'center'; ctx.fillText(_hDateLbl, _hbx + _hbw / 2, _hby - _hbh + 25);
+        } else {
+          const _hty = _hby - _hbh / 2; let _htx = _hbx + (_hbw - _hnw - _hsw) / 2;
+          ctx.font = 'bold 10px Inter, sans-serif'; ctx.fillStyle = '#86efac'; ctx.fillText(_hNum, _htx, _hty); _htx += _hnw;
+          ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#bbf7d0'; ctx.fillText(' passos', _htx, _hty);
+        }
+      }
+    };
+    canvas._passHovIdx = -1;
+    canvas.onmousemove = (ev) => {
+      const rect = canvas.getBoundingClientRect();
+      const sx = W / Math.max(1, rect.width);
+      const x = (ev.clientX - rect.left) * sx;
+      let newIdx = -1;
+      hitBoxes.forEach((b, i) => { if (x >= b.x0 && x <= b.x1) newIdx = i; });
+      if (newIdx !== canvas._passHovIdx) {
+        canvas._passHovIdx = newIdx;
+        if (canvas.__drawPassHover) canvas.__drawPassHover(newIdx);
+      }
+    };
+    canvas.onmouseleave = () => {
+      if (canvas._passHovIdx !== -1) {
+        canvas._passHovIdx = -1;
+        if (canvas.__drawPassHover) canvas.__drawPassHover(-1);
+      }
+    };
+
     // Scroll to show the most recent (rightmost) day
     if (_passChartView && !passosSelectedDayIso) {
       _passChartView.scrollLeft = Math.max(0, W - containerW);
@@ -9143,7 +9521,7 @@ function renderSparklineChart(historico) {
       const dpr = window.devicePixelRatio || 1;
       const n = glicDayRows.length;
       const containerW = _glicChartView ? _glicChartView.offsetWidth : (canvas.parentElement ? canvas.parentElement.offsetWidth : 320);
-      const padL = 32, padR = 12, padT = 30, padB = 20;
+      const padL = 32, padR = 12, padT = 44, padB = 20;
       const minColW = 36;
       const W = Math.max(containerW, padL + n * minColW + padR);
       const H = 180;
@@ -9300,6 +9678,164 @@ function renderSparklineChart(historico) {
         const x = (ev.clientX - rect.left) * sx;
         const hit = hitBoxes.find((b) => x >= b.x0 && x <= b.x1);
         if (hit && hit.dayIso) selectGlicemiaDay(hit.dayIso);
+      };
+
+      // Hover: crosshair dotted line + tooltip
+      canvas.__drawGlicHover = function(hovIdx) {
+        // Redraw base: clear + bg + ideal zone + bars + sel tooltip + labels
+        _gCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        _gCtx.clearRect(0, 0, W, H);
+        _gCtx.fillStyle = '#F8F9FA';
+        _gCtx.fillRect(0, 0, W, H);
+        _gCtx.fillStyle = 'rgba(34, 197, 94, 0.10)';
+        _gCtx.fillRect(padL, toY(idealHigh), gw, toY(idealLow) - toY(idealHigh));
+        _gCtx.strokeStyle = 'rgba(34, 197, 94, 0.35)';
+        _gCtx.lineWidth = 1;
+        _gCtx.setLineDash([3, 3]);
+        _gCtx.beginPath(); _gCtx.moveTo(padL, toY(idealHigh)); _gCtx.lineTo(padL + gw, toY(idealHigh)); _gCtx.stroke();
+        _gCtx.beginPath(); _gCtx.moveTo(padL, toY(idealLow)); _gCtx.lineTo(padL + gw, toY(idealLow)); _gCtx.stroke();
+        _gCtx.setLineDash([]);
+        // Bars
+        glicDayRows.forEach((row, i) => {
+          const isSelected = !_isYearView && row.day === glicemiaSelectedDayIso;
+          const isHov = i === hovIdx;
+          const cx2 = padL + slot * i + slot / 2;
+          const x02 = cx2 - barW / 2;
+          const yTop2 = toY(row.avg);
+          const yBot2 = toY(0);
+          const hBar2 = Math.max(1, yBot2 - yTop2);
+          const g3 = _gCtx.createLinearGradient(0, yTop2, 0, yBot2);
+          if (row.avg > 125) { g3.addColorStop(0, isSelected ? '#dc2626' : '#f87171'); g3.addColorStop(1, isSelected ? '#991b1b' : '#ef4444'); }
+          else if (row.avg > 99) { g3.addColorStop(0, isSelected ? '#d97706' : '#fbbf24'); g3.addColorStop(1, isSelected ? '#92400e' : '#f59e0b'); }
+          else { g3.addColorStop(0, isSelected ? '#6d28d9' : '#8b5cf6'); g3.addColorStop(1, isSelected ? '#4c1d95' : '#7c3aed'); }
+          _gCtx.fillStyle = g3;
+          _gCtx.globalAlpha = !_isYearView && glicemiaSelectedDayIso && !isSelected ? 0.35 : (hovIdx >= 0 && !isSelected && !isHov ? 0.5 : 1);
+          if (typeof _gCtx.roundRect === 'function') { _gCtx.beginPath(); _gCtx.roundRect(x02, yTop2, barW, hBar2, [barR, barR, 2, 2]); _gCtx.fill(); }
+          else { _gCtx.fillRect(x02, yTop2, barW, hBar2); }
+          _gCtx.globalAlpha = 1;
+        });
+        // Y labels
+        _gCtx.fillStyle = '#94a3b8'; _gCtx.font = '8px sans-serif'; _gCtx.textAlign = 'right'; _gCtx.textBaseline = 'middle';
+        _gCtx.fillText('70', padL - 4, toY(70));
+        _gCtx.fillText('99', padL - 4, toY(99));
+        // X labels
+        const _ptBrMonths2 = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+        const _ptBrWeekdays2 = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+        const _labelEvery2 = _isYearView ? 1 : Math.max(1, Math.ceil(n / 8));
+        _gCtx.fillStyle = '#666'; _gCtx.font = '8px sans-serif'; _gCtx.textAlign = 'center'; _gCtx.textBaseline = 'alphabetic';
+        glicDayRows.forEach((row, i) => {
+          if (i % _labelEvery2 !== 0 && i !== n - 1) return;
+          const cx3 = padL + slot * i + slot / 2;
+          let _xl = '';
+          if (_isYearView) { const mi = parseInt((row.month || '').split('-')[1] || '1', 10) - 1; _xl = _ptBrMonths2[mi] || ''; }
+          else if (_is7dView) { const _d2 = new Date((row.day || '') + 'T12:00:00'); _xl = isNaN(_d2.getTime()) ? '' : _ptBrWeekdays2[_d2.getDay()]; }
+          else { const p2 = (row.day || '').split('-'); _xl = p2.length === 3 ? String(Number(p2[2])) : ''; }
+          _gCtx.fillText(_xl, cx3, H - 4);
+        });
+        // Sel-day tooltip bubble (same as original)
+        const _selIso2 = glicemiaSelectedDayIso;
+        if (_selIso2 && !_isYearView) {
+          const _si2 = glicDayRows.findIndex(r => r.day === _selIso2);
+          if (_si2 >= 0 && _si2 !== hovIdx) {
+            const _sr2 = glicDayRows[_si2];
+            const _cx2 = padL + slot * _si2 + slot / 2;
+            const _as2 = String(_sr2.avg);
+            _gCtx.font = 'bold 10px Inter, sans-serif'; const _nw2 = _gCtx.measureText(_as2).width;
+            _gCtx.font = '9px Inter, sans-serif'; const _sw2 = _gCtx.measureText(' mg/dL').width;
+            const _bw2 = Math.max(_nw2 + _sw2 + 18, 76);
+            const _bh2 = 20, _arr2 = 5;
+            let _bx2 = _cx2 - _bw2 / 2;
+            if (_bx2 < padL) _bx2 = padL;
+            if (_bx2 + _bw2 > padL + gw) _bx2 = padL + gw - _bw2;
+            const _by2 = padT - _arr2 - 2, _br2 = 4;
+            _gCtx.fillStyle = '#1e293b';
+            _gCtx.beginPath();
+            _gCtx.moveTo(_bx2 + _br2, _by2 - _bh2); _gCtx.lineTo(_bx2 + _bw2 - _br2, _by2 - _bh2);
+            _gCtx.quadraticCurveTo(_bx2 + _bw2, _by2 - _bh2, _bx2 + _bw2, _by2 - _bh2 + _br2);
+            _gCtx.lineTo(_bx2 + _bw2, _by2 - _br2); _gCtx.quadraticCurveTo(_bx2 + _bw2, _by2, _bx2 + _bw2 - _br2, _by2);
+            const _ax2 = Math.min(Math.max(_cx2, _bx2 + 10), _bx2 + _bw2 - 10);
+            _gCtx.lineTo(_ax2 + 5, _by2); _gCtx.lineTo(_ax2, _by2 + _arr2); _gCtx.lineTo(_ax2 - 5, _by2);
+            _gCtx.lineTo(_bx2 + _br2, _by2); _gCtx.quadraticCurveTo(_bx2, _by2, _bx2, _by2 - _br2);
+            _gCtx.lineTo(_bx2, _by2 - _bh2 + _br2); _gCtx.quadraticCurveTo(_bx2, _by2 - _bh2, _bx2 + _br2, _by2 - _bh2);
+            _gCtx.closePath(); _gCtx.fill();
+            const _ty2 = _by2 - _bh2 / 2; let _tx2 = _bx2 + (_bw2 - _nw2 - _sw2) / 2;
+            _gCtx.textBaseline = 'middle'; _gCtx.textAlign = 'left';
+            _gCtx.font = 'bold 10px Inter, sans-serif'; _gCtx.fillStyle = '#c4b5fd'; _gCtx.fillText(_as2, _tx2, _ty2); _tx2 += _nw2;
+            _gCtx.font = '9px Inter, sans-serif'; _gCtx.fillStyle = '#94a3b8'; _gCtx.fillText(' mg/dL', _tx2, _ty2);
+          }
+        }
+        // Hover crosshair + tooltip
+        if (hovIdx >= 0) {
+          const _hRow = glicDayRows[hovIdx];
+          const _hCx = padL + slot * hovIdx + slot / 2;
+          const _hYTop = toY(_hRow.avg);
+          // Dotted vertical line
+          _gCtx.save();
+          _gCtx.strokeStyle = 'rgba(100,116,139,0.55)';
+          _gCtx.lineWidth = 1;
+          _gCtx.setLineDash([3, 3]);
+          _gCtx.beginPath(); _gCtx.moveTo(_hCx, padT); _gCtx.lineTo(_hCx, H - padB); _gCtx.stroke();
+          _gCtx.setLineDash([]);
+          _gCtx.restore();
+          // Tooltip bubble
+          const _hAs = String(_hRow.avg);
+          const _ptBrMH = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+          const _ptBrWH = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+          let _hDateLbl = '';
+          if (!_isYearView && _hRow.day) {
+            const _hd = new Date(_hRow.day + 'T12:00:00');
+            if (!isNaN(_hd.getTime())) _hDateLbl = _ptBrWH[_hd.getDay()] + ', ' + _hd.getDate() + ' ' + _ptBrMH[_hd.getMonth()];
+          }
+          _gCtx.font = 'bold 10px Inter, sans-serif'; const _hnw = _gCtx.measureText(_hAs).width;
+          _gCtx.font = '9px Inter, sans-serif'; const _hsw = _gCtx.measureText(' mg/dL').width;
+          _gCtx.font = '9px Inter, sans-serif'; const _hdlw = _hDateLbl ? _gCtx.measureText(_hDateLbl).width : 0;
+          const _hbh = _hDateLbl ? 34 : 22, _harr = 5;
+          const _hbw = Math.max(_hnw + _hsw + 18, _hdlw + 18, 76);
+          let _hbx = _hCx - _hbw / 2;
+          if (_hbx < padL) _hbx = padL;
+          if (_hbx + _hbw > padL + gw) _hbx = padL + gw - _hbw;
+          const _hby = padT - _harr - 2, _hbr = 4;
+          _gCtx.fillStyle = '#4c1d95';
+          _gCtx.beginPath();
+          _gCtx.moveTo(_hbx + _hbr, _hby - _hbh); _gCtx.lineTo(_hbx + _hbw - _hbr, _hby - _hbh);
+          _gCtx.quadraticCurveTo(_hbx + _hbw, _hby - _hbh, _hbx + _hbw, _hby - _hbh + _hbr);
+          _gCtx.lineTo(_hbx + _hbw, _hby - _hbr); _gCtx.quadraticCurveTo(_hbx + _hbw, _hby, _hbx + _hbw - _hbr, _hby);
+          const _hax = Math.min(Math.max(_hCx, _hbx + 10), _hbx + _hbw - 10);
+          _gCtx.lineTo(_hax + 5, _hby); _gCtx.lineTo(_hax, _hby + _harr); _gCtx.lineTo(_hax - 5, _hby);
+          _gCtx.lineTo(_hbx + _hbr, _hby); _gCtx.quadraticCurveTo(_hbx, _hby, _hbx, _hby - _hbr);
+          _gCtx.lineTo(_hbx, _hby - _hbh + _hbr); _gCtx.quadraticCurveTo(_hbx, _hby - _hbh, _hbx + _hbr, _hby - _hbh);
+          _gCtx.closePath(); _gCtx.fill();
+          _gCtx.textBaseline = 'middle'; _gCtx.textAlign = 'left';
+          if (_hDateLbl) {
+            const _hty1 = _hby - _hbh + 11; let _htx = _hbx + (_hbw - _hnw - _hsw) / 2;
+            _gCtx.font = 'bold 10px Inter, sans-serif'; _gCtx.fillStyle = '#e9d5ff'; _gCtx.fillText(_hAs, _htx, _hty1); _htx += _hnw;
+            _gCtx.font = '9px Inter, sans-serif'; _gCtx.fillStyle = '#c4b5fd'; _gCtx.fillText(' mg/dL', _htx, _hty1);
+            const _hty2 = _hby - _hbh + 25; const _hdtx = _hbx + (_hbw - _hdlw) / 2;
+            _gCtx.font = '9px Inter, sans-serif'; _gCtx.fillStyle = '#a78bfa'; _gCtx.fillText(_hDateLbl, _hdtx, _hty2);
+          } else {
+            const _hty = _hby - _hbh / 2; let _htx = _hbx + (_hbw - _hnw - _hsw) / 2;
+            _gCtx.font = 'bold 10px Inter, sans-serif'; _gCtx.fillStyle = '#e9d5ff'; _gCtx.fillText(_hAs, _htx, _hty); _htx += _hnw;
+            _gCtx.font = '9px Inter, sans-serif'; _gCtx.fillStyle = '#c4b5fd'; _gCtx.fillText(' mg/dL', _htx, _hty);
+          }
+        }
+      };
+      canvas._glicHovIdx = -1;
+      canvas.onmousemove = (ev) => {
+        const rect = canvas.getBoundingClientRect();
+        const sx = W / Math.max(1, rect.width);
+        const x = (ev.clientX - rect.left) * sx;
+        let newIdx = -1;
+        hitBoxes.forEach((b, i) => { if (x >= b.x0 && x <= b.x1) newIdx = i; });
+        if (newIdx !== canvas._glicHovIdx) {
+          canvas._glicHovIdx = newIdx;
+          if (canvas.__drawGlicHover) canvas.__drawGlicHover(newIdx);
+        }
+      };
+      canvas.onmouseleave = () => {
+        if (canvas._glicHovIdx !== -1) {
+          canvas._glicHovIdx = -1;
+          if (canvas.__drawGlicHover) canvas.__drawGlicHover(-1);
+        }
       };
 
       // Scroll to show most recent (rightmost) bars
