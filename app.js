@@ -284,7 +284,7 @@ function openAddGlicemiaWizard() {
   var nota = document.getElementById('glicNotaInput');
   if (nota) nota.value = '';
   // Reset medicamentos
-  document.querySelectorAll('#glicStep5 .pi-med-card').forEach(function(b) { b.classList.remove('pi-med-card--active'); });
+  document.querySelectorAll('#glicStep4 .pi-med-card').forEach(function(b) { b.classList.remove('pi-med-card--active'); });
   var glicMedBtn = document.getElementById('glicMedNextBtn');
   if (glicMedBtn) { glicMedBtn.style.opacity = '0.35'; glicMedBtn.style.pointerEvents = 'none'; }
 
@@ -374,7 +374,7 @@ function closeAddGlicemiaWizard() {
 
 function glicemiaWizardGoStep(step) {
   _addGlicStep = step;
-  [1, 2, 3, 4, 5, 6].forEach(function(s) {
+  [1, 2, 3, 4, 5, 6, 7].forEach(function(s) {
     var el = document.getElementById('glicStep' + s);
     if (el) el.style.display = s === step ? '' : 'none';
     var dot = document.querySelector('[data-glicdot="' + s + '"]');
@@ -384,9 +384,13 @@ function glicemiaWizardGoStep(step) {
       if (s === step) dot.classList.remove('done');
     }
   });
-  // Render insulina drum when entering step 4
-  if (step === 4) {
+  // Render insulina drum when entering step 5
+  if (step === 5) {
     _piDrumRender('insulina');
+  }
+  // Build resumo when entering step 7
+  if (step === 7) {
+    _glicRenderResumo();
   }
 }
 
@@ -518,12 +522,85 @@ function glicDataInputMask(inp) {
 }
 
 function glicSelectMed(val) {
-  document.querySelectorAll('#glicStep5 .pi-med-card').forEach(function(b) { b.classList.remove('pi-med-card--active'); });
+  document.querySelectorAll('#glicStep4 .pi-med-card').forEach(function(b) { b.classList.remove('pi-med-card--active'); });
   var btn = document.getElementById('glicMed-' + val);
   if (btn) btn.classList.add('pi-med-card--active');
   glicemiaInsertData.medicamentos = val;
   var nxt = document.getElementById('glicMedNextBtn');
   if (nxt) { nxt.style.opacity = '1'; nxt.style.pointerEvents = ''; }
+}
+
+function glicGoToResumo() {
+  var _ta = document.getElementById('glicNotaInput');
+  if (_ta) glicemiaInsertData.nota = _ta.value.trim();
+  glicemiaWizardGoStep(7);
+}
+
+function _glicResumoRow(label, value, editStep) {
+  var iconMap = {
+    'Glicose': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.25c0 0-6.75 7.313-6.75 11.25a6.75 6.75 0 0 0 13.5 0C18.75 9.563 12 2.25 12 2.25Z"></path></svg>',
+    'Contexto': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v6l4 2"></path><circle cx="12" cy="12" r="9"></circle></svg>',
+    'Horário': '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l3 2M9 2h6"></path></svg>',
+    'Remédios': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7.07-7.07l-10 10a4.95 4.95 0 1 0 7.07 7.07Z"></path><path d="M8.5 8.5l7 7"></path></svg>',
+    'Insulina': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4l-3 3"></path><path d="M14 7l3 3"></path><path d="M3 21l8-8"></path><path d="M11 13l4-4 2 2-4 4"></path><path d="M2 22l2-1-1-1-1 2Z"></path></svg>',
+    'Observação': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>'
+  };
+  var iconClsMap = {
+    'Glicose': 'glic-sum-ico--glicose',
+    'Contexto': 'glic-sum-ico--contexto',
+    'Horário': 'glic-sum-ico--horario',
+    'Remédios': 'glic-sum-ico--remedios',
+    'Insulina': 'glic-sum-ico--insulina',
+    'Observação': 'glic-sum-ico--obs'
+  };
+  var valCls = (label === 'Observação') ? 'pi-sum-val pi-sum-val--nota glic-sum-val' : 'pi-sum-val glic-sum-val';
+  return [
+    '<div class="pi-sum-row glic-sum-row">',
+      '<div class="pi-sum-ico glic-sum-ico ' + (iconClsMap[label] || '') + '">' + (iconMap[label] || '') + '</div>',
+      '<div class="pi-sum-body">',
+        '<div class="pi-sum-lbl">' + label + '</div>',
+        '<div class="' + valCls + '">' + value + '</div>',
+      '</div>',
+      '<button type="button" class="pi-sum-edit glic-sum-edit" onclick="glicemiaWizardGoStep(' + editStep + ')" aria-label="Editar ' + label + '">Editar</button>',
+    '</div>'
+  ].join('');
+}
+
+function _glicRenderResumo() {
+  var container = document.getElementById('glicStep7Content');
+  if (!container) return;
+  var val = glicemiaInsertData.glicemia || 0;
+  var ctx = (document.getElementById('glicemiaContextoInput') || {}).value || '—';
+  var useNow = glicemiaInsertData._useNow !== false;
+  var timeStr = '—';
+  if (useNow) {
+    var now = new Date();
+    var _dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    var _meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    timeStr = _dias[now.getDay()] + ', ' + now.getDate() + ' ' + _meses[now.getMonth()] + ' · ' + now.toTimeString().slice(0, 5);
+  } else {
+    var _d = (document.getElementById('glicemiaDataInput') || {}).value || '';
+    var _h = (document.getElementById('glicemiaHoraInput') || {}).value || '';
+    if (_d && _h) timeStr = _d + ' · ' + _h;
+  }
+  var valColor = val > 125 ? '#ef4444' : val > 99 ? '#f59e0b' : '#22c55e';
+  var medMap = { 'tomados': 'Tomei meus remédios', 'nao_tomados': 'Não tomei hoje', 'nenhum': 'Não tomo remédios' };
+  var medStr = medMap[glicemiaInsertData.medicamentos] || '—';
+  var insulinaVal = glicemiaInsertData.insulina;
+  var insulinaStr = (!insulinaVal || insulinaVal === 0) ? 'Não registrado' : insulinaVal + ' unidades';
+  var notaStr = (glicemiaInsertData.nota || '').trim() || 'Sem observação';
+  container.innerHTML = [
+    '<div class="glic-resumo-list">',
+      _glicResumoRow('Glicose', '<span style="color:' + valColor + ';font-weight:700;">' + val + ' mg/dL</span>', 1),
+      _glicResumoRow('Contexto', ctx, 2),
+      _glicResumoRow('Horário', timeStr, 3),
+      _glicResumoRow('Remédios', medStr, 4),
+      _glicResumoRow('Insulina', insulinaStr, 5),
+      _glicResumoRow('Observação', notaStr, 6),
+    '</div>',
+    '<p class="glic-resumo-note">Verifique os dados antes de salvar</p>',
+    '<button class="pi-next-btn glic-next-btn" onclick="saveGlicemiaEntry(null, null)">Confirmar e Salvar ✓</button>'
+  ].join('');
 }
 
 function glicOpenDatePicker() {
@@ -1734,7 +1811,7 @@ function renderPerfil() {
 
     <!-- ── DEMO ── -->
     <div class="perfil-section-title" style="color:#64748b;font-size:11px;letter-spacing:0.5px;">Demo</div>
-    <div class="config-item" onclick="simulatePushNotification()" style="cursor:pointer;margin-bottom:40px;">
+    <div class="config-item" onclick="simulatePushNotification()" style="cursor:pointer;">
       <div class="config-item-content">
         <div class="config-icon" style="color:#f59e0b;">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/><line x1="12" y1="2" x2="12" y2="3"/></svg>
@@ -1742,6 +1819,18 @@ function renderPerfil() {
         <div class="config-text">
           <div class="config-title">Simular Notificação Push</div>
           <div class="config-subtitle">Demonstração de alerta de medição</div>
+        </div>
+      </div>
+      <div style="color:#64748b;font-size:13px;">›</div>
+    </div>
+    <div class="config-item" onclick="simulateAlertPopup()" style="cursor:pointer;margin-bottom:40px;">
+      <div class="config-item-content">
+        <div class="config-icon" style="color:#ef4444;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="config-text">
+          <div class="config-title">Simular Alerta Pop-up</div>
+          <div class="config-subtitle">Demonstração de aviso de medição</div>
         </div>
       </div>
       <div style="color:#64748b;font-size:13px;">›</div>
@@ -1808,13 +1897,76 @@ function simulatePushNotification() {
     setTimeout(function() { if (_banner.parentNode) _banner.remove(); }, 420);
   }, _dur);
 
-  // Clicking banner body navigates to PA (optional demo touch)
+  // Clicking banner body closes it
   _banner.addEventListener('click', function(e) {
     if (e.target.classList.contains('push-notif-dismiss')) return;
     clearTimeout(_tid);
     _banner.classList.remove('show');
     setTimeout(function() { if (_banner.parentNode) _banner.remove(); }, 420);
   });
+}
+
+function simulateAlertPopup() {
+  var _old = document.getElementById('alertPopupOverlay');
+  if (_old) _old.remove();
+
+  var _overlay = document.createElement('div');
+  _overlay.id = 'alertPopupOverlay';
+  _overlay.className = 'alert-popup-overlay';
+  _overlay.innerHTML = [
+    '<div class="alert-popup-box">',
+      '<div class="alert-popup-type-badge">',
+        '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>',
+        'Press\u00e3o Arterial',
+      '</div>',
+      '<div class="alert-popup-icon-ring">',
+        '<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
+      '</div>',
+      '<div class="alert-popup-title">Hora da Medi\u00e7\u00e3o!</div>',
+      '<div class="alert-popup-msg">Sua press\u00e3o arterial ainda n\u00e3o foi registrada hoje. Fa\u00e7a a medi\u00e7\u00e3o agora para manter seu hist\u00f3rico em dia.</div>',
+      '<div class="alert-popup-actions">',
+        '<button class="alert-popup-btn-primary" onclick="registrarVitalFromAlert(\'Press\u00e3o Arterial\')">Registrar agora</button>',
+        '<button class="alert-popup-btn-secondary" onclick="closeAlertPopup()">Lembrar em 30 minutos</button>',
+      '</div>',
+    '</div>'
+  ].join('');
+
+  _overlay.addEventListener('click', function(e) {
+    if (e.target === _overlay) closeAlertPopup();
+  });
+
+  document.body.appendChild(_overlay);
+
+  if (navigator.vibrate) navigator.vibrate([100]);
+
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      _overlay.classList.add('show');
+    });
+  });
+}
+
+function closeAlertPopup() {
+  var _overlay = document.getElementById('alertPopupOverlay');
+  if (!_overlay) return;
+  _overlay.classList.remove('show');
+  setTimeout(function() { if (_overlay.parentNode) _overlay.remove(); }, 280);
+}
+
+function registrarVitalFromAlert(tipo) {
+  closeAlertPopup();
+  var v = mockData.sinaisVitais.find(function(x) { return x.tipo === tipo; });
+  if (!v) return;
+  setTimeout(function() {
+    openVitalDetailModal(tipo, v.id);
+    setTimeout(function() {
+      if (tipo === 'Press\u00e3o Arterial') {
+        openPressaoInsertForm();
+      } else {
+        openAddVitalModal(tipo);
+      }
+    }, 150);
+  }, 310);
 }
 
 // ===== NAVEGAÇÃO =====

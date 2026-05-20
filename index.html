@@ -330,7 +330,7 @@
                 <!-- Wizard passo a passo: inserir glicemia -->
                 <div id="glicemiaInsertView" style="display:none;">
 
-                  <!-- Progresso: 6 etapas -->
+                  <!-- Progresso: 7 etapas -->
                   <div class="pi-progress">
                     <div class="pi-progress-dot pi-progress-dot--active glic-dot" data-glicdot="1"></div>
                     <div class="pi-progress-dot glic-dot" data-glicdot="2"></div>
@@ -338,6 +338,7 @@
                     <div class="pi-progress-dot glic-dot" data-glicdot="4"></div>
                     <div class="pi-progress-dot glic-dot" data-glicdot="5"></div>
                     <div class="pi-progress-dot glic-dot" data-glicdot="6"></div>
+                    <div class="pi-progress-dot glic-dot" data-glicdot="7"></div>
                   </div>
 
                   <!-- STEP 1: Valor — drum scroll -->
@@ -458,36 +459,8 @@
                     <button id="glicS3ConfirmBtn" class="pi-next-btn glic-next-btn" style="display:none;" onclick="glicS3Confirm()">Próximo ›</button>
                   </div>
 
-                  <!-- STEP 4: Insulina -->
+                  <!-- STEP 4: Remédios -->
                   <div class="pi-step" id="glicStep4" style="display:none;">
-                    <div class="pi-step-head">
-                      <div class="pi-step-label">Tomou insulina?</div>
-                    </div>
-                    <div class="pi-bp-drums" style="justify-content: center;">
-                      <div class="pi-drum-col">
-                        <div class="pi-drum-lbl" style="color: #7c3aed; text-transform: none;">Unidades</div>
-                        <div class="pi-drum" data-field="insulina"
-                             ontouchstart="piDrumTouchStart(event,this)"
-                             ontouchmove="piDrumTouchMove(event,this)"
-                             ontouchend="piDrumTouchEnd(event,this)"
-                             onwheel="piDrumWheel(event,this)">
-                          <div class="pi-drum-track" id="piDrumTrack-insulina"></div>
-                          <div class="pi-drum-sel"></div>
-                          <div class="pi-drum-fade pi-drum-fade--top"></div>
-                          <div class="pi-drum-fade pi-drum-fade--bot"></div>
-                          <input class="pi-drum-inp" id="piDcInput-insulina" type="number" inputmode="numeric" min="0" max="200"
-                                 onblur="piDcInputBlur('insulina',this)" />
-                        </div>
-                      </div>
-                    </div>
-                    <div class="pi-step-footer">
-                      <button class="pi-next-btn glic-next-btn" onclick="glicemiaWizardGoStep(5)">Próximo ›</button>
-                      <button type="button" class="glic-s3-back-link" onclick="glicemiaWizardGoStep(5)">Pular</button>
-                    </div>
-                  </div>
-
-                  <!-- STEP 5: Medicamentos -->
-                  <div class="pi-step" id="glicStep5" style="display:none;">
                     <div class="pi-step-head">
                       <div class="pi-step-label">Remédios?</div>
                       <div class="pi-step-hint">Selecione uma opção</div>
@@ -516,7 +489,35 @@
                       </button>
                     </div>
                     <div class="pi-step-footer">
-                      <button id="glicMedNextBtn" class="pi-next-btn glic-next-btn" style="opacity:0.35;pointer-events:none;" onclick="glicemiaWizardGoStep(6)">Próximo ›</button>
+                      <button id="glicMedNextBtn" class="pi-next-btn glic-next-btn" style="opacity:0.35;pointer-events:none;" onclick="glicemiaWizardGoStep(5)">Próximo ›</button>
+                      <button type="button" class="glic-s3-back-link" onclick="glicemiaWizardGoStep(5)">Pular</button>
+                    </div>
+                  </div>
+
+                  <!-- STEP 5: Insulina -->
+                  <div class="pi-step" id="glicStep5" style="display:none;">
+                    <div class="pi-step-head">
+                      <div class="pi-step-label">Insulina</div>
+                    </div>
+                    <div class="pi-bp-drums" style="justify-content: center;">
+                      <div class="pi-drum-col">
+                        <div class="pi-drum-lbl" style="color: #7c3aed; text-transform: none;">Unidades</div>
+                        <div class="pi-drum" data-field="insulina"
+                             ontouchstart="piDrumTouchStart(event,this)"
+                             ontouchmove="piDrumTouchMove(event,this)"
+                             ontouchend="piDrumTouchEnd(event,this)"
+                             onwheel="piDrumWheel(event,this)">
+                          <div class="pi-drum-track" id="piDrumTrack-insulina"></div>
+                          <div class="pi-drum-sel"></div>
+                          <div class="pi-drum-fade pi-drum-fade--top"></div>
+                          <div class="pi-drum-fade pi-drum-fade--bot"></div>
+                          <input class="pi-drum-inp" id="piDcInput-insulina" type="number" inputmode="numeric" min="0" max="200"
+                                 onblur="piDcInputBlur('insulina',this)" />
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pi-step-footer">
+                      <button class="pi-next-btn glic-next-btn" onclick="glicemiaWizardGoStep(6)">Próximo ›</button>
                       <button type="button" class="glic-s3-back-link" onclick="glicemiaWizardGoStep(6)">Pular</button>
                     </div>
                   </div>
@@ -529,7 +530,16 @@
                     </div>
                     <textarea class="pi-nota-area" id="glicNotaInput"
                               placeholder="Ex: senti tontura, após refeição..." maxlength="500"></textarea>
-                    <button class="pi-next-btn glic-next-btn" onclick="saveGlicemiaEntry(null, null)">Salvar ›</button>
+                    <button class="pi-next-btn glic-next-btn" onclick="glicGoToResumo()">Revisar ›</button>
+                  </div>
+
+                  <!-- STEP 7: Resumo -->
+                  <div class="pi-step" id="glicStep7" style="display:none;">
+                    <div class="pi-step-head">
+                      <div class="pi-step-label">Resumo da Medição</div>
+                      <div class="pi-step-hint">Revise antes de confirmar</div>
+                    </div>
+                    <div id="glicStep7Content"></div>
                   </div>
 
                 </div><!-- /glicemiaInsertView -->
