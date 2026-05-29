@@ -416,12 +416,12 @@ const mockData = {
 
   // Configuração de composição corporal
   configComposicao: {
-    'Peso':                    { exibirCorpo: true,  exibirDashboard: true  },
-    'Altura':                  { exibirCorpo: true,  exibirDashboard: false },
-    'IMC':                     { exibirCorpo: true,  exibirDashboard: true  },
-    'Percentual de Gordura':   { exibirCorpo: true,  exibirDashboard: false },
-    'Massa Muscular':          { exibirCorpo: true,  exibirDashboard: false },
-    'Circunferência Cintura':  { exibirCorpo: true,  exibirDashboard: false }
+    'Peso':                    { exibirCorpo: true, exibirDashboard: true  },
+    'IMC':                     { exibirCorpo: true, exibirDashboard: true  },
+    'Músculo Esquelético':     { exibirCorpo: true, exibirDashboard: false },
+    'Massa Gorda':             { exibirCorpo: true, exibirDashboard: false },
+    'Água Corporal':           { exibirCorpo: true, exibirDashboard: false },
+    'Gordura Corporal':        { exibirCorpo: true, exibirDashboard: false },
   },
 
   // Composição Corporal
@@ -429,97 +429,85 @@ const mockData = {
     {
       id: 1,
       tipo: 'Peso',
-      valor: 75,
+      valor: 75.0,
       unidade: 'kg',
-      ideal: 70,
-      dataHora: '25/01/2024',
-      variacao: 'acima',
-      icon: '⚖️',
-      fonte: 'Balança Inteligente',
+      dataHora: '28/05/2026',
+      variacao: 'normal',
+      fonte: 'Manual',
       historico: [
-        { data: '2024-01-25', valor: 75, variacao: 'acima', fonte: 'Balança Inteligente' },
-        { data: '2024-01-24', valor: 74.8, variacao: 'acima', fonte: 'Balança Inteligente' },
-        { data: '2024-01-23', valor: 74.5, variacao: 'acima', fonte: 'Balança Inteligente' },
-        { data: '2024-01-22', valor: 74.2, variacao: 'acima', fonte: 'Balança Inteligente' },
-        { data: '2024-01-21', valor: 73.9, variacao: 'acima', fonte: 'Balança Inteligente' }
+        { data: '2026-05-28', valor: 75.0, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-05-21', valor: 75.4, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-05-14', valor: 75.8, variacao: 'normal', fonte: 'Manual' }
       ]
     },
     {
       id: 2,
-      tipo: 'Altura',
-      valor: 1.78,
-      unidade: 'm',
-      ideal: 1.78,
-      dataHora: '15/01/2024',
-      variacao: 'normal',
-      icon: '📏',
-      fonte: 'Manual',
-      historico: []
-    },
-    {
-      id: 3,
       tipo: 'IMC',
       valor: 23.7,
       unidade: 'kg/m²',
-      ideal: '18.5-24.9',
-      dataHora: '25/01/2024',
+      dataHora: '28/05/2026',
       variacao: 'normal',
-      icon: '📊',
-      fonte: 'Calculado',
+      fonte: 'Manual',
       historico: [
-        { data: '2024-01-25', valor: 23.7, variacao: 'normal', fonte: 'Calculado' },
-        { data: '2024-01-24', valor: 23.6, variacao: 'normal', fonte: 'Calculado' },
-        { data: '2024-01-23', valor: 23.5, variacao: 'normal', fonte: 'Calculado' },
-        { data: '2024-01-22', valor: 23.4, variacao: 'normal', fonte: 'Calculado' },
-        { data: '2024-01-21', valor: 23.3, variacao: 'normal', fonte: 'Calculado' }
+        { data: '2026-05-28', valor: 23.7, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-05-21', valor: 23.8, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-05-14', valor: 24.0, variacao: 'normal', fonte: 'Manual' }
+      ]
+    },
+    {
+      id: 3,
+      tipo: 'Músculo Esquelético',
+      valor: 32.4,
+      unidade: 'kg',
+      dataHora: '28/05/2026',
+      variacao: 'normal',
+      fonte: 'Manual',
+      historico: [
+        { data: '2026-05-28', valor: 32.4, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-05-21', valor: 32.2, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-05-14', valor: 32.0, variacao: 'normal', fonte: 'Manual' }
       ]
     },
     {
       id: 4,
-      tipo: 'Percentual de Gordura',
-      valor: 22,
-      unidade: '%',
-      ideal: '15-25',
-      dataHora: '20/01/2024',
+      tipo: 'Massa Gorda',
+      valor: 16.5,
+      unidade: 'kg',
+      dataHora: '28/05/2026',
       variacao: 'normal',
-      icon: '🔴',
-      fonte: 'Balança Inteligente',
+      fonte: 'Manual',
       historico: [
-        { data: '2024-01-20', valor: 22, variacao: 'normal', fonte: 'Balança Inteligente' },
-        { data: '2024-01-15', valor: 22.5, variacao: 'normal', fonte: 'Balança Inteligente' },
-        { data: '2024-01-10', valor: 23, variacao: 'normal', fonte: 'Balança Inteligente' }
+        { data: '2026-05-28', valor: 16.5, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-05-21', valor: 16.8, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-05-14', valor: 17.1, variacao: 'normal', fonte: 'Manual' }
       ]
     },
     {
       id: 5,
-      tipo: 'Massa Muscular',
-      valor: 58,
-      unidade: 'kg',
-      ideal: '55-65',
-      dataHora: '20/01/2024',
+      tipo: 'Água Corporal',
+      valor: 56.2,
+      unidade: '%',
+      dataHora: '28/05/2026',
       variacao: 'normal',
-      icon: '💪',
-      fonte: 'Balança Inteligente',
+      fonte: 'Manual',
       historico: [
-        { data: '2024-01-20', valor: 58, variacao: 'normal', fonte: 'Balança Inteligente' },
-        { data: '2024-01-15', valor: 57.8, variacao: 'normal', fonte: 'Balança Inteligente' },
-        { data: '2024-01-10', valor: 57.5, variacao: 'normal', fonte: 'Balança Inteligente' }
+        { data: '2026-05-28', valor: 56.2, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-05-21', valor: 55.9, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-05-14', valor: 55.6, variacao: 'normal', fonte: 'Manual' }
       ]
     },
     {
       id: 6,
-      tipo: 'Circunferência Cintura',
-      valor: 82,
-      unidade: 'cm',
-      ideal: '< 94',
-      dataHora: '20/01/2024',
+      tipo: 'Gordura Corporal',
+      valor: 22.0,
+      unidade: '%',
+      dataHora: '28/05/2026',
       variacao: 'normal',
-      icon: '📐',
       fonte: 'Manual',
       historico: [
-        { data: '2024-01-20', valor: 82, variacao: 'normal', fonte: 'Manual' },
-        { data: '2024-01-15', valor: 81.5, variacao: 'normal', fonte: 'Manual' },
-        { data: '2024-01-10', valor: 81, variacao: 'normal', fonte: 'Manual' }
+        { data: '2026-05-28', valor: 22.0, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-05-21', valor: 22.4, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-05-14', valor: 22.8, variacao: 'normal', fonte: 'Manual' }
       ]
     }
   ],
@@ -925,6 +913,13 @@ function formatHistoricValue(vitalTipo, historicoItem) {
   if (vitalTipo === 'Pressão Arterial' && historicoItem && typeof historicoItem.valor === 'object') {
     return `${historicoItem.valor.sistolica}/${historicoItem.valor.diastolica}`;
   }
+  if (vitalTipo === 'Sono') {
+    var _h = parseFloat(historicoItem && historicoItem.valor);
+    if (Number.isFinite(_h)) {
+      var _hrs = Math.floor(_h), _mins = Math.round((_h - _hrs) * 60);
+      return _hrs + 'h' + (_mins > 0 ? ' ' + String(_mins).padStart(2, '0') + 'm' : '');
+    }
+  }
   return String(historicoItem?.valor ?? '-');
 }
 
@@ -1240,7 +1235,8 @@ function injectDemoMedicoesUltimas24h(data) {
             leveMin: 210,
             remMin: 88,
             profundoMin: 92,
-            acordadoMin: 15
+            acordadoMin: 15,
+            latenciaMin: 12
           }
         };
       })(),
@@ -1438,10 +1434,37 @@ function injectDemoMedicoesUltimas24h(data) {
       { ...atDaysAgo(29, 17,  0), valor: 2400, status: 'normal' },
     ],
     Oxigenação: [
-      { ...at(0, 20), valor: 98, status: 'normal' },
-      { ...at(5, 0), valor: 96, status: 'normal' },
-      { ...at(12, 0), valor: 99, status: 'normal' },
-      { ...at(18, 0), valor: 97, status: 'normal' }
+      { ...atDaysAgo( 0, 8,  0), valor: 98, status: 'normal'  },
+      { ...atDaysAgo( 1, 8,  0), valor: 97, status: 'normal'  },
+      { ...atDaysAgo( 2, 8,  0), valor: 96, status: 'normal'  },
+      { ...atDaysAgo( 3, 8,  0), valor: 99, status: 'normal'  },
+      { ...atDaysAgo( 4, 8,  0), valor: 98, status: 'normal'  },
+      { ...atDaysAgo( 5, 8,  0), valor: 97, status: 'normal'  },
+      { ...atDaysAgo( 6, 8,  0), valor: 96, status: 'normal'  },
+      { ...atDaysAgo( 7, 8,  0), valor: 98, status: 'normal'  },
+      { ...atDaysAgo( 8, 8,  0), valor: 99, status: 'normal'  },
+      { ...atDaysAgo( 9, 8,  0), valor: 97, status: 'normal'  },
+      { ...atDaysAgo(10, 8,  0), valor: 98, status: 'normal'  },
+      { ...atDaysAgo(11, 8,  0), valor: 94, status: 'atencao' },
+      { ...atDaysAgo(12, 8,  0), valor: 97, status: 'normal'  },
+      { ...atDaysAgo(13, 8,  0), valor: 98, status: 'normal'  },
+      { ...atDaysAgo(14, 8,  0), valor: 96, status: 'normal'  },
+      { ...atDaysAgo(15, 8,  0), valor: 99, status: 'normal'  },
+      { ...atDaysAgo(16, 8,  0), valor: 97, status: 'normal'  },
+      { ...atDaysAgo(17, 8,  0), valor: 98, status: 'normal'  },
+      { ...atDaysAgo(18, 8,  0), valor: 96, status: 'normal'  },
+      { ...atDaysAgo(19, 8,  0), valor: 97, status: 'normal'  },
+      { ...atDaysAgo(20, 8,  0), valor: 98, status: 'normal'  },
+      { ...atDaysAgo(21, 8,  0), valor: 93, status: 'atencao' },
+      { ...atDaysAgo(22, 8,  0), valor: 96, status: 'normal'  },
+      { ...atDaysAgo(23, 8,  0), valor: 97, status: 'normal'  },
+      { ...atDaysAgo(24, 8,  0), valor: 98, status: 'normal'  },
+      { ...atDaysAgo(25, 8,  0), valor: 96, status: 'normal'  },
+      { ...atDaysAgo(26, 8,  0), valor: 97, status: 'normal'  },
+      { ...atDaysAgo(27, 8,  0), valor: 98, status: 'normal'  },
+      { ...atDaysAgo(28, 8,  0), valor: 99, status: 'normal'  },
+      { ...atDaysAgo(29, 8,  0), valor: 97, status: 'normal'  },
+      { ...atDaysAgo(30, 8,  0), valor: 96, status: 'normal'  },
     ],
     Calorias: [
       { ...at(2, 0), valor: 2180, status: 'normal' },
@@ -1572,15 +1595,70 @@ function injectDemoMedicoesUltimas24h(data) {
       { ...at(19, 0), valor: 41, status: 'normal' }
     ],
     Sono: [
-      { ...at(4, 0), valor: 7.4, status: 'normal' },
-      { ...at(14, 0), valor: 6.2, status: 'atencao' },
-      { ...at(22, 0), valor: 8.1, status: 'normal' }
+      { ...atDaysAgo( 0, 7, 30), valor: 7.4, status: 'normal'  },
+      { ...atDaysAgo( 1, 7, 10), valor: 8.1, status: 'normal'  },
+      { ...atDaysAgo( 2, 6, 50), valor: 6.2, status: 'atencao' },
+      { ...atDaysAgo( 3, 7, 45), valor: 7.8, status: 'normal'  },
+      { ...atDaysAgo( 4, 8,  0), valor: 8.5, status: 'normal'  },
+      { ...atDaysAgo( 5, 7, 20), valor: 7.0, status: 'normal'  },
+      { ...atDaysAgo( 6, 6, 55), valor: 5.8, status: 'atencao' },
+      { ...atDaysAgo( 7, 7, 30), valor: 7.3, status: 'normal'  },
+      { ...atDaysAgo( 8, 8, 15), valor: 8.2, status: 'normal'  },
+      { ...atDaysAgo( 9, 7,  0), valor: 6.9, status: 'normal'  },
+      { ...atDaysAgo(10, 7, 40), valor: 7.5, status: 'normal'  },
+      { ...atDaysAgo(11, 6, 30), valor: 5.5, status: 'atencao' },
+      { ...atDaysAgo(12, 7, 50), valor: 7.8, status: 'normal'  },
+      { ...atDaysAgo(13, 8,  5), valor: 8.3, status: 'normal'  },
+      { ...atDaysAgo(14, 7, 15), valor: 7.2, status: 'normal'  },
+      { ...atDaysAgo(15, 7, 30), valor: 6.7, status: 'atencao' },
+      { ...atDaysAgo(16, 8, 20), valor: 8.7, status: 'normal'  },
+      { ...atDaysAgo(17, 7,  0), valor: 7.1, status: 'normal'  },
+      { ...atDaysAgo(18, 6, 45), valor: 6.0, status: 'atencao' },
+      { ...atDaysAgo(19, 7, 35), valor: 7.6, status: 'normal'  },
+      { ...atDaysAgo(20, 8, 10), valor: 8.0, status: 'normal'  },
+      { ...atDaysAgo(21, 7, 25), valor: 7.4, status: 'normal'  },
+      { ...atDaysAgo(22, 7,  0), valor: 6.5, status: 'atencao' },
+      { ...atDaysAgo(23, 8, 30), valor: 9.0, status: 'normal'  },
+      { ...atDaysAgo(24, 7, 45), valor: 7.7, status: 'normal'  },
+      { ...atDaysAgo(25, 6, 55), valor: 5.9, status: 'atencao' },
+      { ...atDaysAgo(26, 7, 20), valor: 7.3, status: 'normal'  },
+      { ...atDaysAgo(27, 8,  0), valor: 8.4, status: 'normal'  },
+      { ...atDaysAgo(28, 7, 30), valor: 7.1, status: 'normal'  },
+      { ...atDaysAgo(29, 7, 10), valor: 6.8, status: 'atencao' },
+      { ...atDaysAgo(30, 8, 25), valor: 8.6, status: 'normal'  },
     ],
     Hidratação: [
-      { ...at(0, 15), valor: 1950, status: 'normal' },
-      { ...at(6, 0), valor: 1200, status: 'atencao' },
-      { ...at(13, 0), valor: 2400, status: 'normal' },
-      { ...at(20, 0), valor: 1550, status: 'normal' }
+      { ...atDaysAgo( 0, 20,  0), valor: 1950, status: 'atencao' },
+      { ...atDaysAgo( 1, 20,  0), valor: 2200, status: 'normal'  },
+      { ...atDaysAgo( 2, 20,  0), valor: 1800, status: 'atencao' },
+      { ...atDaysAgo( 3, 20,  0), valor: 2100, status: 'normal'  },
+      { ...atDaysAgo( 4, 20,  0), valor: 1650, status: 'atencao' },
+      { ...atDaysAgo( 5, 20,  0), valor: 2300, status: 'normal'  },
+      { ...atDaysAgo( 6, 20,  0), valor: 2000, status: 'normal'  },
+      { ...atDaysAgo( 7, 20,  0), valor: 1750, status: 'atencao' },
+      { ...atDaysAgo( 8, 20,  0), valor:  950, status: 'atencao' },
+      { ...atDaysAgo( 9, 20,  0), valor: 2100, status: 'normal'  },
+      { ...atDaysAgo(10, 20,  0), valor: 1900, status: 'atencao' },
+      { ...atDaysAgo(11, 20,  0), valor: 2400, status: 'normal'  },
+      { ...atDaysAgo(12, 20,  0), valor: 2200, status: 'normal'  },
+      { ...atDaysAgo(13, 20,  0), valor: 1600, status: 'atencao' },
+      { ...atDaysAgo(14, 20,  0), valor: 2050, status: 'normal'  },
+      { ...atDaysAgo(15, 20,  0), valor: 1750, status: 'atencao' },
+      { ...atDaysAgo(16, 20,  0), valor: 2300, status: 'normal'  },
+      { ...atDaysAgo(17, 20,  0), valor: 2100, status: 'normal'  },
+      { ...atDaysAgo(18, 20,  0), valor: 1550, status: 'atencao' },
+      { ...atDaysAgo(19, 20,  0), valor: 2200, status: 'normal'  },
+      { ...atDaysAgo(20, 20,  0), valor: 1850, status: 'atencao' },
+      { ...atDaysAgo(21, 20,  0), valor: 2400, status: 'normal'  },
+      { ...atDaysAgo(22, 20,  0), valor: 1050, status: 'atencao' },
+      { ...atDaysAgo(23, 20,  0), valor: 2000, status: 'normal'  },
+      { ...atDaysAgo(24, 20,  0), valor: 1700, status: 'atencao' },
+      { ...atDaysAgo(25, 20,  0), valor: 2100, status: 'normal'  },
+      { ...atDaysAgo(26, 20,  0), valor: 1900, status: 'atencao' },
+      { ...atDaysAgo(27, 20,  0), valor: 2200, status: 'normal'  },
+      { ...atDaysAgo(28, 20,  0), valor: 2350, status: 'normal'  },
+      { ...atDaysAgo(29, 20,  0), valor: 1650, status: 'atencao' },
+      { ...atDaysAgo(30, 20,  0), valor: 1800, status: 'atencao' },
     ],
     'Freq. Respiratória': [
       { ...at(0, 25), valor: 16, status: 'normal' },

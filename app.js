@@ -859,7 +859,7 @@ function getVitalDefaultPeriodRange() {
 }
 
 function applyVitalDefaultPeriodView() {
-  if (!currentVitalDetail || (currentVitalDetail.tipo !== 'Pressão Arterial' && currentVitalDetail.tipo !== 'Passos' && currentVitalDetail.tipo !== 'Glicemia')) return;
+  if (!currentVitalDetail || (currentVitalDetail.tipo !== 'Pressão Arterial' && currentVitalDetail.tipo !== 'Passos' && currentVitalDetail.tipo !== 'Glicemia' && currentVitalDetail.tipo !== 'Sono' && currentVitalDetail.tipo !== 'Oxigenação' && currentVitalDetail.tipo !== 'Hidratação')) return;
   if (currentVitalDetail.tipo === 'Glicemia') glicemiaSelectedDayIso = null;
   const { start, end } = getVitalDefaultPeriodRange();
   const filtrado = filterHistoricoByInclusiveDate(currentVitalDetail.historico, start, end);
@@ -1386,6 +1386,15 @@ function renderHome() {
   // Always include Glicemia
   const glicemia = mockData.sinaisVitais.find(v => v.tipo === 'Glicemia');
   if (glicemia && !vitais.some(v => v.tipo === 'Glicemia')) vitais.push(glicemia);
+  // Always include Sono
+  const sono = mockData.sinaisVitais.find(v => v.tipo === 'Sono');
+  if (sono && !vitais.some(v => v.tipo === 'Sono')) vitais.push(sono);
+  // Always include Oxigenação
+  const oxig = mockData.sinaisVitais.find(v => v.tipo === 'Oxigenação');
+  if (oxig && !vitais.some(v => v.tipo === 'Oxigenação')) vitais.push(oxig);
+  // Always include Hidratação
+  const hidra = mockData.sinaisVitais.find(v => v.tipo === 'Hidratação');
+  if (hidra && !vitais.some(v => v.tipo === 'Hidratação')) vitais.push(hidra);
   const vitalsHtml = vitais.map(v => createVitalCard(v, { layout: 'home' })).join('');
   document.getElementById('homeVitals').innerHTML = vitalsHtml || '<div class="card-info" style="padding:8px;">Nenhum sinal configurado para o Dashboard.</div>';
 
@@ -1398,6 +1407,212 @@ function renderHome() {
     ? createConsultaCard(Object.assign({}, mockData.consultas[0], { data: hoje15 }), 'home')
     : '<div class="empty-state"><div class="empty-text">Nenhuma consulta agendada</div></div>';
   document.getElementById('homeConsulta').innerHTML = consultaHtml;
+}
+
+function addHidratacao(ml) {
+  const hidra = mockData.sinaisVitais.find(v => v.tipo === 'Hidratação');
+  if (!hidra) return;
+  const now = new Date();
+  const hora = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  const data = getTodayISODate();
+  hidra.valor = (parseFloat(hidra.valor) || 0) + ml;
+  const idealMatch = hidra.ideal ? String(hidra.ideal).match(/(\d+)/) : null;
+  const idealLow = idealMatch ? Number(idealMatch[1]) : 2000;
+  hidra.status = hidra.valor >= idealLow ? 'normal' : 'atencao';
+  hidra.dataHora = data + 'T' + hora + ':00';
+  hidra.dataHoraISO = hidra.dataHora;
+  hidra.historico.unshift({ data, hora, valor: hidra.valor, status: hidra.status });
+  renderHome();
+  // also refresh detail modal if it's open for Hidratação
+  var _modal = document.getElementById('vitalDetailModal');
+  if (_modal && _modal.classList.contains('active') && typeof currentVitalDetail !== 'undefined' && currentVitalDetail && currentVitalDetail.tipo === 'Hidratação') {
+    renderVitalDetailContent(currentVitalDetail.historico);
+    renderSparklineChart(currentVitalHistoricoView && currentVitalHistoricoView.length ? currentVitalHistoricoView : currentVitalDetail.historico);
+  }
+}
+
+function addOxigenacao(pct) {
+  var oxi = mockData.sinaisVitais.find(function(v) { return v.tipo === 'Oxigenação'; });
+  if (!oxi) return;
+  var now = new Date();
+  var hora = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  var data = getTodayISODate();
+  var status = pct >= 95 ? 'normal' : (pct >= 90 ? 'atencao' : 'critico');
+  oxi.valor = pct;
+  oxi.status = status;
+  oxi.tempo = 'Agora';
+  oxi.dataHora = data + 'T' + hora + ':00';
+  oxi.dataHoraISO = oxi.dataHora;
+  oxi.historico.unshift({ data: data, hora: hora, valor: pct, status: status });
+  renderHome();
+  var _modal = document.getElementById('vitalDetailModal');
+  if (_modal && _modal.classList.contains('active') && typeof currentVitalDetail !== 'undefined' && currentVitalDetail && currentVitalDetail.tipo === 'Oxigenação') {
+    renderVitalDetailContent(currentVitalDetail.historico);
+    renderSparklineChart(currentVitalHistoricoView && currentVitalHistoricoView.length ? currentVitalHistoricoView : currentVitalDetail.historico);
+  }
+}
+
+var oxigInsertData = { val: 98 };
+
+function openOxigInsertView() {
+  var chart = document.getElementById('pressaoHistoricoView');
+  if (chart) chart.style.display = 'none';
+  var filters = document.getElementById('vitalDefaultPeriodControls');
+  if (filters) filters.style.display = 'none';
+  var content = document.getElementById('vitalDetailContent');
+  if (content) content.style.display = 'none';
+  var addRow = document.querySelector('#vitalDetailModal .vital-detail-add-row');
+  if (addRow) addRow.style.display = 'none';
+  var titleEl = document.getElementById('vitalDetailTitle');
+  if (titleEl) titleEl.textContent = 'Saturação de O₂';
+  oxigInsertData.val = 98;
+  var view = document.getElementById('oxigInsertView');
+  if (view) {
+    view.style.display = 'flex';
+    _oxigRenderGrid(98);
+    _oxigUpdateBadge(98);
+    _oxigUpdateDisplay(98);
+  }
+}
+
+function closeOxigInsertView() {
+  var view = document.getElementById('oxigInsertView');
+  if (view) view.style.display = 'none';
+  var chart = document.getElementById('pressaoHistoricoView');
+  if (chart) chart.style.display = '';
+  var filters = document.getElementById('vitalDefaultPeriodControls');
+  if (filters) filters.style.display = '';
+  var content = document.getElementById('vitalDetailContent');
+  if (content) content.style.display = '';
+  var addRow = document.querySelector('#vitalDetailModal .vital-detail-add-row');
+  if (addRow) addRow.style.display = '';
+  var titleEl = document.getElementById('vitalDetailTitle');
+  if (titleEl) titleEl.textContent = 'Histórico de Oxigenação';
+}
+
+function oxigSelectValue(v) {
+  oxigInsertData.val = v;
+  _oxigRenderGrid(v);
+  _oxigUpdateBadge(v);
+  _oxigUpdateDisplay(v);
+}
+
+function stepOxig(delta) {
+  var newVal = Math.max(50, Math.min(100, (oxigInsertData.val || 98) + delta));
+  oxigSelectValue(newVal);
+}
+
+function _oxigRenderGrid(selected) {
+  var cells = document.querySelectorAll('#oxigGrid .oxi-cell');
+  cells.forEach(function(c) {
+    var v = parseInt(c.getAttribute('data-val'), 10);
+    c.classList.toggle('oxi-cell--selected', v === selected);
+  });
+}
+
+function _oxigUpdateBadge(v) {
+  var badge = document.getElementById('oxigBadge');
+  if (!badge) return;
+  if (v >= 95) {
+    badge.className = 'oxi-badge oxi-badge--normal';
+    badge.textContent = 'Normal ✓';
+  } else if (v >= 90) {
+    badge.className = 'oxi-badge oxi-badge--atencao';
+    badge.textContent = 'Atenção ⚠';
+  } else {
+    badge.className = 'oxi-badge oxi-badge--critico';
+    badge.textContent = 'Crítico ✗';
+  }
+}
+
+function _oxigUpdateDisplay(v) {
+  var el = document.getElementById('oxigCurrentVal');
+  if (!el) return;
+  el.innerHTML = v + '<span class="oxi-unit">%</span>';
+}
+
+function oxigConfirm() {
+  var v = oxigInsertData.val;
+  if (!v || v <= 0) return;
+  addOxigenacao(v);
+  closeOxigInsertView();
+}
+
+function openHidraInsertView() {
+  var chart = document.getElementById('pressaoHistoricoView');
+  if (chart) chart.style.display = 'none';
+  var filters = document.getElementById('vitalDefaultPeriodControls');
+  if (filters) filters.style.display = 'none';
+  var content = document.getElementById('vitalDetailContent');
+  if (content) content.style.display = 'none';
+  var addRow = document.querySelector('#vitalDetailModal .vital-detail-add-row');
+  if (addRow) addRow.style.display = 'none';
+  var titleEl = document.getElementById('vitalDetailTitle');
+  if (titleEl) titleEl.textContent = 'Adicionar água';
+  hidraInsertData.ml = 250;
+  var view = document.getElementById('hidraInsertView');
+  if (view) {
+    view.style.display = 'flex';
+    var inp = document.getElementById('hidraNumInput');
+    if (inp) {
+      inp.value = 250;
+      setTimeout(function() { inp.focus(); inp.select(); }, 120);
+    }
+  }
+}
+
+function closeHidraInsertView() {
+  var view = document.getElementById('hidraInsertView');
+  if (view) view.style.display = 'none';
+  var chart = document.getElementById('pressaoHistoricoView');
+  if (chart) chart.style.display = '';
+  var filters = document.getElementById('vitalDefaultPeriodControls');
+  if (filters) filters.style.display = '';
+  var content = document.getElementById('vitalDetailContent');
+  if (content) content.style.display = '';
+  var addRow = document.querySelector('#vitalDetailModal .vital-detail-add-row');
+  if (addRow) addRow.style.display = '';
+  var titleEl = document.getElementById('vitalDetailTitle');
+  if (titleEl && typeof currentVitalDetail !== 'undefined' && currentVitalDetail) {
+    titleEl.textContent = 'Histórico de Hidratação';
+  }
+}
+
+function hidraDrumConfirm() {
+  var v = hidraInsertData.ml;
+  if (!v || v <= 0) return;
+  addHidratacao(v);
+  closeHidraInsertView();
+}
+
+function onHidraNumInput(el) {
+  var v = parseInt(el.value, 10);
+  if (!isNaN(v) && v > 0) {
+    hidraInsertData.ml = Math.min(9999, Math.max(1, v));
+  }
+}
+
+function stepHidra(delta) {
+  var newVal = Math.max(50, Math.min(9999, (hidraInsertData.ml || 250) + delta));
+  hidraInsertData.ml = newVal;
+  var inp = document.getElementById('hidraNumInput');
+  if (inp) inp.value = newVal;
+}
+
+function hidraQuickAdd(ml) {
+  addHidratacao(ml);
+  closeHidraInsertView();
+}
+
+function hidraQuickAddManual() {
+  var inp = document.getElementById('hidraManualInput');
+  var val = inp ? parseInt(inp.value, 10) : 0;
+  if (!val || val <= 0 || val > 5000) {
+    if (inp) inp.focus();
+    return;
+  }
+  addHidratacao(val);
+  closeHidraInsertView();
 }
 
 function renderSaude() {
@@ -2974,46 +3189,108 @@ function setupAgendaModal() {
 // ===== RENDERIZAÇÃO DE COMPOSIÇÃO CORPORAL =====
 
 function renderComposicao() {
-  const ativos = mockData.composicaoCorporal
-    .filter(c => (mockData.configComposicao[c.tipo] || {}).exibirCorpo !== false);
+  var ativos = mockData.composicaoCorporal;
+  var html = ativos.length
+    ? '<div class="corpo-grid">' + ativos.map(createComposicaoCard).join('') + '</div>'
+    : '<div class="empty-state"><div class="empty-text">Nenhum dado de composição corporal</div></div>';
+  document.getElementById('composicaoContent').innerHTML = html;
+}
 
-  const isOutOfIdeal = (c) => {
-    if (!c || c.valor == null || !c.ideal) return false;
-    const ideal = c.ideal;
-    const current = parseFloat(c.valor);
-    if (Number.isNaN(current)) return false;
+// ── Corpo insert view ────────────────────────────────────────
 
-    if (ideal.type === 'range' && ideal.min != null && ideal.max != null) return current < ideal.min || current > ideal.max;
-    if (ideal.type === 'max' && ideal.max != null) return current > ideal.max;
-    if (ideal.type === 'min' && ideal.min != null) return current < ideal.min;
-    if (ideal.type === 'target' && ideal.target != null) return current !== ideal.target;
-    return false;
-  };
+var corpoInsertData = { id: null, tipo: '', val: 0, stepSmall: 0.1, stepBig: 1 };
 
-  const foraDoIdeal = ativos.filter(isOutOfIdeal);
-  const principaisTipos = new Set(['Peso', 'IMC', 'Circunferência Cintura', 'Percentual de Gordura', 'Massa Muscular', 'Hidratação']);
-  const principais = ativos.filter(c => !foraDoIdeal.includes(c) && principaisTipos.has(c.tipo));
-  const outros = ativos.filter(c => !foraDoIdeal.includes(c) && !principaisTipos.has(c.tipo));
+var _corpoStepConfig = {
+  'Peso':                { stepSmall: 0.1, stepBig: 1 },
+  'IMC':                 { stepSmall: 0.1, stepBig: 1 },
+  'Músculo Esquelético': { stepSmall: 0.1, stepBig: 1 },
+  'Massa Gorda':         { stepSmall: 0.1, stepBig: 1 },
+  'Água Corporal':       { stepSmall: 0.5, stepBig: 1 },
+  'Gordura Corporal':    { stepSmall: 0.5, stepBig: 1 },
+};
 
-  let html = '';
+function openCorpoInsertView(id) {
+  var item = mockData.composicaoCorporal.find(function(c) { return c.id === id; });
+  if (!item) return;
+  var cfg = _corpoStepConfig[item.tipo] || { stepSmall: 0.1, stepBig: 1 };
+  corpoInsertData = { id: id, tipo: item.tipo, val: parseFloat(item.valor) || 0, stepSmall: cfg.stepSmall, stepBig: cfg.stepBig };
 
-  if (foraDoIdeal.length) {
-    html += `<div class="subsection-title">Fora do ideal</div>`;
-    html += foraDoIdeal.map(createComposicaoCard).join('');
+  // Update texts
+  var labelEl = document.getElementById('corpoInsLabelEl');
+  if (labelEl) labelEl.textContent = 'Registrar ' + item.tipo;
+  var unitEl = document.getElementById('corpoInsUnitEl');
+  if (unitEl) unitEl.textContent = item.unidade;
+  var lastEl = document.getElementById('corpoInsLastEl');
+  if (lastEl) lastEl.textContent = item.valor != null ? ('Última medição: ' + item.valor + ' ' + item.unidade) : '';
+
+  // Update stepper labels
+  var sn2 = document.getElementById('corpoStepN2'); if (sn2) sn2.textContent = '−' + cfg.stepBig;
+  var sn1 = document.getElementById('corpoStepN1'); if (sn1) sn1.textContent = '−' + cfg.stepSmall;
+  var sp1 = document.getElementById('corpoStepP1'); if (sp1) sp1.textContent = '+' + cfg.stepSmall;
+  var sp2 = document.getElementById('corpoStepP2'); if (sp2) sp2.textContent = '+' + cfg.stepBig;
+
+  // Icon with brand color
+  var colors = (typeof _corpoCardColors !== 'undefined' && _corpoCardColors[item.tipo]) || { bg: '#f1f5f9', fg: '#475569' };
+  var iconEl = document.getElementById('corpoInsIconEl');
+  if (iconEl) {
+    iconEl.style.background = colors.bg;
+    iconEl.style.color = colors.fg;
+    iconEl.innerHTML = (typeof getVitalIconSvg === 'function' ? getVitalIconSvg(item.tipo) : '') || '';
   }
 
-  if (principais.length) {
-    html += `<div class="subsection-title">Principais</div>`;
-    html += principais.map(createComposicaoCard).join('');
+  // Pre-fill input
+  var inp = document.getElementById('corpoNumInput');
+  if (inp) {
+    inp.value = corpoInsertData.val;
+    inp.step = cfg.stepSmall;
+    setTimeout(function() { inp.focus(); inp.select(); }, 120);
   }
 
-  if (outros.length) {
-    html += `<div class="subsection-title">Outros</div>`;
-    html += outros.map(createComposicaoCard).join('');
-  }
+  // Show/hide
+  var subtitle = document.getElementById('composicaoSubtitle');
+  if (subtitle) subtitle.style.display = 'none';
+  var content = document.getElementById('composicaoContent');
+  if (content) content.style.display = 'none';
+  var insertView = document.getElementById('corpoInsertView');
+  if (insertView) insertView.style.display = 'flex';
+}
 
-  document.getElementById('composicaoContent').innerHTML = html ||
-    '<div class="empty-state"><div class="empty-text">Nenhum dado de composição corporal</div></div>';
+function closeCorpoInsertView() {
+  var insertView = document.getElementById('corpoInsertView');
+  if (insertView) insertView.style.display = 'none';
+  var content = document.getElementById('composicaoContent');
+  if (content) content.style.display = '';
+  var subtitle = document.getElementById('composicaoSubtitle');
+  if (subtitle) subtitle.style.display = '';
+}
+
+function onCorpoNumInput(el) {
+  var v = parseFloat(el.value);
+  if (!isNaN(v) && v >= 0) corpoInsertData.val = v;
+}
+
+function stepCorpo(size, dir) {
+  var delta = (size === 'big' ? corpoInsertData.stepBig : corpoInsertData.stepSmall) * dir;
+  var newVal = Math.round((corpoInsertData.val + delta) * 1000) / 1000;
+  newVal = Math.max(0, newVal);
+  corpoInsertData.val = newVal;
+  var inp = document.getElementById('corpoNumInput');
+  if (inp) inp.value = newVal;
+}
+
+function corpoInsertSave() {
+  var v = corpoInsertData.val;
+  if (v === null || isNaN(v) || v < 0) return;
+  var item = mockData.composicaoCorporal.find(function(c) { return c.id === corpoInsertData.id; });
+  if (!item) return;
+  var now = new Date();
+  var data = now.toISOString().slice(0, 10);
+  var hora = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+  item.valor = v;
+  item.dataHora = data;
+  item.historico.unshift({ data: data, hora: hora, valor: v, variacao: 'normal', fonte: 'Manual' });
+  closeCorpoInsertView();
+  renderComposicao();
 }
 
 
@@ -8157,6 +8434,9 @@ function openVitalDetailModal(tipoVital, vitalId) {
   const isPressao = tipoVital === 'Pressão Arterial';
   const isPassos = tipoVital === 'Passos';
   const isGlicemia = tipoVital === 'Glicemia';
+  const isSono = tipoVital === 'Sono';
+  const isOxig = tipoVital === 'Oxigenação';
+  const isHidra = tipoVital === 'Hidratação';
   const bcChrome = document.getElementById('vitalDetailBatimentoChrome');
   const defChrome = document.getElementById('vitalDetailDefaultChrome');
   const batimentoBackBtn = document.getElementById('vitalBatimentoHeaderBackBtn');
@@ -8174,8 +8454,8 @@ function openVitalDetailModal(tipoVital, vitalId) {
   if (bcChrome) bcChrome.style.display = bc ? 'block' : 'none';
   if (defChrome) defChrome.style.display = bc ? 'none' : 'block';
   if (batimentoBackBtn && !bc) batimentoBackBtn.hidden = true;
-  if (defaultPeriodControls) defaultPeriodControls.style.display = !bc && (isPressao || isPassos || isGlicemia) ? 'block' : 'none';
-  if (defaultDateFilterRow) defaultDateFilterRow.style.display = !bc && !isPressao && !isPassos && !isGlicemia ? 'block' : 'none';
+  if (defaultPeriodControls) defaultPeriodControls.style.display = !bc && (isPressao || isPassos || isGlicemia || isSono || isOxig || isHidra) ? 'block' : 'none';
+  if (defaultDateFilterRow) defaultDateFilterRow.style.display = !bc && !isPressao && !isPassos && !isGlicemia && !isSono && !isOxig && !isHidra ? 'block' : 'none';
 
   const vitalDetailContentEl = document.getElementById('vitalDetailContent');
   const vitalDetailAddRowEl = document.querySelector('#vitalDetailModal .vital-detail-add-row');
@@ -8193,6 +8473,10 @@ function openVitalDetailModal(tipoVital, vitalId) {
   if (_passv) _passv.style.display = 'none';
   var _giv = document.getElementById('glicemiaInsertView');
   if (_giv) _giv.style.display = 'none';
+  var _hiv = document.getElementById('hidraInsertView');
+  if (_hiv) _hiv.style.display = 'none';
+  var _oiv = document.getElementById('oxigInsertView');
+  if (_oiv) _oiv.style.display = 'none';
   window._pressaoDiaActive = false;
   window._pressaoColetaActive = false;
   window._passaosDiaActive = false;
@@ -8224,7 +8508,7 @@ function openVitalDetailModal(tipoVital, vitalId) {
       summaryEl.style.cursor = '';
       summaryEl.removeAttribute('title');
     }
-    if (isPressao || isPassos || isGlicemia) {
+    if (isPressao || isPassos || isGlicemia || isSono || isOxig || isHidra) {
       vitalDefaultPeriod = '7d';
       if (isPassos) {
         passosSelectedDayIso = null;
@@ -8264,6 +8548,10 @@ function openVitalDetailModal(tipoVital, vitalId) {
   document.getElementById('addVitalMedicaoBtn').onclick = function() {
     if (tipoVital === 'Glicemia') {
       openAddGlicemiaWizard();
+    } else if (tipoVital === 'Hidratação') {
+      openHidraInsertView();
+    } else if (tipoVital === 'Oxigenação') {
+      openOxigInsertView();
     } else {
       openAddVitalModal(tipoVital);
     }
@@ -8520,6 +8808,7 @@ function closePressaoColetaDetail() {
 /* ── Inserção manual de pressão arterial ──────────────────────────────────── */
 let pressaoInsertStep = 1;
 let pressaoInsertData = { sis: 120, dia: 80, hr: 72, med: 'nenhum', nota: '' };
+var hidraInsertData = { ml: 250 };
 let _piStepTimer = null;
 var PI_DRUM_IH = 72; // height per drum slot (px) — 5-slot full-screen drum
 var _piDrumDrag = null;
@@ -8683,6 +8972,7 @@ function piDcInputBlur(field, inp) {
     else if (field === 'sis') pressaoInsertData.sis = Math.max(60, Math.min(250, v));
     else if (field === 'dia') pressaoInsertData.dia = Math.max(30, Math.min(160, v));
     else if (field === 'hr')  pressaoInsertData.hr  = Math.max(30, Math.min(250, v));
+    else if (field === 'hidra-ml') hidraInsertData.ml = Math.round(Math.max(50, Math.min(3000, v)) / 50) * 50;
   }
   inp.style.pointerEvents = 'none';
   inp.style.opacity = '0';
@@ -8704,7 +8994,11 @@ function _glicDrumUpdateBadge() {
 }
 
 function _piDrumRender(field) {
-  var val = field === 'glicemia' ? glicemiaInsertData.glicemia : (field === 'insulina' ? (glicemiaInsertData.insulina || 0) : pressaoInsertData[field]);
+  var val, step;
+  if (field === 'glicemia') { val = glicemiaInsertData.glicemia; step = 1; }
+  else if (field === 'insulina') { val = glicemiaInsertData.insulina || 0; step = 1; }
+  else if (field === 'hidra-ml') { val = hidraInsertData.ml; step = 50; }
+  else { val = pressaoInsertData[field]; step = 1; }
   var track = document.getElementById('piDrumTrack-' + field);
   if (!track) return;
   // Reset any leftover keyboard-input overlay
@@ -8713,7 +9007,7 @@ function _piDrumRender(field) {
   var html = '';
   // 5-slot drum: -2, -1, 0, +1, +2
   for (var offset = -2; offset <= 2; offset++) {
-    var v = val + offset;
+    var v = val + offset * step;
     var cls = 'pi-drum-item';
     if (offset === 0) cls += ' pi-drum-item--sel';
     else if (Math.abs(offset) === 1) cls += ' pi-drum-item--near';
@@ -8731,6 +9025,7 @@ function _piDrumStep(field, delta) {
   else if (field === 'sis') pressaoInsertData.sis = Math.max(60, Math.min(250, pressaoInsertData.sis + delta));
   else if (field === 'dia') pressaoInsertData.dia = Math.max(30, Math.min(160, pressaoInsertData.dia + delta));
   else if (field === 'hr') pressaoInsertData.hr = Math.max(30, Math.min(250, pressaoInsertData.hr + delta));
+  else if (field === 'hidra-ml') hidraInsertData.ml = Math.max(50, Math.min(3000, hidraInsertData.ml + delta * 50));
 }
 
 function _piDrumAnimate(field, fromOffsetPx) {
@@ -9998,6 +10293,562 @@ function renderSparklineChart(historico) {
     return;
   }
 
+  if (currentVitalDetail && currentVitalDetail.tipo === 'Sono') {
+    // Aggregate by day: keep max sleep duration per day
+    var _sonoByDay = new Map();
+    historico.forEach(function(h) {
+      var dayIso = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data || '').slice(0, 10);
+      if (!dayIso) return;
+      var v = parseFloat(h.valor);
+      if (!Number.isFinite(v)) return;
+      if (!_sonoByDay.has(dayIso) || v > _sonoByDay.get(dayIso).v) {
+        _sonoByDay.set(dayIso, { day: dayIso, v: v, status: h.status });
+      }
+    });
+    var _sonoRows = Array.from(_sonoByDay.values()).sort(function(a, b) { return a.day.localeCompare(b.day); });
+    if (_sonoRows.length === 0) return;
+
+    var _sonoIdealLow = 7, _sonoIdealHigh = 9;
+    if (currentVitalDetail.ideal && typeof currentVitalDetail.ideal === 'string') {
+      var _sonoIm = currentVitalDetail.ideal.match(/(\d+)[–\-](\d+)/);
+      if (_sonoIm) { _sonoIdealLow = Number(_sonoIm[1]); _sonoIdealHigh = Number(_sonoIm[2]); }
+    }
+
+    var _sonoChartView = document.getElementById('pressaoHistoricoView');
+    if (_sonoChartView) {
+      _sonoChartView.style.overflowX = 'auto';
+      _sonoChartView.style.overflowY = 'hidden';
+      _sonoChartView.style.webkitOverflowScrolling = 'touch';
+    }
+
+    requestAnimationFrame(function() {
+      var dpr = window.devicePixelRatio || 1;
+      var n = _sonoRows.length;
+      var containerW = _sonoChartView ? _sonoChartView.offsetWidth : (canvas.parentElement ? canvas.parentElement.offsetWidth : 320);
+      var padL = 26, padR = 12, padT = 44, padB = 20;
+      var minColW = Math.max(10, (containerW - padL - padR) / Math.max(1, n));
+      var W = Math.max(containerW, padL + Math.ceil(n * minColW) + padR);
+      var H = 180;
+      var gw = W - padL - padR;
+      var gh = H - padT - padB;
+
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+
+      var allVals = _sonoRows.map(function(r) { return r.v; });
+      var yHigh = Math.max(Math.max.apply(null, allVals) * 1.1, _sonoIdealHigh * 1.25, 12);
+      var yLow = 0;
+      var span = yHigh - yLow;
+      var toY = function(v) { return padT + ((yHigh - v) / span) * gh; };
+
+      var slot = gw / Math.max(1, n);
+      var barW = Math.min(18, Math.max(7, slot * 0.58));
+      var barR = Math.min(5, barW / 2 - 0.5);
+
+      var _sonoHitBoxes = [];
+      var _ptBrDS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+      var _mAbrDS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+
+      function _fmtSonoV(v) {
+        var hh = Math.floor(v), mm = Math.round((v - hh) * 60);
+        return hh + 'h' + (mm > 0 ? ' ' + String(mm).padStart(2, '0') + 'm' : '');
+      }
+
+      function _drawSonoBase(hovIdx) {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#F8F9FA';
+        ctx.fillRect(0, 0, W, H);
+
+        // Ideal zone
+        ctx.fillStyle = 'rgba(124, 58, 237, 0.07)';
+        ctx.fillRect(padL, toY(_sonoIdealHigh), gw, toY(_sonoIdealLow) - toY(_sonoIdealHigh));
+        ctx.strokeStyle = 'rgba(124, 58, 237, 0.35)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.moveTo(padL, toY(_sonoIdealHigh)); ctx.lineTo(padL + gw, toY(_sonoIdealHigh)); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(padL, toY(_sonoIdealLow)); ctx.lineTo(padL + gw, toY(_sonoIdealLow)); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Bars
+        _sonoRows.forEach(function(row, i) {
+          var isHov = i === hovIdx;
+          var cx = padL + slot * i + slot / 2;
+          var x0 = cx - barW / 2;
+          var yTop = toY(row.v);
+          var yBot = toY(0);
+          var hBar = Math.max(1, yBot - yTop);
+          var isIdeal = row.v >= _sonoIdealLow && row.v <= _sonoIdealHigh;
+          var g = ctx.createLinearGradient(0, yTop, 0, yBot);
+          if (isIdeal) {
+            g.addColorStop(0, isHov ? '#c4b5fd' : '#a78bfa');
+            g.addColorStop(1, isHov ? '#8b5cf6' : '#7c3aed');
+          } else if (row.v < _sonoIdealLow) {
+            g.addColorStop(0, isHov ? '#fca5a5' : '#f87171');
+            g.addColorStop(1, isHov ? '#f87171' : '#ef4444');
+          } else {
+            g.addColorStop(0, isHov ? '#fcd34d' : '#fbbf24');
+            g.addColorStop(1, isHov ? '#f59e0b' : '#d97706');
+          }
+          ctx.fillStyle = g;
+          ctx.globalAlpha = hovIdx >= 0 && !isHov ? 0.45 : 1;
+          if (typeof ctx.roundRect === 'function') {
+            ctx.beginPath(); ctx.roundRect(x0, yTop, barW, hBar, [barR, barR, 2, 2]); ctx.fill();
+          } else {
+            ctx.fillRect(x0, yTop, barW, hBar);
+          }
+          ctx.globalAlpha = 1;
+        });
+
+        // Y labels
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '8px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(_sonoIdealLow + 'h', padL - 4, toY(_sonoIdealLow));
+        ctx.fillText(_sonoIdealHigh + 'h', padL - 4, toY(_sonoIdealHigh));
+
+        // X labels
+        var labelEvery = Math.max(1, Math.ceil(n / 8));
+        ctx.fillStyle = '#666';
+        ctx.font = '8px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
+        _sonoRows.forEach(function(row, i) {
+          if (i % labelEvery !== 0 && i !== n - 1) return;
+          var cx2 = padL + slot * i + slot / 2;
+          var parts = (row.day || '').split('-');
+          ctx.fillText(parts.length === 3 ? String(Number(parts[2])) : '', cx2, H - 4);
+        });
+
+        // Hover crosshair + tooltip bubble
+        if (hovIdx >= 0) {
+          var hRow = _sonoRows[hovIdx];
+          var hCx = padL + slot * hovIdx + slot / 2;
+          ctx.save();
+          ctx.strokeStyle = 'rgba(124,58,237,0.45)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath(); ctx.moveTo(hCx, padT); ctx.lineTo(hCx, H - padB); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.restore();
+
+          var _hValStr = _fmtSonoV(hRow.v);
+          var _hUnitStr = ' horas';
+          var _hDL = '';
+          if (hRow.day) {
+            var _hp = hRow.day.split('-').map(Number);
+            var _hd = new Date(_hp[0], _hp[1] - 1, _hp[2]);
+            _hDL = _ptBrDS[_hd.getDay()] + ', ' + _hp[2] + ' ' + _mAbrDS[_hp[1] - 1];
+          }
+          ctx.font = 'bold 10px Inter, sans-serif'; var _hnw = ctx.measureText(_hValStr).width;
+          ctx.font = '9px Inter, sans-serif'; var _husw = ctx.measureText(_hUnitStr).width;
+          var _hdlw = _hDL ? ctx.measureText(_hDL).width : 0;
+          var _hbh = _hDL ? 34 : 22, _harr = 5;
+          var _hbw = Math.max(_hnw + _husw + 18, _hdlw + 18, 80);
+          var _hbx = hCx - _hbw / 2;
+          if (_hbx < padL) _hbx = padL;
+          if (_hbx + _hbw > padL + gw) _hbx = padL + gw - _hbw;
+          var _hby = padT - _harr - 2, _hbr = 4;
+          ctx.fillStyle = '#4c1d95';
+          ctx.beginPath();
+          ctx.moveTo(_hbx + _hbr, _hby - _hbh); ctx.lineTo(_hbx + _hbw - _hbr, _hby - _hbh);
+          ctx.quadraticCurveTo(_hbx + _hbw, _hby - _hbh, _hbx + _hbw, _hby - _hbh + _hbr);
+          ctx.lineTo(_hbx + _hbw, _hby - _hbr); ctx.quadraticCurveTo(_hbx + _hbw, _hby, _hbx + _hbw - _hbr, _hby);
+          var _hax = Math.min(Math.max(hCx, _hbx + 10), _hbx + _hbw - 10);
+          ctx.lineTo(_hax + 5, _hby); ctx.lineTo(_hax, _hby + _harr); ctx.lineTo(_hax - 5, _hby);
+          ctx.lineTo(_hbx + _hbr, _hby); ctx.quadraticCurveTo(_hbx, _hby, _hbx, _hby - _hbr);
+          ctx.lineTo(_hbx, _hby - _hbh + _hbr); ctx.quadraticCurveTo(_hbx, _hby - _hbh, _hbx + _hbr, _hby - _hbh);
+          ctx.closePath(); ctx.fill();
+          ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+          if (_hDL) {
+            var _hty1 = _hby - _hbh + 11;
+            var _htx = _hbx + (_hbw - _hnw - _husw) / 2;
+            ctx.font = 'bold 10px Inter, sans-serif'; ctx.fillStyle = '#e9d5ff'; ctx.fillText(_hValStr, _htx, _hty1); _htx += _hnw;
+            ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#c4b5fd'; ctx.fillText(_hUnitStr, _htx, _hty1);
+            ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#a78bfa';
+            ctx.textAlign = 'center'; ctx.fillText(_hDL, _hbx + _hbw / 2, _hby - _hbh + 25);
+          } else {
+            var _hty = _hby - _hbh / 2;
+            var _htx2 = _hbx + (_hbw - _hnw - _husw) / 2;
+            ctx.font = 'bold 10px Inter, sans-serif'; ctx.fillStyle = '#e9d5ff'; ctx.fillText(_hValStr, _htx2, _hty); _htx2 += _hnw;
+            ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#c4b5fd'; ctx.fillText(_hUnitStr, _htx2, _hty);
+          }
+        }
+      }
+
+      // Build hit boxes
+      _sonoRows.forEach(function(row, i) {
+        _sonoHitBoxes.push({ x0: padL + slot * i, x1: padL + slot * (i + 1), idx: i });
+      });
+
+      _drawSonoBase(-1);
+      canvas.style.cursor = 'pointer';
+
+      canvas._sonoHovIdx = -1;
+      canvas.onmousemove = function(ev) {
+        var rect = canvas.getBoundingClientRect();
+        var sx = W / Math.max(1, rect.width);
+        var x = (ev.clientX - rect.left) * sx;
+        var newIdx = -1;
+        _sonoHitBoxes.forEach(function(b) { if (x >= b.x0 && x <= b.x1) newIdx = b.idx; });
+        if (newIdx !== canvas._sonoHovIdx) {
+          canvas._sonoHovIdx = newIdx;
+          _drawSonoBase(newIdx);
+        }
+      };
+      canvas.onmouseleave = function() {
+        if (canvas._sonoHovIdx !== -1) {
+          canvas._sonoHovIdx = -1;
+          _drawSonoBase(-1);
+        }
+      };
+
+      if (_sonoChartView) _sonoChartView.scrollLeft = Math.max(0, W - containerW);
+    });
+    return;
+  }
+
+  if (currentVitalDetail && currentVitalDetail.tipo === 'Oxigenação') {
+    var _oxigByDay = new Map();
+    historico.forEach(function(h) {
+      var dayIso = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data || '').slice(0, 10);
+      if (!dayIso) return;
+      var v = parseFloat(h.valor);
+      if (!Number.isFinite(v)) return;
+      if (!_oxigByDay.has(dayIso) || v < _oxigByDay.get(dayIso).v) {
+        _oxigByDay.set(dayIso, { day: dayIso, v: v, status: h.status });
+      }
+    });
+    var _oxigRows = Array.from(_oxigByDay.values()).sort(function(a, b) { return a.day.localeCompare(b.day); });
+    if (_oxigRows.length === 0) return;
+
+    var _oxigIdealLow = 95, _oxigIdealHigh = 100;
+    if (currentVitalDetail.ideal && typeof currentVitalDetail.ideal === 'string') {
+      var _oxigIm = currentVitalDetail.ideal.match(/(\d+)[\u2013\-](\d+)/);
+      if (_oxigIm) { _oxigIdealLow = Number(_oxigIm[1]); _oxigIdealHigh = Number(_oxigIm[2]); }
+    }
+
+    var _oxigChartView = document.getElementById('pressaoHistoricoView');
+    if (_oxigChartView) {
+      _oxigChartView.style.overflowX = 'auto';
+      _oxigChartView.style.overflowY = 'hidden';
+      _oxigChartView.style.webkitOverflowScrolling = 'touch';
+    }
+
+    requestAnimationFrame(function() {
+      var dpr = window.devicePixelRatio || 1;
+      var n = _oxigRows.length;
+      var containerW = _oxigChartView ? _oxigChartView.offsetWidth : (canvas.parentElement ? canvas.parentElement.offsetWidth : 320);
+      var padL = 32, padR = 12, padT = 44, padB = 20;
+      var minColW = Math.max(10, (containerW - padL - padR) / Math.max(1, n));
+      var W = Math.max(containerW, padL + Math.ceil(n * minColW) + padR);
+      var H = 180;
+      var gw = W - padL - padR;
+      var gh = H - padT - padB;
+
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+
+      var allVals = _oxigRows.map(function(r) { return r.v; });
+      var yLow = Math.max(80, Math.min.apply(null, allVals) - 3);
+      var yHigh = 101;
+      var span = yHigh - yLow;
+      var toY = function(v) { return padT + ((yHigh - v) / span) * gh; };
+
+      var slot = gw / Math.max(1, n);
+      var barW = Math.min(18, Math.max(7, slot * 0.58));
+      var barR = Math.min(5, barW / 2 - 0.5);
+      var _oxigHitBoxes = [];
+      var _ptBrDO = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+      var _mAbrDO = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+
+      function _drawOxigBase(hovIdx) {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#F8F9FA';
+        ctx.fillRect(0, 0, W, H);
+        // Ideal zone
+        ctx.fillStyle = 'rgba(22,163,74,0.08)';
+        ctx.fillRect(padL, toY(yHigh), gw, toY(_oxigIdealLow) - toY(yHigh));
+        ctx.strokeStyle = 'rgba(22,163,74,0.4)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.moveTo(padL, toY(_oxigIdealLow)); ctx.lineTo(padL + gw, toY(_oxigIdealLow)); ctx.stroke();
+        ctx.setLineDash([]);
+        // Y labels
+        ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        ctx.fillText(_oxigIdealLow + '%', padL - 4, toY(_oxigIdealLow));
+        ctx.fillText('100%', padL - 4, toY(100));
+        // Bars
+        _oxigRows.forEach(function(row, i) {
+          var isHov = i === hovIdx;
+          var cx = padL + slot * i + slot / 2;
+          var x0 = cx - barW / 2;
+          var yTop = toY(row.v);
+          var yBot = toY(yLow);
+          var hBar = Math.max(1, yBot - yTop);
+          var barColor = row.v >= _oxigIdealLow ? '#16a34a' : (row.v >= 90 ? '#f59e0b' : '#ef4444');
+          var barColorDim = row.v >= _oxigIdealLow ? 'rgba(22,163,74,0.22)' : (row.v >= 90 ? 'rgba(245,158,11,0.25)' : 'rgba(239,68,68,0.25)');
+          if (hovIdx !== -1 && !isHov) {
+            ctx.fillStyle = barColorDim;
+          } else {
+            var grad = ctx.createLinearGradient(0, yTop, 0, yBot);
+            grad.addColorStop(0, barColor);
+            grad.addColorStop(1, barColor + 'bb');
+            ctx.fillStyle = grad;
+          }
+          if (typeof ctx.roundRect === 'function') {
+            ctx.beginPath(); ctx.roundRect(x0, yTop, barW, hBar, [barR, barR, 0, 0]); ctx.fill();
+          } else { ctx.fillRect(x0, yTop, barW, hBar); }
+          var pp = row.day.split('-').map(Number);
+          ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+          ctx.fillText(String(pp[2]), cx, H - padB + 3);
+        });
+        // Hover tooltip
+        if (hovIdx >= 0 && hovIdx < _oxigRows.length) {
+          var hRow = _oxigRows[hovIdx];
+          var hCx = padL + slot * hovIdx + slot / 2;
+          var _hValStr = String(hRow.v);
+          var _hUnitStr = '%';
+          var _hDL = '';
+          if (hRow.day) {
+            var _hp = hRow.day.split('-').map(Number);
+            var _hd = new Date(_hp[0], _hp[1] - 1, _hp[2]);
+            _hDL = _ptBrDO[_hd.getDay()] + ', ' + _hp[2] + ' ' + _mAbrDO[_hp[1] - 1];
+          }
+          ctx.font = 'bold 10px Inter, sans-serif'; var _hnw = ctx.measureText(_hValStr).width;
+          ctx.font = '9px Inter, sans-serif'; var _husw = ctx.measureText(_hUnitStr).width;
+          var _hdlw = _hDL ? ctx.measureText(_hDL).width : 0;
+          var _hbh = _hDL ? 34 : 22, _harr = 5;
+          var _hbw = Math.max(_hnw + _husw + 18, _hdlw + 18, 70);
+          var _hbx = hCx - _hbw / 2;
+          if (_hbx < padL) _hbx = padL;
+          if (_hbx + _hbw > padL + gw) _hbx = padL + gw - _hbw;
+          var _hby = padT - _harr - 2, _hbr = 4;
+          ctx.fillStyle = '#14532d';
+          ctx.beginPath();
+          ctx.moveTo(_hbx + _hbr, _hby - _hbh); ctx.lineTo(_hbx + _hbw - _hbr, _hby - _hbh);
+          ctx.quadraticCurveTo(_hbx + _hbw, _hby - _hbh, _hbx + _hbw, _hby - _hbh + _hbr);
+          ctx.lineTo(_hbx + _hbw, _hby - _hbr); ctx.quadraticCurveTo(_hbx + _hbw, _hby, _hbx + _hbw - _hbr, _hby);
+          var _hax = Math.min(Math.max(hCx, _hbx + 10), _hbx + _hbw - 10);
+          ctx.lineTo(_hax + 5, _hby); ctx.lineTo(_hax, _hby + _harr); ctx.lineTo(_hax - 5, _hby);
+          ctx.lineTo(_hbx + _hbr, _hby); ctx.quadraticCurveTo(_hbx, _hby, _hbx, _hby - _hbr);
+          ctx.lineTo(_hbx, _hby - _hbh + _hbr); ctx.quadraticCurveTo(_hbx, _hby - _hbh, _hbx + _hbr, _hby - _hbh);
+          ctx.closePath(); ctx.fill();
+          ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+          if (_hDL) {
+            var _hty1 = _hby - _hbh + 11;
+            var _htx = _hbx + (_hbw - _hnw - _husw) / 2;
+            ctx.font = 'bold 10px Inter, sans-serif'; ctx.fillStyle = '#bbf7d0'; ctx.fillText(_hValStr, _htx, _hty1); _htx += _hnw;
+            ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#86efac'; ctx.fillText(_hUnitStr, _htx, _hty1);
+            ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#4ade80';
+            ctx.textAlign = 'center'; ctx.fillText(_hDL, _hbx + _hbw / 2, _hby - _hbh + 25);
+          } else {
+            var _hty = _hby - _hbh / 2;
+            var _htx2 = _hbx + (_hbw - _hnw - _husw) / 2;
+            ctx.font = 'bold 10px Inter, sans-serif'; ctx.fillStyle = '#bbf7d0'; ctx.fillText(_hValStr, _htx2, _hty); _htx2 += _hnw;
+            ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#86efac'; ctx.fillText(_hUnitStr, _htx2, _hty);
+          }
+        }
+      }
+
+      _oxigRows.forEach(function(row, i) {
+        _oxigHitBoxes.push({ x0: padL + slot * i, x1: padL + slot * (i + 1), idx: i });
+      });
+      _drawOxigBase(-1);
+      canvas.style.cursor = 'pointer';
+      canvas._oxigHovIdx = -1;
+      canvas.onmousemove = function(ev) {
+        var rect = canvas.getBoundingClientRect();
+        var sx = W / Math.max(1, rect.width);
+        var x = (ev.clientX - rect.left) * sx;
+        var newIdx = -1;
+        _oxigHitBoxes.forEach(function(b) { if (x >= b.x0 && x <= b.x1) newIdx = b.idx; });
+        if (newIdx !== canvas._oxigHovIdx) { canvas._oxigHovIdx = newIdx; _drawOxigBase(newIdx); }
+      };
+      canvas.onmouseleave = function() {
+        if (canvas._oxigHovIdx !== -1) { canvas._oxigHovIdx = -1; _drawOxigBase(-1); }
+      };
+      if (_oxigChartView) _oxigChartView.scrollLeft = Math.max(0, W - containerW);
+    });
+    return;
+  }
+
+  if (currentVitalDetail && currentVitalDetail.tipo === 'Hidratação') {
+    var _hidByDay = new Map();
+    historico.forEach(function(h) {
+      var dayIso = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data || '').slice(0, 10);
+      if (!dayIso) return;
+      var v = parseFloat(h.valor);
+      if (!Number.isFinite(v) || v < 0) return;
+      if (!_hidByDay.has(dayIso) || v > _hidByDay.get(dayIso).v) {
+        _hidByDay.set(dayIso, { day: dayIso, v: v, status: h.status });
+      }
+    });
+    var _hidRows = Array.from(_hidByDay.values()).sort(function(a, b) { return a.day.localeCompare(b.day); });
+    if (_hidRows.length === 0) return;
+
+    var _hidGoal = 2000;
+    if (currentVitalDetail.ideal && typeof currentVitalDetail.ideal === 'string') {
+      var _hidIm = currentVitalDetail.ideal.match(/(\d+)/);
+      if (_hidIm) _hidGoal = Number(_hidIm[1]);
+    }
+
+    var _hidChartView = document.getElementById('pressaoHistoricoView');
+    if (_hidChartView) {
+      _hidChartView.style.overflowX = 'auto';
+      _hidChartView.style.overflowY = 'hidden';
+      _hidChartView.style.webkitOverflowScrolling = 'touch';
+    }
+
+    requestAnimationFrame(function() {
+      var dpr = window.devicePixelRatio || 1;
+      var n = _hidRows.length;
+      var containerW = _hidChartView ? _hidChartView.offsetWidth : (canvas.parentElement ? canvas.parentElement.offsetWidth : 320);
+      var padL = 36, padR = 12, padT = 44, padB = 20;
+      var minColW = Math.max(10, (containerW - padL - padR) / Math.max(1, n));
+      var W = Math.max(containerW, padL + Math.ceil(n * minColW) + padR);
+      var H = 180;
+      var gw = W - padL - padR;
+      var gh = H - padT - padB;
+
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+
+      var allVals = _hidRows.map(function(r) { return r.v; });
+      var yLow = 0;
+      var yHigh = Math.max(_hidGoal * 1.3, Math.max.apply(null, allVals) * 1.1);
+      yHigh = Math.ceil(yHigh / 500) * 500;
+      var span = yHigh - yLow;
+      var toY = function(v) { return padT + ((yHigh - v) / span) * gh; };
+
+      var slot = gw / Math.max(1, n);
+      var barW = Math.min(18, Math.max(7, slot * 0.58));
+      var barR = Math.min(5, barW / 2 - 0.5);
+      var _hidHitBoxes = [];
+      var _ptBrDH = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+      var _mAbrDH = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+
+      function _fmtMlH(ml) {
+        return ml >= 1000 ? (ml / 1000).toFixed(1).replace('.0', '') + ' L' : ml + ' ml';
+      }
+
+      function _drawHidBase(hovIdx) {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = '#F8F9FA';
+        ctx.fillRect(0, 0, W, H);
+        // Goal zone (above goal line)
+        ctx.fillStyle = 'rgba(34,197,94,0.06)';
+        ctx.fillRect(padL, toY(yHigh), gw, toY(_hidGoal) - toY(yHigh));
+        // Goal line
+        ctx.strokeStyle = 'rgba(34,197,94,0.5)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.moveTo(padL, toY(_hidGoal)); ctx.lineTo(padL + gw, toY(_hidGoal)); ctx.stroke();
+        ctx.setLineDash([]);
+        // Y labels
+        ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        ctx.fillText(_fmtMlH(_hidGoal), padL - 4, toY(_hidGoal));
+        ctx.fillText(_fmtMlH(yHigh), padL - 4, toY(yHigh));
+        // Bars
+        _hidRows.forEach(function(row, i) {
+          var isHov = i === hovIdx;
+          var cx = padL + slot * i + slot / 2;
+          var x0 = cx - barW / 2;
+          var yTop = toY(row.v);
+          var yBot = toY(yLow);
+          var hBar = Math.max(1, yBot - yTop);
+          var barColor = row.v >= _hidGoal ? '#22c55e' : (row.v >= _hidGoal * 0.6 ? '#3b82f6' : '#f59e0b');
+          var barColorDim = row.v >= _hidGoal ? 'rgba(34,197,94,0.22)' : (row.v >= _hidGoal * 0.6 ? 'rgba(59,130,246,0.22)' : 'rgba(245,158,11,0.25)');
+          if (hovIdx !== -1 && !isHov) {
+            ctx.fillStyle = barColorDim;
+          } else {
+            var grad = ctx.createLinearGradient(0, yTop, 0, yBot);
+            grad.addColorStop(0, barColor);
+            grad.addColorStop(1, barColor + 'bb');
+            ctx.fillStyle = grad;
+          }
+          if (typeof ctx.roundRect === 'function') {
+            ctx.beginPath(); ctx.roundRect(x0, yTop, barW, hBar, [barR, barR, 0, 0]); ctx.fill();
+          } else { ctx.fillRect(x0, yTop, barW, hBar); }
+          var pp = row.day.split('-').map(Number);
+          ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+          ctx.fillText(String(pp[2]), cx, H - padB + 3);
+        });
+        // Hover tooltip
+        if (hovIdx >= 0 && hovIdx < _hidRows.length) {
+          var hRow = _hidRows[hovIdx];
+          var hCx = padL + slot * hovIdx + slot / 2;
+          var _hValStr = _fmtMlH(hRow.v);
+          var _hDL = '';
+          if (hRow.day) {
+            var _hp = hRow.day.split('-').map(Number);
+            var _hd = new Date(_hp[0], _hp[1] - 1, _hp[2]);
+            _hDL = _ptBrDH[_hd.getDay()] + ', ' + _hp[2] + ' ' + _mAbrDH[_hp[1] - 1];
+          }
+          ctx.font = 'bold 10px Inter, sans-serif'; var _hnw = ctx.measureText(_hValStr).width;
+          ctx.font = '9px Inter, sans-serif'; var _hdlw = _hDL ? ctx.measureText(_hDL).width : 0;
+          var _hbh = _hDL ? 34 : 22, _harr = 5;
+          var _hbw = Math.max(_hnw + 18, _hdlw + 18, 70);
+          var _hbx = hCx - _hbw / 2;
+          if (_hbx < padL) _hbx = padL;
+          if (_hbx + _hbw > padL + gw) _hbx = padL + gw - _hbw;
+          var _hby = padT - _harr - 2, _hbr = 4;
+          ctx.fillStyle = '#1e3a5f';
+          ctx.beginPath();
+          ctx.moveTo(_hbx + _hbr, _hby - _hbh); ctx.lineTo(_hbx + _hbw - _hbr, _hby - _hbh);
+          ctx.quadraticCurveTo(_hbx + _hbw, _hby - _hbh, _hbx + _hbw, _hby - _hbh + _hbr);
+          ctx.lineTo(_hbx + _hbw, _hby - _hbr); ctx.quadraticCurveTo(_hbx + _hbw, _hby, _hbx + _hbw - _hbr, _hby);
+          var _hax = Math.min(Math.max(hCx, _hbx + 10), _hbx + _hbw - 10);
+          ctx.lineTo(_hax + 5, _hby); ctx.lineTo(_hax, _hby + _harr); ctx.lineTo(_hax - 5, _hby);
+          ctx.lineTo(_hbx + _hbr, _hby); ctx.quadraticCurveTo(_hbx, _hby, _hbx, _hby - _hbr);
+          ctx.lineTo(_hbx, _hby - _hbh + _hbr); ctx.quadraticCurveTo(_hbx, _hby - _hbh, _hbx + _hbr, _hby - _hbh);
+          ctx.closePath(); ctx.fill();
+          ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+          if (_hDL) {
+            var _hty1 = _hby - _hbh + 11;
+            var _htx = _hbx + (_hbw - _hnw) / 2;
+            ctx.font = 'bold 10px Inter, sans-serif'; ctx.fillStyle = '#bae6fd'; ctx.fillText(_hValStr, _htx, _hty1);
+            ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#7dd3fc';
+            ctx.textAlign = 'center'; ctx.fillText(_hDL, _hbx + _hbw / 2, _hby - _hbh + 25);
+          } else {
+            var _hty = _hby - _hbh / 2;
+            var _htx2 = _hbx + (_hbw - _hnw) / 2;
+            ctx.font = 'bold 10px Inter, sans-serif'; ctx.fillStyle = '#bae6fd'; ctx.fillText(_hValStr, _htx2, _hty);
+          }
+        }
+      }
+
+      _hidRows.forEach(function(row, i) {
+        _hidHitBoxes.push({ x0: padL + slot * i, x1: padL + slot * (i + 1), idx: i });
+      });
+      _drawHidBase(-1);
+      canvas.style.cursor = 'pointer';
+      canvas._hidHovIdx = -1;
+      canvas.onmousemove = function(ev) {
+        var rect = canvas.getBoundingClientRect();
+        var sx = W / Math.max(1, rect.width);
+        var x = (ev.clientX - rect.left) * sx;
+        var newIdx = -1;
+        _hidHitBoxes.forEach(function(b) { if (x >= b.x0 && x <= b.x1) newIdx = b.idx; });
+        if (newIdx !== canvas._hidHovIdx) { canvas._hidHovIdx = newIdx; _drawHidBase(newIdx); }
+      };
+      canvas.onmouseleave = function() {
+        if (canvas._hidHovIdx !== -1) { canvas._hidHovIdx = -1; _drawHidBase(-1); }
+      };
+      if (_hidChartView) _hidChartView.scrollLeft = Math.max(0, W - containerW);
+    });
+    return;
+  }
+
   const values = historico.slice(0, 10).reverse().map(h => {
     if (typeof h.valor === 'object' && h.valor.sistolica != null) return parseInt(h.valor.sistolica, 10);
     if (typeof h.valor === 'string' && h.valor.includes('/')) return parseInt(h.valor.split('/')[0], 10);
@@ -10412,6 +11263,193 @@ function renderVitalDetailContent(historico) {
     return;
   }
 
+  if (currentVitalDetail?.tipo === 'Sono') {
+    const _sonoIdealL = 7, _sonoIdealH = 9;
+    const _diasSono = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    const _mesesSono = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+    // Aggregate by day: most recent entry per day
+    const _sonoByDayMap = new Map();
+    currentVitalHistoricoView.forEach(function(h) {
+      const dayIso = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data || '').slice(0, 10);
+      if (!dayIso) return;
+      const existing = _sonoByDayMap.get(dayIso);
+      const hMs = typeof historicoEntryToMs === 'function' ? historicoEntryToMs(h) : 0;
+      const exMs = existing ? (typeof historicoEntryToMs === 'function' ? historicoEntryToMs(existing) : 0) : -Infinity;
+      if (!existing || hMs > exMs) _sonoByDayMap.set(dayIso, h);
+    });
+    const _sonoDayEntries = Array.from(_sonoByDayMap.entries())
+      .sort(function(a, b) { return b[0].localeCompare(a[0]); })
+      .map(function(e) { return e[1]; });
+
+    function _sonoFmtVal(h) {
+      const hrs = parseFloat(h.valor);
+      if (!Number.isFinite(hrs)) return '—';
+      const hh = Math.floor(hrs), mm = Math.round((hrs - hh) * 60);
+      return hh + 'h' + (mm > 0 ? ' ' + String(mm).padStart(2, '0') + 'm' : '');
+    }
+    function _sonoStatusLabel(h) {
+      const hrs = parseFloat(h.valor);
+      if (!Number.isFinite(hrs)) return '';
+      if (hrs >= _sonoIdealL && hrs <= _sonoIdealH) return 'Ideal';
+      if (hrs < _sonoIdealL) return 'Pouco sono';
+      return 'Muito sono';
+    }
+    function _sonoDayLabel(dayIso) {
+      const pp = dayIso.split('-').map(Number);
+      const d = new Date(pp[0], pp[1] - 1, pp[2]);
+      return _diasSono[d.getDay()] + ', ' + String(pp[2]).padStart(2, '0') + ' ' + _mesesSono[pp[1] - 1];
+    }
+
+    const _sonoListHtml = _sonoDayEntries.map(function(h) {
+      const dayIso = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data || '').slice(0, 10);
+      const _fv = _sonoFmtVal(h);
+      const _sl = _sonoStatusLabel(h);
+      const _dl = dayIso ? _sonoDayLabel(dayIso) : (h.data || '');
+      const hrs = parseFloat(h.valor);
+      const _col = Number.isFinite(hrs) && hrs >= _sonoIdealL && hrs <= _sonoIdealH ? '#7c3aed' : (Number.isFinite(hrs) && hrs < _sonoIdealL ? '#ef4444' : '#f59e0b');
+      const _slClass = _sl === 'Ideal' ? 'ideal' : (_sl === 'Pouco sono' ? 'pouco' : 'muito');
+      return '<div class="vital-list-item vital-list-item--day-nav vital-list-item--hour-bucket">' +
+        '<div class="vital-list-main vital-list-main--hour-detail">' +
+          '<div class="vital-list-measure-line">' +
+            '<span style="color:' + _col + ';font-weight:700;">' + _fv + '</span>' +
+          '</div>' +
+          '<div class="vital-list-time-line">' + _dl + (_sl ? ' <span class="sono-status-chip sono-status-chip--' + _slClass + '">' + _sl + '</span>' : '') + '</div>' +
+        '</div>' +
+        '<div class="vital-list-trail"><span class="vital-list-chevron" aria-hidden="true">›</span></div>' +
+      '</div>';
+    }).join('');
+
+    const _sonoSummary = typeof buildSonoDetailPanel === 'function' ? buildSonoDetailPanel(currentVitalDetail) : '';
+    const _emptyMsg = _sonoDayEntries.length === 0
+      ? '<div class="empty-state"><div class="empty-text">Nenhum registro encontrado</div></div>'
+      : '';
+    document.getElementById('vitalDetailContent').innerHTML = _sonoSummary + (_emptyMsg || _sonoListHtml);
+    return;
+  }
+
+  if (currentVitalDetail?.tipo === 'Oxigenação') {
+    const _oxigIdealL = 95;
+    const _diasOxig = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    const _mesesOxig = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+    const _oxigByDayMap = new Map();
+    currentVitalHistoricoView.forEach(function(h) {
+      const dayIso = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data || '').slice(0, 10);
+      if (!dayIso) return;
+      const existing = _oxigByDayMap.get(dayIso);
+      const hMs = typeof historicoEntryToMs === 'function' ? historicoEntryToMs(h) : 0;
+      const exMs = existing ? (typeof historicoEntryToMs === 'function' ? historicoEntryToMs(existing) : 0) : -Infinity;
+      if (!existing || hMs > exMs) _oxigByDayMap.set(dayIso, h);
+    });
+    const _oxigDayEntries = Array.from(_oxigByDayMap.entries())
+      .sort(function(a, b) { return b[0].localeCompare(a[0]); })
+      .map(function(e) { return e[1]; });
+
+    function _oxigStatusLabel(h) {
+      const v = parseFloat(h.valor);
+      if (!Number.isFinite(v)) return '';
+      if (v >= _oxigIdealL) return 'Normal';
+      if (v >= 90) return 'Atenção';
+      return 'Crítico';
+    }
+    function _oxigDayLabel(dayIso) {
+      const pp = dayIso.split('-').map(Number);
+      const d = new Date(pp[0], pp[1] - 1, pp[2]);
+      return _diasOxig[d.getDay()] + ', ' + String(pp[2]).padStart(2, '0') + ' ' + _mesesOxig[pp[1] - 1];
+    }
+
+    const _oxigListHtml = _oxigDayEntries.map(function(h) {
+      const dayIso = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data || '').slice(0, 10);
+      const v = parseFloat(h.valor);
+      const _fv = Number.isFinite(v) ? v + '%' : '—';
+      const _sl = _oxigStatusLabel(h);
+      const _dl = dayIso ? _oxigDayLabel(dayIso) : (h.data || '');
+      const _col = Number.isFinite(v) && v >= _oxigIdealL ? '#16a34a' : (Number.isFinite(v) && v >= 90 ? '#f59e0b' : '#ef4444');
+      const _slClass = _sl === 'Normal' ? 'normal' : (_sl === 'Atenção' ? 'atencao' : 'critico');
+      return '<div class="vital-list-item vital-list-item--day-nav vital-list-item--hour-bucket">' +
+        '<div class="vital-list-main vital-list-main--hour-detail">' +
+          '<div class="vital-list-measure-line">' +
+            '<span style="color:' + _col + ';font-weight:700;">' + _fv + '</span>' +
+          '</div>' +
+          '<div class="vital-list-time-line">' + _dl + (_sl ? ' <span class="oxig-status-chip oxig-status-chip--' + _slClass + '">' + _sl + '</span>' : '') + '</div>' +
+        '</div>' +
+        '<div class="vital-list-trail"><span class="vital-list-chevron" aria-hidden="true">›</span></div>' +
+      '</div>';
+    }).join('');
+
+    const _oxigSummary = typeof buildOxigDetailPanel === 'function' ? buildOxigDetailPanel(currentVitalDetail) : '';
+    const _emptyOxig = _oxigDayEntries.length === 0
+      ? '<div class="empty-state"><div class="empty-text">Nenhum registro encontrado</div></div>'
+      : '';
+    document.getElementById('vitalDetailContent').innerHTML = _oxigSummary + (_emptyOxig || _oxigListHtml);
+    return;
+  }
+
+  if (currentVitalDetail?.tipo === 'Hidratação') {
+    var _hidGoalL = 2000;
+    if (currentVitalDetail.ideal && typeof currentVitalDetail.ideal === 'string') {
+      var _hidGoalM = currentVitalDetail.ideal.match(/(\d+)/);
+      if (_hidGoalM) _hidGoalL = Number(_hidGoalM[1]);
+    }
+    var _hidLowThr = _hidGoalL * 0.6;
+    const _diasHid = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    const _mesesHid = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+
+    const _hidByDayMap = new Map();
+    currentVitalHistoricoView.forEach(function(h) {
+      const dayIso = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data || '').slice(0, 10);
+      if (!dayIso) return;
+      const v = parseFloat(h.valor);
+      if (!Number.isFinite(v)) return;
+      const existing = _hidByDayMap.get(dayIso);
+      if (!existing || v > parseFloat(existing.valor)) _hidByDayMap.set(dayIso, h);
+    });
+    const _hidDayEntries = Array.from(_hidByDayMap.entries())
+      .sort(function(a, b) { return b[0].localeCompare(a[0]); })
+      .map(function(e) { return e[1]; });
+
+    function _hidFmtMl(ml) {
+      return ml >= 1000 ? (ml / 1000).toFixed(1).replace('.0', '') + ' L' : ml + ' ml';
+    }
+    function _hidStatusLabel(h) {
+      const v = parseFloat(h.valor);
+      if (!Number.isFinite(v)) return '';
+      if (v >= _hidGoalL) return 'Meta atingida';
+      if (v >= _hidLowThr) return 'Abaixo da meta';
+      return 'Muito baixo';
+    }
+    function _hidDayLabel(dayIso) {
+      const pp = dayIso.split('-').map(Number);
+      const d = new Date(pp[0], pp[1] - 1, pp[2]);
+      return _diasHid[d.getDay()] + ', ' + String(pp[2]).padStart(2, '0') + ' ' + _mesesHid[pp[1] - 1];
+    }
+
+    const _hidListHtml = _hidDayEntries.map(function(h) {
+      const dayIso = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data || '').slice(0, 10);
+      const v = parseFloat(h.valor);
+      const _fv = Number.isFinite(v) ? _hidFmtMl(v) : '—';
+      const _sl = _hidStatusLabel(h);
+      const _dl = dayIso ? _hidDayLabel(dayIso) : (h.data || '');
+      const _col = Number.isFinite(v) && v >= _hidGoalL ? '#22c55e' : (Number.isFinite(v) && v >= _hidLowThr ? '#3b82f6' : '#f59e0b');
+      const _slClass = _sl === 'Meta atingida' ? 'ok' : (_sl === 'Abaixo da meta' ? 'baixo' : 'muito');
+      return '<div class="vital-list-item vital-list-item--day-nav vital-list-item--hour-bucket">' +
+        '<div class="vital-list-main vital-list-main--hour-detail">' +
+          '<div class="vital-list-measure-line">' +
+            '<span style="color:' + _col + ';font-weight:700;">' + _fv + '</span>' +
+          '</div>' +
+          '<div class="vital-list-time-line">' + _dl + (_sl ? ' <span class="hidra-chip hidra-chip--' + _slClass + '">' + _sl + '</span>' : '') + '</div>' +
+        '</div>' +
+        '<div class="vital-list-trail"><span class="vital-list-chevron" aria-hidden="true">›</span></div>' +
+      '</div>';
+    }).join('');
+
+    const _hidSummary = typeof buildHidraDetailPanel === 'function' ? buildHidraDetailPanel(currentVitalDetail) : '';
+    const _emptyHid = _hidDayEntries.length === 0
+      ? '<div class="empty-state"><div class="empty-text">Nenhum registro encontrado</div></div>'
+      : '';
+    document.getElementById('vitalDetailContent').innerHTML = _hidSummary + (_emptyHid || _hidListHtml);
+    return;
+  }
+
   const sortedView = currentVitalHistoricoView.slice().sort(function(a, b) {
     var ta = typeof historicoEntryToMs === 'function' ? historicoEntryToMs(a) : 0;
     var tb = typeof historicoEntryToMs === 'function' ? historicoEntryToMs(b) : 0;
@@ -10472,7 +11510,15 @@ function renderVitalDetailContent(historico) {
     `;
   }).join('');
 
-  document.getElementById('vitalDetailContent').innerHTML = html;
+  var _summaryPanel = '';
+  if (currentVitalDetail && currentVitalDetail.tipo === 'Sono' && typeof buildSonoDetailPanel === 'function') {
+    _summaryPanel = buildSonoDetailPanel(currentVitalDetail);
+  } else if (currentVitalDetail && currentVitalDetail.tipo === 'Oxigenação' && typeof buildOxigDetailPanel === 'function') {
+    _summaryPanel = buildOxigDetailPanel(currentVitalDetail);
+  } else if (currentVitalDetail && currentVitalDetail.tipo === 'Hidratação' && typeof buildHidraDetailPanel === 'function') {
+    _summaryPanel = buildHidraDetailPanel(currentVitalDetail);
+  }
+  document.getElementById('vitalDetailContent').innerHTML = _summaryPanel + html;
 }
 
 function filterVitalDetail() {

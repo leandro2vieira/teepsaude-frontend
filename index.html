@@ -63,8 +63,35 @@
 
                 <!-- Composição Corporal Screen -->
                 <div class="screen" id="composicaoScreen">
-                    <div class="page-subtitle page-context-sub">Indicadores de composição corporal</div>
+                    <div class="page-subtitle page-context-sub" id="composicaoSubtitle">Composição corporal</div>
                     <div id="composicaoContent"></div>
+
+                    <!-- Insert view inline (aparece ao clicar num card) -->
+                    <div id="corpoInsertView" style="display:none;">
+                      <div class="pi-step">
+                        <div class="pi-step-head">
+                          <div class="corpo-ins-icon" id="corpoInsIconEl"></div>
+                          <div class="pi-step-label" id="corpoInsLabelEl">Registrar</div>
+                        </div>
+                        <p class="corpo-ins-last" id="corpoInsLastEl"></p>
+                        <div class="hi-value-block">
+                          <div class="hi-value-row">
+                            <input type="number" id="corpoNumInput" class="hi-value-input"
+                                   inputmode="decimal" step="0.1" min="0"
+                                   oninput="onCorpoNumInput(this)"/>
+                            <span class="hi-value-unit" id="corpoInsUnitEl">kg</span>
+                          </div>
+                          <div class="hi-steppers">
+                            <button class="hi-stepper" type="button" id="corpoStepN2" onclick="stepCorpo('big',-1)">−1</button>
+                            <button class="hi-stepper" type="button" id="corpoStepN1" onclick="stepCorpo('small',-1)">−0.1</button>
+                            <button class="hi-stepper hi-stepper--pos" type="button" id="corpoStepP1" onclick="stepCorpo('small',1)">+0.1</button>
+                            <button class="hi-stepper hi-stepper--pos" type="button" id="corpoStepP2" onclick="stepCorpo('big',1)">+1</button>
+                          </div>
+                        </div>
+                        <button class="hi-confirm-btn" onclick="corpoInsertSave()">+ Salvar</button>
+                        <button type="button" class="hi-cancel-link" onclick="closeCorpoInsertView()">Cancelar</button>
+                      </div>
+                    </div>
                 </div>
 
                 <!-- Medicações Screen -->
@@ -685,6 +712,128 @@
                     <button class="pi-save-btn" id="piConfirmBtn" onclick="pressaoInsSave()">Salvar Medição</button>
                   </div>
 
+                </div>
+
+                <!-- Inserção de hidratação — estilo wizard -->
+                <div id="hidraInsertView" style="display:none;">
+                  <div class="pi-step">
+
+                    <!-- Cabeçalho -->
+                    <div class="pi-step-head">
+                      <div class="hi-step-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 2.25C12 2.25 4.5 10.5 4.5 15a7.5 7.5 0 0 0 15 0c0-4.5-7.5-12.75-7.5-12.75z"/>
+                        </svg>
+                      </div>
+                      <div class="pi-step-label">Quanto você bebeu?</div>
+                    </div>
+
+                    <!-- Campo de valor editável -->
+                    <div class="hi-value-block">
+                      <div class="hi-value-row">
+                        <input type="number" id="hidraNumInput" class="hi-value-input"
+                               inputmode="numeric" min="1" max="9999" value="250"
+                               oninput="onHidraNumInput(this)"/>
+                        <span class="hi-value-unit">ml</span>
+                      </div>
+                      <!-- Botões de passo rápido -->
+                      <div class="hi-steppers">
+                        <button class="hi-stepper" type="button" onclick="stepHidra(-100)">−100</button>
+                        <button class="hi-stepper" type="button" onclick="stepHidra(-50)">−50</button>
+                        <button class="hi-stepper hi-stepper--pos" type="button" onclick="stepHidra(50)">+50</button>
+                        <button class="hi-stepper hi-stepper--pos" type="button" onclick="stepHidra(100)">+100</button>
+                      </div>
+                    </div>
+
+                    <!-- Atalhos rápidos (adiciona direto) -->
+                    <div class="hi-preset-rows">
+                      <button class="hi-preset-row" type="button" onclick="hidraQuickAdd(150)">
+                        <span class="hi-preset-row-icon">
+                          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h12l-2 16H7L5 3z"/></svg>
+                        </span>
+                        <span class="hi-preset-row-info">
+                          <span class="hi-preset-row-name">Copo</span>
+                          <span class="hi-preset-row-ml">150 ml</span>
+                        </span>
+                        <svg class="hi-preset-row-chev" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l4 4-4 4"/></svg>
+                      </button>
+                      <button class="hi-preset-row" type="button" onclick="hidraQuickAdd(350)">
+                        <span class="hi-preset-row-icon">
+                          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="10" height="16" rx="3"/><path d="M6 7h10M6 16h10"/></svg>
+                        </span>
+                        <span class="hi-preset-row-info">
+                          <span class="hi-preset-row-name">Latinha</span>
+                          <span class="hi-preset-row-ml">350 ml</span>
+                        </span>
+                        <svg class="hi-preset-row-chev" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l4 4-4 4"/></svg>
+                      </button>
+                      <button class="hi-preset-row" type="button" onclick="hidraQuickAdd(600)">
+                        <span class="hi-preset-row-icon">
+                          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h4v3l2 3v11a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V8l2-3V2z"/><path d="M8.5 13h5"/></svg>
+                        </span>
+                        <span class="hi-preset-row-info">
+                          <span class="hi-preset-row-name">Garrafa</span>
+                          <span class="hi-preset-row-ml">600 ml</span>
+                        </span>
+                        <svg class="hi-preset-row-chev" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l4 4-4 4"/></svg>
+                      </button>
+                      <button class="hi-preset-row" type="button" onclick="hidraQuickAdd(1000)">
+                        <span class="hi-preset-row-icon hi-preset-row-icon--blue">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.25C12 2.25 4.5 10.5 4.5 15a7.5 7.5 0 0 0 15 0c0-4.5-7.5-12.75-7.5-12.75z"/></svg>
+                        </span>
+                        <span class="hi-preset-row-info">
+                          <span class="hi-preset-row-name">1 Litro</span>
+                          <span class="hi-preset-row-ml">1000 ml</span>
+                        </span>
+                        <svg class="hi-preset-row-chev" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4l4 4-4 4"/></svg>
+                      </button>
+                    </div>
+
+                    <!-- Confirmar valor digitado -->
+                    <button class="hi-confirm-btn" onclick="hidraDrumConfirm()">+ Adicionar</button>
+                    <button type="button" class="hi-cancel-link" onclick="closeHidraInsertView()">Cancelar</button>
+
+                  </div>
+                </div>
+
+                <!-- Inserção de oxigenação — grade de toque rápido -->
+                <div id="oxigInsertView" style="display:none;">
+                  <div class="pi-step">
+
+                    <div class="pi-step-head">
+                      <div class="oxi-step-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5M3.75 12l4-4m-4 4 4 4"/>
+                          <circle cx="17" cy="12" r="3"/>
+                        </svg>
+                      </div>
+                      <div class="pi-step-label">Qual a sua saturação?</div>
+                    </div>
+
+                    <!-- Grade de valores 95–100 (toque rápido) -->
+                    <div class="oxi-grid" id="oxigGrid">
+                      <button class="oxi-cell" data-val="95" type="button" onclick="oxigSelectValue(95)">95<span>%</span></button>
+                      <button class="oxi-cell" data-val="96" type="button" onclick="oxigSelectValue(96)">96<span>%</span></button>
+                      <button class="oxi-cell" data-val="97" type="button" onclick="oxigSelectValue(97)">97<span>%</span></button>
+                      <button class="oxi-cell" data-val="98" type="button" onclick="oxigSelectValue(98)">98<span>%</span></button>
+                      <button class="oxi-cell" data-val="99" type="button" onclick="oxigSelectValue(99)">99<span>%</span></button>
+                      <button class="oxi-cell" data-val="100" type="button" onclick="oxigSelectValue(100)">100<span>%</span></button>
+                    </div>
+
+                    <!-- Badge de status em tempo real -->
+                    <div id="oxigBadge" class="oxi-badge oxi-badge--normal">Normal ✓</div>
+
+                    <!-- Valor grande + steppers ±1 para valores fora da grade -->
+                    <div class="oxi-stepper-row">
+                      <button class="oxi-step-btn" type="button" onclick="stepOxig(-1)">−1</button>
+                      <div class="oxi-current-val" id="oxigCurrentVal">98<span class="oxi-unit">%</span></div>
+                      <button class="oxi-step-btn oxi-step-btn--pos" type="button" onclick="stepOxig(1)">+1</button>
+                    </div>
+
+                    <button class="hi-confirm-btn" onclick="oxigConfirm()">+ Registrar</button>
+                    <button type="button" class="hi-cancel-link" onclick="closeOxigInsertView()">Cancelar</button>
+
+                  </div>
                 </div>
             </div>
 
