@@ -1001,13 +1001,11 @@ function _corpoShortDate(dataHora) {
 function createComposicaoCard(item) {
   var colors = _corpoCardColors[item.tipo] || { bg: '#f1f5f9', fg: '#475569' };
   var iconHtml = (typeof getVitalIconSvg === 'function' ? getVitalIconSvg(item.tipo) : '') || '';
-  var shortDate = _corpoShortDate(item.dataHora);
   var tipoEsc = String(item.tipo).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
   return `<button class="corpo-card" type="button" aria-label="${tipoEsc}" onclick="openCorpoInsertView(${item.id})">
   <div class="corpo-card-icon" style="background:${colors.bg};color:${colors.fg}">${iconHtml}</div>
   <div class="corpo-card-name">${tipoEsc}</div>
   <div class="corpo-card-value">${item.valor}</div>
-  <div class="corpo-card-meta">${item.unidade}${shortDate ? ' · ' + shortDate : ''}</div>
 </button>`;
 }
 

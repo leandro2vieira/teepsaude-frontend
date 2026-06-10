@@ -429,12 +429,20 @@ const mockData = {
     {
       id: 1,
       tipo: 'Peso',
-      valor: 75.0,
+      valor: 74.8,
       unidade: 'kg',
-      dataHora: '28/05/2026',
+      dataHora: '05/06/2026',
       variacao: 'normal',
       fonte: 'Manual',
       historico: [
+        { data: '2026-06-05', valor: 74.8, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-06-04', valor: 74.9, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-06-03', valor: 75.0, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-06-02', valor: 75.0, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-06-01', valor: 75.1, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-05-31', valor: 75.2, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-05-30', valor: 75.2, variacao: 'normal', fonte: 'Manual' },
+        { data: '2026-05-29', valor: 75.1, variacao: 'normal', fonte: 'Manual' },
         { data: '2026-05-28', valor: 75.0, variacao: 'normal', fonte: 'Manual' },
         { data: '2026-05-21', valor: 75.4, variacao: 'normal', fonte: 'Manual' },
         { data: '2026-05-14', valor: 75.8, variacao: 'normal', fonte: 'Manual' }
@@ -509,6 +517,87 @@ const mockData = {
         { data: '2026-05-21', valor: 22.4, variacao: 'normal', fonte: 'Manual' },
         { data: '2026-05-14', valor: 22.8, variacao: 'normal', fonte: 'Manual' }
       ]
+    }
+  ],
+
+  avaliacoesAntropometricas: [
+    {
+      id: 1,
+      nome: '1ª Avaliação Física',
+      data: '2026-06-05',
+      geral: {
+        peso: 74.8,
+        altura: 1.78,
+        imc: 23.6,
+        percMassaGorda: 19.4,
+        percMassaMagra: 80.6,
+        massaGordaKg: 14.5,
+        massaMagraKg: 60.3,
+        rcq: 0.86
+      },
+      circunferencias: {
+        ombro: 114,
+        peitoral: 101,
+        cintura: 85,
+        abdomen: 89,
+        quadril: 99,
+        bracoEsqRelaxado: 32,
+        bracoDirRelaxado: 32.4,
+        bracoEsqContraido: 34.1,
+        bracoDirContraido: 34.5,
+        panturrilhaEsq: 37.2,
+        panturrilhaDir: 37.4,
+        coxaEsq: 56.4,
+        coxaDir: 56.7
+      },
+      dobras: {
+        abdominal: 20,
+        triceps: 13,
+        suprailiaca: 16,
+        axilarMedia: 12,
+        subescapular: 14,
+        torax: 11,
+        coxa: 18
+      }
+    },
+    {
+      id: 2,
+      nome: '2ª Avaliação Física',
+      data: '2026-06-20',
+      geral: {
+        peso: 73.9,
+        altura: 1.78,
+        imc: 23.3,
+        percMassaGorda: 18.6,
+        percMassaMagra: 81.4,
+        massaGordaKg: 13.7,
+        massaMagraKg: 60.2,
+        rcq: 0.84
+      },
+      circunferencias: {
+        ombro: 114.3,
+        peitoral: 101.5,
+        cintura: 83.5,
+        abdomen: 87.8,
+        quadril: 98.8,
+        bracoEsqRelaxado: 32.2,
+        bracoDirRelaxado: 32.6,
+        bracoEsqContraido: 34.4,
+        bracoDirContraido: 34.8,
+        panturrilhaEsq: 37.4,
+        panturrilhaDir: 37.6,
+        coxaEsq: 56.8,
+        coxaDir: 57
+      },
+      dobras: {
+        abdominal: 18,
+        triceps: 12,
+        suprailiaca: 15,
+        axilarMedia: 11,
+        subescapular: 13,
+        torax: 10,
+        coxa: 17
+      }
     }
   ],
 
@@ -1805,6 +1894,183 @@ function injectMedicacaoHistoricoDemo(data) {
   ]);
 }
 
+/**
+ * Expande o mock para pelo menos 30 dias nos módulos com comparação temporal.
+ * Mantém o dataset leve, mas com volume suficiente para demos de tendência/filtro.
+ */
+function injectHistorico30DiasDemo(data) {
+  if (!data) return;
+
+  const dayISO = (deltaDays) => {
+    const d = new Date();
+    d.setDate(d.getDate() + deltaDays);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  const toNumber = (v, fallback) => {
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : fallback;
+  };
+
+  const statusByIdeal = (tipo, valor) => {
+    if (tipo === 'Hidratação') return valor >= 2000 ? 'normal' : 'atencao';
+    if (tipo === 'Glicemia') return (valor >= 70 && valor <= 99) ? 'normal' : 'atencao';
+    if (tipo === 'Nível de Estresse') return valor <= 40 ? 'normal' : 'atencao';
+    if (tipo === 'Sono') return valor >= 7 ? 'normal' : 'atencao';
+    if (tipo === 'Oxigenação') return valor >= 95 ? 'normal' : 'atencao';
+    return 'normal';
+  };
+
+  if (Array.isArray(data.sinaisVitais)) {
+    data.sinaisVitais.forEach((vital) => {
+      const baseHora = (Array.isArray(vital.historico) && vital.historico[0] && vital.historico[0].hora)
+        ? String(vital.historico[0].hora).slice(0, 5)
+        : (vital.tipo === 'Passos' || vital.tipo === 'Calorias' || vital.tipo === 'Sono' || vital.tipo === 'Hidratação' ? null : '08:00');
+
+      if (vital.tipo === 'Pressão Arterial') {
+        const baseSys = toNumber(vital.valor && vital.valor.sistolica, 122);
+        const baseDia = toNumber(vital.valor && vital.valor.diastolica, 80);
+        const rows = [];
+        for (let i = 0; i < 30; i++) {
+          const date = dayISO(-i);
+          const sys = Math.max(105, Math.min(145, baseSys + ((i % 5) - 2)));
+          const dia = Math.max(65, Math.min(95, baseDia + ((i % 4) - 1)));
+          rows.push({
+            data: date,
+            hora: '08:00',
+            valor: `${sys}/${dia}`,
+            status: (sys >= 140 || dia >= 90) ? 'ligeiramente_alta' : 'normal',
+            anterior: `${Math.max(105, sys - 1)}/${Math.max(65, dia - 1)}`
+          });
+        }
+        vital.historico = rows;
+        vital.valor = `${rows[0].valor}`;
+        vital.dataHora = `${rows[0].data} ${rows[0].hora}`;
+        vital.tempo = 'Hoje';
+        return;
+      }
+
+      const base = toNumber(vital.valor, 0);
+      const rows = [];
+      for (let i = 0; i < 30; i++) {
+        const date = dayISO(-i);
+        let val = base;
+
+        if (vital.tipo === 'Peso') val = base + ((i % 6) - 3) * 0.1;
+        else if (vital.tipo === 'IMC') val = base + ((i % 6) - 3) * 0.03;
+        else if (vital.tipo === 'Passos') val = Math.max(3500, Math.round(base + ((i % 7) - 3) * 430));
+        else if (vital.tipo === 'Calorias') val = Math.max(1400, Math.round(base + ((i % 7) - 3) * 95));
+        else if (vital.tipo === 'Hidratação') val = Math.max(1100, Math.round(base + ((i % 7) - 3) * 120));
+        else if (vital.tipo === 'Sono') val = Math.max(4.8, Math.min(9.2, +(base + ((i % 7) - 3) * 0.17).toFixed(1)));
+        else if (vital.tipo === 'Glicemia') val = Math.max(68, Math.min(132, Math.round(base + ((i % 7) - 3) * 2)));
+        else if (vital.tipo === 'HRV') val = Math.max(28, Math.min(90, Math.round(base + ((i % 7) - 3) * 1.2)));
+        else if (vital.tipo === 'Nível de Estresse') val = Math.max(12, Math.min(80, Math.round(base + ((i % 7) - 3) * 2.5)));
+        else if (vital.tipo === 'Oxigenação') val = Math.max(92, Math.min(100, Math.round(base + ((i % 5) - 2) * 0.6)));
+        else if (vital.tipo === 'Freq. Respiratória') val = Math.max(11, Math.min(22, Math.round(base + ((i % 5) - 2) * 0.5)));
+        else if (vital.tipo === 'Temperatura') val = Math.max(35.8, Math.min(37.8, +(base + ((i % 5) - 2) * 0.08).toFixed(1)));
+        else if (vital.tipo === 'Batimento Cardíaco') val = Math.max(52, Math.min(128, Math.round(base + ((i % 7) - 3) * 2.1)));
+
+        const row = {
+          data: date,
+          valor: val,
+          status: statusByIdeal(vital.tipo, val),
+          anterior: val
+        };
+        if (baseHora) row.hora = baseHora;
+        rows.push(row);
+      }
+
+      vital.historico = rows;
+      vital.valor = rows[0].valor;
+      vital.dataHora = baseHora ? `${rows[0].data} ${baseHora}` : rows[0].data;
+      vital.tempo = 'Hoje';
+    });
+  }
+
+  if (Array.isArray(data.composicaoCorporal)) {
+    const buildLinearValue = (oldest, newest, newestFirstIndex, noiseAmp, decimals) => {
+      const span = 29;
+      const t = Math.max(0, Math.min(1, newestFirstIndex / span));
+      const base = newest + (oldest - newest) * t;
+      const phase = 1 - t; // 0 = mais antigo, 1 = mais recente
+      const delta = Math.abs(oldest - newest);
+      const dir = oldest >= newest ? 1 : -1;
+      const reboundAmp = Math.max(noiseAmp * 5, delta * 0.16);
+      const pulse = (center, width, amp) => {
+        const dist = Math.abs(phase - center);
+        if (dist >= width) return 0;
+        return amp * (1 - dist / width);
+      };
+
+      // Dois períodos de ganho temporário (ou queda, quando a tendência é de alta),
+      // para simular oscilação realista durante o mês.
+      const bump1 = pulse(0.38, 0.11, reboundAmp);
+      const bump2 = pulse(0.73, 0.10, reboundAmp * 0.8);
+      const rebounds = dir * (bump1 + bump2);
+
+      const noise = Math.sin(newestFirstIndex * 0.55) * noiseAmp + Math.cos(newestFirstIndex * 0.22) * noiseAmp * 0.4;
+      return +(base + rebounds + noise).toFixed(decimals);
+    };
+
+    const getCorpoLinearTargets = (item, currentBase) => {
+      if (item.tipo === 'Peso') return { oldest: 120.0, newest: 114.2, noise: 0.08, decimals: 1 };
+      if (item.tipo === 'IMC') return { oldest: 37.4, newest: 35.6, noise: 0.03, decimals: 1 };
+      if (item.tipo === 'Músculo Esquelético') return { oldest: 29.0, newest: 31.2, noise: 0.04, decimals: 1 };
+      if (item.tipo === 'Massa Gorda') return { oldest: 48.0, newest: 42.5, noise: 0.06, decimals: 1 };
+      if (item.tipo === 'Água Corporal') return { oldest: 48.0, newest: 52.0, noise: 0.07, decimals: 1 };
+      if (item.tipo === 'Gordura Corporal') return { oldest: 39.0, newest: 34.5, noise: 0.06, decimals: 1 };
+      const fallbackNewest = Number.isFinite(currentBase) ? currentBase : 0;
+      return {
+        oldest: +(fallbackNewest * 1.05).toFixed(1),
+        newest: +fallbackNewest.toFixed(1),
+        noise: 0.04,
+        decimals: 1
+      };
+    };
+
+    data.composicaoCorporal.forEach((item) => {
+      const base = toNumber(item.valor, 0);
+      const trend = getCorpoLinearTargets(item, base);
+      const rows = [];
+      for (let i = 0; i < 30; i++) {
+        const date = dayISO(-i);
+        const val = buildLinearValue(trend.oldest, trend.newest, i, trend.noise, trend.decimals);
+
+        rows.push({ data: date, valor: val, variacao: 'normal', fonte: item.fonte || 'Manual' });
+      }
+
+      item.historico = rows;
+      item.valor = rows[0].valor;
+      item.dataHora = formatISODateBR(rows[0].data);
+    });
+  }
+
+  if (Array.isArray(data.medicacoes)) {
+    data.medicacoes.forEach((med) => {
+      const horarios = Array.isArray(med.horarios) && med.horarios.length ? med.horarios : ['08:00'];
+      const hist = [];
+
+      for (let i = 0; i < 30; i++) {
+        const date = dayISO(-i);
+        horarios.forEach((hora, idx) => {
+          const seed = (i + 1) * (idx + 3) + med.id;
+          let status = 'tomado';
+          if (i === 0 && idx === horarios.length - 1) status = 'pendente';
+          else if (seed % 11 === 0) status = 'atrasado';
+          else if (seed % 7 === 0) status = 'pendente';
+          hist.push({ data: date, hora, status });
+        });
+      }
+
+      med.historico = hist;
+      med.ultimo = `${horarios[0]} Hoje`;
+    });
+  }
+}
+
 function normalizeMockDataForAnalysis(data) {
   // Sinais vitais
   data.sinaisVitais.forEach(vital => {
@@ -1905,5 +2171,6 @@ function normalizeMockDataForAnalysis(data) {
 }
 
 injectMedicacaoHistoricoDemo(mockData);
+injectHistorico30DiasDemo(mockData);
 normalizeMockDataForAnalysis(mockData);
 injectDemoMedicoesUltimas24h(mockData);

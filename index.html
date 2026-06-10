@@ -63,34 +63,148 @@
 
                 <!-- Composição Corporal Screen -->
                 <div class="screen" id="composicaoScreen">
-                    <div class="page-subtitle page-context-sub" id="composicaoSubtitle">Composição corporal</div>
-                    <div id="composicaoContent"></div>
+                    <div class="page-subtitle page-context-sub" id="composicaoSubtitle">Antropometria</div>
+                    <div id="composicaoContent">
+                        <div id="corpoAvaliacoesListView" class="corpo-av-list-view">
+                            <div class="corpo-av-head">
+                                <div>
+                                    <div class="corpo-av-title">Antropometria</div>
+                                    <div class="corpo-av-sub">Visão para paciente e profissional de nutrição</div>
+                                </div>
+                            </div>
+                            <div id="corpoAvaliacoesList" class="corpo-av-list"></div>
+                            <div class="corpo-av-sticky-cta">
+                                <button type="button" class="corpo-av-new-btn corpo-av-new-btn--sticky" onclick="openCorpoNovaAvaliacaoWizard()">+ Nova avaliação</button>
+                            </div>
+                        </div>
 
-                    <!-- Insert view inline (aparece ao clicar num card) -->
-                    <div id="corpoInsertView" style="display:none;">
-                      <div class="pi-step">
-                        <div class="pi-step-head">
-                          <div class="corpo-ins-icon" id="corpoInsIconEl"></div>
-                          <div class="pi-step-label" id="corpoInsLabelEl">Registrar</div>
+                        <div id="corpoAvaliacaoDetailView" class="corpo-av-detail-view" style="display:none;">
+                            <div class="corpo-detail-header">
+                                <button type="button" class="corpo-detail-back-btn" onclick="closeCorpoAvaliacaoDetail()" aria-label="Voltar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                                </button>
+                                <div class="corpo-detail-head-copy">
+                                    <div id="corpoAvaliacaoDetailTitle" class="corpo-detail-title">Avaliação Física</div>
+                                    <div id="corpoAvaliacaoDetailDate" class="corpo-detail-subtitle">--/--/----</div>
+                                </div>
+                            </div>
+
+                            <div class="corpo-av-kpi-grid">
+                                <div id="corpoKpiMassaGordaCard" class="corpo-av-kpi corpo-av-kpi--gorda">
+                                    <div class="corpo-av-kpi-label">Massa Gorda</div>
+                                    <div id="corpoKpiMassaGorda" class="corpo-av-kpi-value">—%</div>
+                                    <div id="corpoKpiMassaGordaStatus" class="corpo-av-kpi-status">Sem dado</div>
+                                </div>
+                                <div id="corpoKpiMassaMagraCard" class="corpo-av-kpi corpo-av-kpi--magra">
+                                    <div class="corpo-av-kpi-label">Massa Magra</div>
+                                    <div id="corpoKpiMassaMagra" class="corpo-av-kpi-value">—%</div>
+                                    <div id="corpoKpiMassaMagraStatus" class="corpo-av-kpi-status">Sem dado</div>
+                                </div>
+                            </div>
+
+                            <div class="corpo-av-section corpo-av-section--geral">
+                                <div class="corpo-av-section-title">Medidas gerais</div>
+                                <div id="corpoAvaliacaoGeralRows" class="corpo-av-rows"></div>
+                            </div>
+
+                            <div class="corpo-av-section corpo-av-section--circ">
+                                <div class="corpo-av-section-title">Circunferências</div>
+                                <div id="corpoAvaliacaoCircRows" class="corpo-av-rows"></div>
+                            </div>
+
+                            <div class="corpo-av-section corpo-av-section--dobras">
+                                <div class="corpo-av-section-title">Dobras cutâneas</div>
+                                <div id="corpoAvaliacaoDobrasRows" class="corpo-av-rows"></div>
+                            </div>
                         </div>
-                        <p class="corpo-ins-last" id="corpoInsLastEl"></p>
-                        <div class="hi-value-block">
-                          <div class="hi-value-row">
-                            <input type="number" id="corpoNumInput" class="hi-value-input"
-                                   inputmode="decimal" step="0.1" min="0"
-                                   oninput="onCorpoNumInput(this)"/>
-                            <span class="hi-value-unit" id="corpoInsUnitEl">kg</span>
-                          </div>
-                          <div class="hi-steppers">
-                            <button class="hi-stepper" type="button" id="corpoStepN2" onclick="stepCorpo('big',-1)">−1</button>
-                            <button class="hi-stepper" type="button" id="corpoStepN1" onclick="stepCorpo('small',-1)">−0.1</button>
-                            <button class="hi-stepper hi-stepper--pos" type="button" id="corpoStepP1" onclick="stepCorpo('small',1)">+0.1</button>
-                            <button class="hi-stepper hi-stepper--pos" type="button" id="corpoStepP2" onclick="stepCorpo('big',1)">+1</button>
-                          </div>
+
+                        <div id="corpoAvaliacaoWizardView" class="corpo-av-wizard" style="display:none;">
+                            <div class="corpo-ins-screen-head">
+                                <button type="button" class="corpo-ins-screen-back" onclick="closeCorpoNovaAvaliacaoWizard()" aria-label="Voltar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                                </button>
+                                <div class="corpo-ins-screen-title-wrap">
+                                    <div class="corpo-ins-screen-title">Nova avaliação antropométrica</div>
+                                    <div class="corpo-ins-screen-subtitle" id="corpoWizardStepLabel">Etapa 1 de 4</div>
+                                </div>
+                            </div>
+
+                            <div class="corpo-ins-wizard-progress corpo-av-wizard-progress">
+                                <span class="pi-progress-dot" data-corpo-av-dot="1"></span>
+                                <span class="pi-progress-dot" data-corpo-av-dot="2"></span>
+                                <span class="pi-progress-dot" data-corpo-av-dot="3"></span>
+                                <span class="pi-progress-dot" data-corpo-av-dot="4"></span>
+                            </div>
+
+                            <div id="corpoWizardStep1" class="corpo-wizard-step">
+                                <div class="corpo-av-form-grid corpo-av-form-grid--single">
+                                    <label class="corpo-av-field">
+                                        <span>Título da avaliação</span>
+                                        <input type="text" id="corpoAvNomePreview" class="form-input" readonly />
+                                    </label>
+                                    <label class="corpo-av-field">
+                                        <span>Data da avaliação *</span>
+                                        <div class="corpo-av-date-wrap">
+                                            <input type="text" id="corpoAvData" class="form-input corpo-av-date-input" inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa" />
+                                            <button type="button" class="corpo-av-date-btn" onclick="openCorpoWizardNativeDatePicker()" aria-label="Selecionar data">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                                            </button>
+                                            <input type="date" id="corpoAvDataNative" class="corpo-av-date-native" tabindex="-1" aria-hidden="true" />
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div id="corpoWizardStep2" class="corpo-wizard-step" style="display:none;">
+                                <div class="corpo-av-form-grid">
+                                    <label class="corpo-av-field"><span>Peso (kg) *</span><input type="number" id="corpoAvPeso" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Altura (m) *</span><input type="number" id="corpoAvAltura" class="form-input" step="0.01" min="0" /></label>
+                                    <label class="corpo-av-field"><span>IMC</span><input type="number" id="corpoAvImc" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>% Massa gorda *</span><input type="number" id="corpoAvPercGorda" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>% Massa magra *</span><input type="number" id="corpoAvPercMagra" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Massa gorda (kg)</span><input type="number" id="corpoAvGordaKg" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Massa magra (kg)</span><input type="number" id="corpoAvMagraKg" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Razão cintura/quadril</span><input type="number" id="corpoAvRcq" class="form-input" step="0.01" min="0" /></label>
+                                </div>
+                            </div>
+
+                            <div id="corpoWizardStep3" class="corpo-wizard-step" style="display:none;">
+                                <div class="corpo-av-form-grid">
+                                    <label class="corpo-av-field"><span>Ombro (cm)</span><input type="number" id="corpoAvCircOmbro" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Peitoral (cm)</span><input type="number" id="corpoAvCircPeitoral" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Cintura (cm)</span><input type="number" id="corpoAvCircCintura" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Abdômen (cm)</span><input type="number" id="corpoAvCircAbdomen" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Quadril (cm)</span><input type="number" id="corpoAvCircQuadril" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Braço E relaxado (cm)</span><input type="number" id="corpoAvCircBracoEsqRelax" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Braço D relaxado (cm)</span><input type="number" id="corpoAvCircBracoDirRelax" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Braço E contraído (cm)</span><input type="number" id="corpoAvCircBracoEsqContr" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Braço D contraído (cm)</span><input type="number" id="corpoAvCircBracoDirContr" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Panturrilha E (cm)</span><input type="number" id="corpoAvCircPantuEsq" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Panturrilha D (cm)</span><input type="number" id="corpoAvCircPantuDir" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Coxa E (cm)</span><input type="number" id="corpoAvCircCoxaEsq" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Coxa D (cm)</span><input type="number" id="corpoAvCircCoxaDir" class="form-input" step="0.1" min="0" /></label>
+                                </div>
+                            </div>
+
+                            <div id="corpoWizardStep4" class="corpo-wizard-step" style="display:none;">
+                                <div class="corpo-av-form-grid">
+                                    <label class="corpo-av-field"><span>Abdominal (mm)</span><input type="number" id="corpoAvDobraAbdominal" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Tríceps (mm)</span><input type="number" id="corpoAvDobraTriceps" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Suprailíaca (mm)</span><input type="number" id="corpoAvDobraSuprailiaca" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Axilar média (mm)</span><input type="number" id="corpoAvDobraAxilarMedia" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Subescapular (mm)</span><input type="number" id="corpoAvDobraSubescapular" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Tórax (mm)</span><input type="number" id="corpoAvDobraTorax" class="form-input" step="0.1" min="0" /></label>
+                                    <label class="corpo-av-field"><span>Coxa (mm)</span><input type="number" id="corpoAvDobraCoxa" class="form-input" step="0.1" min="0" /></label>
+                                </div>
+                                <div id="corpoAvReview" class="corpo-av-review"></div>
+                            </div>
+
+                            <div class="corpo-ins-footer corpo-av-wizard-footer">
+                                <button type="button" class="glic-s3-back-link" id="corpoAvBackBtn" onclick="corpoAvaliacaoWizardBack()">Voltar</button>
+                                <button type="button" class="hi-confirm-btn corpo-ins-confirm" id="corpoAvNextBtn" onclick="corpoAvaliacaoWizardNext()">Avançar</button>
+                                <button type="button" class="hi-confirm-btn corpo-ins-confirm" id="corpoAvSaveBtn" style="display:none;" onclick="corpoAvaliacaoWizardSave()">Salvar avaliação</button>
+                            </div>
                         </div>
-                        <button class="hi-confirm-btn" onclick="corpoInsertSave()">+ Salvar</button>
-                        <button type="button" class="hi-cancel-link" onclick="closeCorpoInsertView()">Cancelar</button>
-                      </div>
                     </div>
                 </div>
 
@@ -100,7 +214,7 @@
 
                     <div class="med-calendar-unified">
                         <button type="button" class="med-cal-unified-seg med-cal-unified-seg--cal" onclick="openMedicationCalendarModal()">
-                            <span class="med-calendar-icon" aria-hidden="true">🗓️</span>
+                            <span class="med-calendar-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
                             <span class="med-cal-unified-texts">
                                 <span class="med-calendar-title">Calendário</span>
                                 <span class="med-calendar-subtitle" id="medCalendarTodayLabel">Hoje</span>
@@ -180,11 +294,11 @@
             </div>
             <div class="schedule-filters">
                 <button class="filter-btn active" onclick="filterScheduleByStatus('todos', this)">Todos</button>
-                <button class="filter-btn" onclick="filterScheduleByStatus('tomado', this)">✅ Tomadas</button>
-                <button class="filter-btn" onclick="filterScheduleByStatus('pendente', this)">⏳ Pendentes</button>
-                <button class="filter-btn" onclick="filterScheduleByStatus('atrasado', this)">🔴 Atrasadas</button>
+                <button class="filter-btn" onclick="filterScheduleByStatus('tomado', this)">Tomadas</button>
+                <button class="filter-btn" onclick="filterScheduleByStatus('pendente', this)">Pendentes</button>
+                <button class="filter-btn" onclick="filterScheduleByStatus('atrasado', this)">Atrasadas</button>
             </div>
-            <div id="dailyScheduleContent" style="max-height: 500px; overflow-y: auto;"></div>
+            <div id="dailyScheduleContent" class="modal-scroll-body modal-scroll-body--lg"></div>
         </div>
     </div>
 
@@ -200,7 +314,7 @@
                 <input type="date" class="form-input" id="medicationCalendarDateInput" onchange="renderMedicationCalendarDay()">
             </div>
             <div class="calendar-day-summary" id="medicationCalendarSummary"></div>
-            <div id="medicationCalendarContent" style="max-height: 430px; overflow-y: auto;"></div>
+            <div id="medicationCalendarContent" class="modal-scroll-body modal-scroll-body--md"></div>
         </div>
     </div>
 
@@ -306,15 +420,15 @@
                 </div>
                 <div class="form-group" id="vitalDefaultDateFilterRow">
                     <label class="form-label">Filtrar por Data</label>
-                    <div style="display: flex; gap: 8px;">
-                        <input type="date" class="form-input" id="filterVitalDataInicio" style="flex: 1;" onchange="filterVitalDetail()">
-                        <input type="date" class="form-input" id="filterVitalDataFim" style="flex: 1;" onchange="filterVitalDetail()">
+                    <div class="vital-filter-date-row">
+                        <input type="date" class="form-input vital-filter-date-input" id="filterVitalDataInicio" onchange="filterVitalDetail()">
+                        <input type="date" class="form-input vital-filter-date-input" id="filterVitalDataFim" onchange="filterVitalDetail()">
                     </div>
                 </div>
 
                 <!-- Gráfico abaixo dos filtros -->
                 <div id="pressaoHistoricoView">
-                    <canvas id="sparklineChart" width="720" height="220" style="width: 100%; border-radius: 10px; display: block; margin-bottom: 8px;"></canvas>
+                    <canvas id="sparklineChart" class="sparkline-chart--tight" width="720" height="220"></canvas>
                 </div>
 
                 <!-- Detalhe de um dia específico de pressão arterial -->
@@ -375,7 +489,7 @@
                     </div>
                     <div class="pi-bp-drums" style="justify-content: center;">
                       <div class="pi-drum-col">
-                        <div class="pi-drum-lbl" style="color: #7c3aed; text-transform: none;">mg/dL</div>
+                        <div class="pi-drum-lbl pi-drum-lbl--accent" style="text-transform: none;">mg/dL</div>
                         <div class="pi-drum" data-field="glicemia"
                              ontouchstart="piDrumTouchStart(event,this)"
                              ontouchmove="piDrumTouchMove(event,this)"
@@ -446,14 +560,14 @@
                     <!-- Painel A: duas opções -->
                     <div id="glicS3Options">
                       <button type="button" class="glic-s3-opt-btn glic-s3-agora" id="glicAgoraBtn" onclick="glicSelectAgora()">
-                        <span class="glic-s3-opt-icon">✓</span>
+                        <span class="glic-s3-opt-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
                         <span class="glic-s3-opt-text">
                           <span class="glic-s3-opt-main">Medido agora</span>
                           <span class="glic-s3-opt-sub" id="glicAgoraLabel">—</span>
                         </span>
                       </button>
                       <button type="button" class="glic-s3-opt-btn glic-s3-outro" onclick="glicShowOutroHorario()">
-                        <span class="glic-s3-opt-icon">🕐</span>
+                        <span class="glic-s3-opt-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg></span>
                         <span class="glic-s3-opt-text">
                           <span class="glic-s3-opt-main">Outro horário</span>
                           <span class="glic-s3-opt-sub">Alterar data e hora</span>
@@ -528,7 +642,7 @@
                     </div>
                     <div class="pi-bp-drums" style="justify-content: center;">
                       <div class="pi-drum-col">
-                        <div class="pi-drum-lbl" style="color: #7c3aed; text-transform: none;">Unidades</div>
+                        <div class="pi-drum-lbl pi-drum-lbl--accent" style="text-transform: none;">Unidades</div>
                         <div class="pi-drum" data-field="insulina"
                              ontouchstart="piDrumTouchStart(event,this)"
                              ontouchmove="piDrumTouchMove(event,this)"
@@ -840,7 +954,7 @@
             <div id="vitalDetailContent" class="vital-detail-content"></div>
 
             <div class="form-group vital-detail-add-row">
-                <button class="button button-confirm" id="addVitalMedicaoBtn" style="width: 100%;">+ Inserir dados</button>
+                <button class="button button-confirm" id="addVitalMedicaoBtn">+ Inserir dados</button>
             </div>
         </div>
     </div>
@@ -907,13 +1021,13 @@
     <!-- Modal de Despertador -->
     <div class="alarm-modal" id="alarmModal">
         <div class="alarm-content">
-            <div class="alarm-icon">🔔</div>
+            <div class="alarm-icon"><svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5"/><path d="M9 17a3 3 0 0 0 6 0"/></svg></div>
             <div class="alarm-title">Hora do Remédio!</div>
             <div class="alarm-med" id="alarmMedName">Dipirona 500mg</div>
             <div class="alarm-time" id="alarmTime">14:30</div>
             <div class="alarm-buttons">
                 <button class="alarm-btn alarm-btn-dismiss" id="dismissAlarmBtn">Ver atrasadas</button>
-                <button class="alarm-btn alarm-btn-take" id="takeAlarmBtn">✅ Já Tomei</button>
+                <button class="alarm-btn alarm-btn-take" id="takeAlarmBtn">Já Tomei</button>
             </div>
         </div>
     </div>
@@ -921,10 +1035,10 @@
     <!-- Modal de Alerta de Sinal Vital -->
     <div class="alarm-modal" id="vitalAlarmModal">
         <div class="alarm-content">
-            <div class="alarm-icon">⚠️</div>
+            <div class="alarm-icon"><svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.72 3h16.92a2 2 0 0 0 1.72-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
             <div class="alarm-title" id="vitalAlarmTitle">Alerta de Sinal Vital</div>
             <div class="alarm-med" id="vitalAlarmValue">--</div>
-            <div class="alarm-time" id="vitalAlarmDescription" style="font-size: 13px;">Valor fora do limite configurado.</div>
+            <div class="alarm-time" id="vitalAlarmDescription">Valor fora do limite configurado.</div>
             <div class="alarm-buttons">
                 <button class="alarm-btn alarm-btn-dismiss" id="closeVitalAlarmBtn">Fechar</button>
                 <button class="alarm-btn alarm-btn-take" id="ackVitalAlarmBtn">Entendi</button>
@@ -953,13 +1067,13 @@
                     <div id="medSearchRow" class="med-search-row">
                         <label class="form-label med-wizard-label" for="searchMedInput">Buscar no catálogo</label>
                         <input type="text" class="form-input med-wizard-input" id="searchMedInput" placeholder="Ex.: Losartana, vitamina D…" oninput="searchMedicamentos(this.value); updateMedManualRegisterBtn();" autocomplete="off" aria-label="Buscar medicamento no catálogo">
-                        <div id="searchResults" class="med-search-results" style="display: none;"></div>
+                        <div id="searchResults" class="med-search-results is-hidden"></div>
                         <p class="med-manual-lead">Não achou o nome? Digite como está na embalagem e use <strong>Cadastrar com este nome</strong>.</p>
                         <button type="button" class="med-register-manual-btn" id="medRegisterManualBtn" onclick="registerCustomMedicamentoFromSearch()" disabled>Cadastrar com este nome (fora da lista)</button>
                     </div>
-                    <div id="medSelectedRow" class="med-selected-row" style="display: none;">
+                    <div id="medSelectedRow" class="med-selected-row is-hidden">
                         <div class="med-selected-chip" role="status">
-                            <span class="med-selected-emoji" aria-hidden="true">💊</span>
+                            <span class="med-selected-emoji" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5l10-10a4.95 4.95 0 0 0-7-7l-10 10a4.95 4.95 0 0 0 7 7z"/><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"/></svg></span>
                             <span class="med-selected-name" id="medSelectedDisplayName"></span>
                         </div>
                         <button type="button" class="med-change-btn" onclick="trocarMedicamentoSelecionado()">Trocar</button>
@@ -984,7 +1098,7 @@
                     </div>
                 </div>
 
-                <div class="add-med-step" data-step="2" id="addMedStep2" style="display:none;">
+                <div class="add-med-step is-hidden" data-step="2" id="addMedStep2">
                     <p class="add-med-step-hint">Toque na opção que melhor descreve como você usa o medicamento.</p>
                     <select class="form-select visually-hidden" id="frequenciaMedInput" required onchange="updateHorariosFields(); syncAddMedFreqButtons();" aria-label="Frequência">
                         <option value="">Selecione</option>
@@ -1004,7 +1118,7 @@
                     </div>
                 </div>
 
-                <div class="add-med-step" data-step="3" id="addMedStep3" style="display:none;">
+                <div class="add-med-step is-hidden" data-step="3" id="addMedStep3">
                     <p class="add-med-step-hint">Defina os horários dos lembretes e o início do tratamento.</p>
                     <div id="horariosContainer"></div>
                     <div class="form-group">
@@ -1013,10 +1127,10 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Foto do medicamento (opcional)</label>
-                        <input type="file" class="form-input" id="fotoMedInput" accept="image/*" style="display:none;">
+                        <input type="file" class="form-input hidden-file-input" id="fotoMedInput" accept="image/*">
                         <div class="photo-upload-area" id="photoUploadArea" onclick="document.getElementById('fotoMedInput').click()">
-                            <div class="photo-upload-placeholder">📷 Toque para adicionar foto do remédio</div>
-                            <div class="photo-preview" id="photoPreview" style="display:none;">
+                            <div class="photo-upload-placeholder">Toque para adicionar foto do remédio</div>
+                            <div class="photo-preview is-hidden" id="photoPreview">
                                 <img id="photoPreviewImg" alt="Pré-visualização do medicamento">
                                 <button type="button" class="photo-remove-btn" onclick="event.stopPropagation(); removerFoto()">×</button>
                             </div>
@@ -1024,7 +1138,7 @@
                     </div>
                 </div>
 
-                <div class="add-med-step" data-step="4" id="addMedStep4" style="display:none;">
+                <div class="add-med-step is-hidden" data-step="4" id="addMedStep4">
                     <p class="add-med-step-hint">Informe o estoque e como deseja ser avisado.</p>
                     <div class="form-group">
                         <label class="form-label">Estoque atual (quantidade)</label>
@@ -1041,7 +1155,7 @@
                             <button type="button" class="toggle active" id="toggleDashboardMed" onclick="this.classList.toggle('active')"></button>
                         </div>
                     </div>
-                    <div class="add-med-alerts-heading">🔔 Alertas</div>
+                    <div class="add-med-alerts-heading">Alertas</div>
                     <div class="toggle-row add-med-toggle-row">
                         <span class="toggle-label">Lembrete antes do horário</span>
                         <button type="button" class="toggle active" id="toggleLembreteMed" onclick="this.classList.toggle('active')"></button>
@@ -1070,9 +1184,9 @@
                 <div class="add-med-wizard-footer">
                     <button type="button" class="button-cancel" id="cancelAddBtn">Cancelar</button>
                     <div class="add-med-wizard-footer-right">
-                        <button type="button" class="button-secondary" id="addMedWizardBack" style="display:none;">Voltar</button>
+                        <button type="button" class="button-secondary is-hidden" id="addMedWizardBack">Voltar</button>
                         <button type="button" class="button-submit" id="addMedWizardNext">Próximo</button>
-                        <button type="submit" class="button-submit" id="addMedWizardSave" style="display:none;">Salvar</button>
+                        <button type="submit" class="button-submit is-hidden" id="addMedWizardSave">Salvar</button>
                     </div>
                 </div>
             </form>
@@ -1116,16 +1230,16 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Foto do medicamento (opcional)</label>
-                    <input type="file" class="form-input" id="editFotoMedInput" accept="image/*" style="display:none;">
+                    <input type="file" class="form-input hidden-file-input" id="editFotoMedInput" accept="image/*">
                     <div class="photo-upload-area" id="editPhotoUploadArea" onclick="document.getElementById('editFotoMedInput').click()">
-                        <div class="photo-upload-placeholder">📷 Toque para alterar foto do remédio</div>
-                        <div class="photo-preview" id="editPhotoPreview" style="display:none;">
+                        <div class="photo-upload-placeholder">Toque para alterar foto do remédio</div>
+                        <div class="photo-preview is-hidden" id="editPhotoPreview">
                             <img id="editPhotoPreviewImg" alt="Pré-visualização do medicamento">
                             <button type="button" class="photo-remove-btn" onclick="event.stopPropagation(); removerFotoEdit()">×</button>
                         </div>
                     </div>
                 </div>
-                <div class="toggle-row" style="margin-bottom:8px;">
+                <div class="toggle-row add-med-toggle-row">
                     <span class="toggle-label">Uso contínuo (sem período previsto)</span>
                     <button type="button" class="toggle" id="toggleSemDataFimMedEdit" onclick="toggleSemDataFimMedicacao('edit')"></button>
                 </div>
@@ -1205,8 +1319,8 @@
                     <input type="text" class="form-input" id="motivoAgendaInput" placeholder="Ex: Acompanhamento cardíaco">
                 </div>
                 <!-- Lembrete -->
-                <div style="font-size:13px;font-weight:700;color:#333;margin-bottom:8px;">🔔 Lembrete</div>
-                <div class="toggle-row" style="margin-bottom:8px;">
+                <div class="agenda-reminder-title">Lembrete</div>
+                <div class="toggle-row add-med-toggle-row">
                     <span class="toggle-label">Ativar lembrete</span>
                     <button type="button" class="toggle active" id="toggleLembreteAgenda" onclick="this.classList.toggle('active')"></button>
                 </div>
@@ -1378,45 +1492,6 @@
         </div>
     </div>
 
-    <!-- Modal de Composição Corporal -->
-    <div class="modal" id="composicaoModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span id="composicaoModalTitle">Adicionar Dados</span>
-            </div>
-            <form id="composicaoForm">
-                <div class="form-group">
-                    <label class="form-label">Valor</label>
-                    <input type="number" class="form-input" id="composicaoValorInput" placeholder="Digite o valor" step="0.1" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Fonte de Dados</label>
-                    <select class="form-select" id="composicaoFonteInput" required>
-                        <option value="">Selecione</option>
-                        <option value="Manual">Manual</option>
-                        <option value="Balança Inteligente">Balança Inteligente</option>
-                        <option value="Google Fit">Google Fit</option>
-                        <option value="Apple Health">Apple Health</option>
-                        <option value="Fitbit">Fitbit</option>
-                        <option value="Calculado">Calculado</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Data</label>
-                    <input type="date" class="form-input" id="composicaoDataInput" required>
-                </div>
-                <div class="button-group">
-                    <button type="button" class="button-cancel" id="cancelComposicaoBtn">Cancelar</button>
-                    <button type="submit" class="button-submit">Salvar</button>
-                </div>
-            </form>
-            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
-                <div class="section-title">Histórico</div>
-                <div id="composicaoHistoricoContent" style="max-height: 300px; overflow-y: auto;"></div>
-            </div>
-        </div>
-    </div>
-
     <!-- Modal de Filtro de Período -->
     <div class="modal" id="periodFilterModal">
         <div class="modal-content">
@@ -1451,7 +1526,7 @@
 
     <!-- Modal de Relatório de Aderência -->
     <div class="modal" id="adherenceReportModal">
-        <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+        <div class="modal-content modal-content--scroll-90">
             <div class="modal-header">
                 <span>Relatório de Aderência</span>
                 <button class="modal-ok" id="closeAdherenceReportModal">OK</button>
@@ -1459,7 +1534,7 @@
             
             <div class="adherence-header">
                 <div class="adherence-period" id="adherencePeriodText">Últimos 7 dias</div>
-                <button class="period-filter-btn" onclick="openPeriodFilterModal()">📅 Alterar Período</button>
+                <button class="period-filter-btn" onclick="openPeriodFilterModal()">Alterar Período</button>
             </div>
             
             <div class="adherence-summary">
@@ -1477,10 +1552,10 @@
                 </div>
             </div>
             
-            <div class="section-title" style="margin-top: 20px;">Aderência por Medicação</div>
+            <div class="section-title section-title--mt20">Aderência por Medicação</div>
             <div id="adherenceByMedicationContent"></div>
             
-            <div class="section-title" style="margin-top: 20px;">Histórico Diário</div>
+            <div class="section-title section-title--mt20">Histórico Diário</div>
             <div id="dailyAdherenceContent"></div>
         </div>
     </div>
@@ -1491,31 +1566,31 @@
             <div class="modal-header">
                 <span>Registrar Medicação</span>
             </div>
-            <div style="text-align: center; margin-bottom: 20px;">
-                <div id="takeMedName" style="font-size: 18px; font-weight: 700; color: #333333; margin-bottom: 8px;"></div>
-                <div style="font-size: 14px; color: #999999;">Horário agendado: <span id="takeMedScheduledTime" style="font-weight: 600;"></span></div>
+            <div class="take-med-header">
+                <div id="takeMedName" class="take-med-name"></div>
+                <div class="take-med-scheduled">Horário agendado: <span id="takeMedScheduledTime" class="take-med-time-strong"></span></div>
             </div>
             
             <div class="form-group">
                 <label class="form-label">Tomou agora?</label>
-                <div style="display: flex; gap: 12px;">
-                    <button type="button" class="button-submit" style="flex: 1;" onclick="confirmTakeMedication(true)">
-                        ✅ Sim, agora
-                        <div style="font-size: 12px; margin-top: 4px;" id="takeMedCurrentTime"></div>
+                <div class="inline-actions-row">
+                    <button type="button" class="button-submit btn-flex" onclick="confirmTakeMedication(true)">
+                        Sim, agora
+                        <div class="take-med-now-time" id="takeMedCurrentTime"></div>
                     </button>
-                    <button type="button" class="button-cancel" style="flex: 1;" onclick="document.getElementById('takeMedicationModal').classList.remove('active')">
+                    <button type="button" class="button-cancel btn-flex" onclick="document.getElementById('takeMedicationModal').classList.remove('active')">
                         Cancelar
                     </button>
                 </div>
             </div>
             
-            <div style="text-align: center; margin: 16px 0; color: #999999; font-size: 12px;">OU</div>
+            <div class="take-med-divider">OU</div>
             
             <div class="form-group">
                 <label class="form-label">Outro horário</label>
                 <input type="time" class="form-input" id="takeMedTimeInput">
-                <button type="button" class="button-submit" style="width: 100%; margin-top: 8px;" onclick="confirmTakeMedication(false)">
-                    ✅ Registrar neste horário
+                <button type="button" class="button-submit btn-full-top" onclick="confirmTakeMedication(false)">
+                    Registrar neste horário
                 </button>
             </div>
         </div>
@@ -1523,16 +1598,16 @@
 
     <!-- Modal de Pressão Arterial - Seguimento Batimento Cardíaco -->
     <div class="modal" id="heartRateFollowupModal">
-        <div class="modal-content" style="max-width: 350px; text-align: center;">
-            <div style="font-size: 48px; margin-bottom: 16px;">🫀</div>
-            <div style="font-size: 18px; font-weight: 700; color: #333; margin-bottom: 8px;">Para um registro completo</div>
-            <div style="font-size: 14px; color: #666; margin-bottom: 20px;">Informe seu batimento cardíaco agora:</div>
+        <div class="modal-content modal-content--followup">
+            <div class="followup-icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+            <div class="followup-title">Para um registro completo</div>
+            <div class="followup-subtitle">Informe seu batimento cardíaco agora:</div>
             <div class="form-group">
-                <input type="number" class="form-input" id="heartRateInput" placeholder="Ex: 72" min="30" max="200" style="text-align: center; font-size: 18px; font-weight: 600;">
+                <input type="number" class="form-input" id="heartRateInput" placeholder="Ex: 72" min="30" max="200">
             </div>
-            <div style="display: flex; gap: 12px;">
-                <button type="button" class="button-cancel" style="flex: 1;" onclick="skipHeartRateFollowup()">Pular</button>
-                <button type="button" class="button-submit" style="flex: 1;" onclick="confirmHeartRateFollowup()">✅ Confirmar</button>
+            <div class="inline-actions-row">
+                <button type="button" class="button-cancel btn-flex" onclick="skipHeartRateFollowup()">Pular</button>
+                <button type="button" class="button-submit btn-flex" onclick="confirmHeartRateFollowup()">Confirmar</button>
             </div>
         </div>
     </div>
@@ -1612,7 +1687,7 @@
                 <label class="form-label">Quando será a próxima medição?</label>
                 <input type="datetime-local" class="form-input" id="nextMeasurementDateTimeInput">
             </div>
-            <div class="toggle-row" style="margin-bottom: 14px;">
+            <div class="toggle-row toggle-row--mb14">
                 <span class="toggle-label">Deseja receber aviso por notificação?</span>
                 <button type="button" class="toggle active" id="notifyNextMeasurementToggle" onclick="this.classList.toggle('active')"></button>
             </div>
@@ -1643,89 +1718,11 @@
                 <span>⚙️ Personalizar Sinais Vitais</span>
                 <button class="modal-ok" id="closeVitaisConfigModal">OK</button>
             </div>
-            <p style="font-size: 13px; color: #999; margin-bottom: 16px;">Escolha o que aparece em cada tela. Em <strong>Todos</strong> pode desligar ou ligar todos de uma vez e depois ajustar só o que precisa.</p>
+            <p class="config-helper-text">Escolha o que aparece em cada tela. Em <strong>Todos</strong> pode desligar ou ligar todos de uma vez e depois ajustar só o que precisa.</p>
             <div id="vitaisConfigContent"></div>
         </div>
     </div>
 
-    <!-- Modal Configuração Composição Corporal -->
-    <div class="modal" id="composicaoConfigModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span>⚙️ Personalizar Corpo</span>
-                <button class="modal-ok" id="closeComposicaoConfigModal">OK</button>
-            </div>
-            <p style="font-size:13px;color:#999;margin-bottom:16px;">Escolha o que aparece em cada tela.</p>
-            <div id="composicaoConfigContent"></div>
-        </div>
-    </div>
-
-    <!-- Modal Minha Composição Corporal -->
-    <div class="modal" id="minhaComposicaoModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span>📊 Minha Composição</span>
-                <button class="add-button" onclick="openNovoIndicadorCorpoModal()" style="width:32px;height:32px;font-size:18px;">+</button>
-                <button class="modal-ok" id="closeMinhaComposicaoModal">OK</button>
-            </div>
-            <div id="minhaComposicaoContent"></div>
-        </div>
-    </div>
-
-    <!-- Modal Novo Indicador Corporal -->
-    <div class="modal" id="novoIndicadorCorpoModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span>Novo Indicador</span>
-            </div>
-            <form id="novoIndicadorCorpoForm">
-                <div class="form-group">
-                    <label class="form-label">Nome</label>
-                    <input type="text" class="form-input" id="novoCorpoNome" placeholder="Ex: Circunferência Quadril" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Unidade</label>
-                    <input type="text" class="form-input" id="novoCorpoUnidade" placeholder="Ex: cm" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Valor Ideal</label>
-                    <input type="text" class="form-input" id="novoCorpoIdeal" placeholder="Ex: &lt; 100">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Ícone</label>
-                    <input type="text" class="form-input" id="novoCorpoIcon" placeholder="Ex: 📌" maxlength="4">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Fonte Padrão</label>
-                    <select class="form-select" id="novoCorpoFonte">
-                        <option value="Manual">Manual</option>
-                        <option value="Balança Inteligente">Balança Inteligente</option>
-                        <option value="Calculado">Calculado</option>
-                        <option value="Google Fit">Google Fit</option>
-                        <option value="Apple Health">Apple Health</option>
-                    </select>
-                </div>
-                <div class="button-group">
-                    <button type="button" class="button-cancel" id="cancelNovoCorpoBtn">Cancelar</button>
-                    <button type="submit" class="button-submit">Adicionar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Meus Sinais Vitais -->
-    <div class="modal" id="meusSinaisModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span>🩺 Meus Sinais Vitais</span>
-                <button class="add-button" onclick="openNovoSinalModal()" style="width:32px;height:32px;font-size:18px;">+</button>
-                <button class="modal-ok" id="closeMeusSinaisModal">OK</button>
-            </div>
-            <div id="meusSinaisContent"></div>
-        </div>
-    </div>
-
-    <!-- Modal Novo Sinal Vital -->
     <div class="modal" id="novoSinalModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1786,7 +1783,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <span>📋 Meus Indicadores</span>
-                <button class="add-button" id="addIndicadorBtn" onclick="openNovoIndicadorModal()" style="width:32px;height:32px;font-size:18px;">+</button>
+                <button class="add-button add-button--mini" id="addIndicadorBtn" onclick="openNovoIndicadorModal()">+</button>
                 <button class="modal-ok" id="closeMeusIndicadoresModal">OK</button>
             </div>
             <div class="tab-bar">
@@ -1835,25 +1832,25 @@
                     </select>
                 </div>
                 <!-- Alertas de sinal vital (só aparece ao editar) -->
-                <div id="alertaVitalContainer" style="display:none;">
-                    <div style="font-size:13px;font-weight:700;color:#333;margin-bottom:8px;margin-top:4px;">🔔 Alertas</div>
-                    <div class="toggle-row" style="margin-bottom:8px;">
+                <div id="alertaVitalContainer" class="is-hidden">
+                    <div class="alert-section-heading">Alertas</div>
+                    <div class="toggle-row add-med-toggle-row">
                         <span class="toggle-label">Ativar alertas para este sinal</span>
                         <button type="button" class="toggle" id="toggleAlertaVital" onclick="this.classList.toggle('active');toggleAlertaVitalFields()"></button>
                     </div>
-                    <div id="alertaVitalFields" style="display:none;">
+                    <div id="alertaVitalFields" class="is-hidden">
                         <div class="form-group">
                             <label class="form-label">Alertar se acima de</label>
-                            <div style="display:flex;align-items:center;gap:8px;">
-                                <input type="number" class="form-input" id="alertaAcimaInput" placeholder="Ex: 140" step="any" style="flex:1;">
-                                <span id="alertaUnidadeLabel" style="font-size:13px;color:#454545;font-weight:600;"></span>
+                            <div class="alerta-vital-input-row">
+                                <input type="number" class="form-input alerta-vital-input-grow" id="alertaAcimaInput" placeholder="Ex: 140" step="any">
+                                <span id="alertaUnidadeLabel" class="alerta-vital-unit"></span>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="form-label">Alertar se abaixo de</label>
-                            <div style="display:flex;align-items:center;gap:8px;">
-                                <input type="number" class="form-input" id="alertaAbaixoInput" placeholder="Ex: 60" step="any" style="flex:1;">
-                                <span style="font-size:13px;color:#454545;font-weight:600;" id="alertaUnidadeLabel2"></span>
+                            <div class="alerta-vital-input-row">
+                                <input type="number" class="form-input alerta-vital-input-grow" id="alertaAbaixoInput" placeholder="Ex: 60" step="any">
+                                <span class="alerta-vital-unit" id="alertaUnidadeLabel2"></span>
                             </div>
                         </div>
                     </div>
@@ -1900,9 +1897,9 @@
 
     <!-- Modal Central de Alertas -->
     <div class="modal" id="alertasModal">
-        <div class="modal-content" style="max-height:85vh;overflow-y:auto;">
+        <div class="modal-content modal-content--alertas">
             <div class="modal-header">
-                <span>🔔 Alertas</span>
+                <span>Alertas</span>
                 <button class="modal-ok" id="closeAlertasModal">OK</button>
             </div>
             <div class="tab-bar">
@@ -1931,7 +1928,7 @@
     <!-- Modal de Feedback do Sistema -->
     <div class="modal" id="feedbackModal">
         <div class="modal-content feedback-modal-content">
-            <div class="feedback-modal-icon" id="feedbackModalIcon">✅</div>
+            <div class="feedback-modal-icon" id="feedbackModalIcon"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="12" y1="7" x2="12.01" y2="7"/></svg></div>
             <div class="feedback-modal-title" id="feedbackModalTitle">Concluído</div>
             <div class="feedback-modal-message" id="feedbackModalMessage">Operação realizada com sucesso.</div>
             <div class="button-group">

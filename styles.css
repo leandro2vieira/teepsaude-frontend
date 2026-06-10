@@ -1,4 +1,4 @@
-﻿/* Estilos - Sistema de SaÃºde */
+/* Estilos - Sistema de Saúde */
 
 * {
   margin: 0;
@@ -10,10 +10,10 @@
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   font-size: 18px;
-  line-height: 1.4;
+  line-height: 1.45;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #F5F5F5;
+  background: #f1f5f9;
 }
 
 :root {
@@ -25,13 +25,17 @@ body {
   --border-card-soft: 1px solid #f1f1f1;
   --space-card-padding: 14px;
   --space-card-gap: 10px;
-  /* Valores/tÃ­tulos principais dos cards */
+  /* Valores/títulos principais dos cards */
   --text-title: #0f172a;
   --text-body: #1e293b;
   --text-muted: #64748b;
+  --surface-soft: #f8fafc;
+  --surface-subtle: #f1f5f9;
+  --border-soft: #e2e8f0;
+  --border-strong: #cbd5e1;
   --accent-primary: #2563eb;
   --wizard-accent: #2563eb;
-  /* Tom alinhado ao logo Teep SaÃºde (lavanda â†’ azul muito claro) */
+  /* Tom alinhado ao logo Teep Saúde (lavanda → azul muito claro) */
   --header-brand-gradient: linear-gradient(
     165deg,
     #e0e4fa 0%,
@@ -47,13 +51,13 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #F5F5F5;
+  background: #f1f5f9;
 }
 
 /* Container Mobile */
 .mobile-container {
   width: 100%;
-  max-width: 480px;
+  max-width: 540px;
   height: 100vh;
   background: white;
   display: flex;
@@ -66,7 +70,7 @@ body {
 .app-content {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 12px calc(64px + env(safe-area-inset-bottom) + 8px) 12px;
+  padding: 14px 14px calc(72px + env(safe-area-inset-bottom) + 8px) 14px;
 }
 
 /* Fundo levemente mais escuro na home para separar visualmente os cards */
@@ -74,19 +78,19 @@ body {
   background: #f3f3f3;
 }
 
-/* Header â€” Framework7 Navbar override */
+/* Header — Framework7 Navbar override */
 .navbar.header,
 .header {
   position: relative;
-  background: #ffffff !important;
-  border-bottom: 1px solid #f0f2f5;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  border-bottom: 1px solid #e2e8f0;
   height: auto !important;
   min-height: unset !important;
 }
 
 .navbar.header .navbar-inner,
 .navbar.header .header-top-row {
-  padding: 14px 16px 12px;
+  padding: 10px 12px 10px;
   height: auto !important;
   min-height: unset !important;
   display: flex;
@@ -95,10 +99,14 @@ body {
   justify-content: space-between;
   gap: 12px;
   position: static;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
 }
 
 .navbar-spacer {
-  /* spacer not needed â€” navbar is relative, not fixed */
+  /* spacer not needed — navbar is relative, not fixed */
   display: none;
 }
 
@@ -111,22 +119,22 @@ body {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex: 1;
   min-width: 0;
 }
 
 .header-avatar {
-  width: 44px;
-  height: 44px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: #e8f0fe;
-  border: none;
+  border: 2px solid #e2e8f0;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: #2563eb;
   line-height: 1;
@@ -143,14 +151,14 @@ body {
 }
 
 .header-greeting {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: #94a3b8;
   line-height: 1.2;
 }
 
 .header-user-name {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 700;
   color: #1a2332;
   line-height: 1.2;
@@ -161,9 +169,9 @@ body {
 }
 
 .header-date {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
-  color: #94a3b8;
+  color: #64748b;
   line-height: 1.2;
   margin-top: 1px;
 }
@@ -188,9 +196,9 @@ body {
 }
 
 .header-agenda-add {
-  width: 36px;
-  height: 36px;
-  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  font-size: 21px;
   padding: 0;
   display: flex;
   align-items: center;
@@ -204,14 +212,14 @@ body {
 }
 
 .page-context-sub {
-  font-size: 14px;
+  font-size: 15px;
   color: #5f6773;
   font-weight: 600;
-  margin-bottom: 10px;
-  line-height: 1.35;
+  margin-bottom: 12px;
+  line-height: 1.4;
 }
 
-/* â”€â”€ NavegaÃ§Ã£o Inferior â€” Tab bar integrada ao design system â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Navegação Inferior — Tab bar integrada ao design system ─────────────── */
 .toolbar.tabbar {
   background: #ffffff !important;
   border-top: 1px solid #f0f2f5 !important;
@@ -256,10 +264,10 @@ body {
   color: #2563eb !important;
 }
 
-/* Ãcone (SVG wrapper) */
+/* Ícone (SVG wrapper) */
 .toolbar.tabbar .tab-link .icon {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   display: flex !important;
   align-items: center;
   justify-content: center;
@@ -268,9 +276,9 @@ body {
 }
 
 .toolbar.tabbar .tab-link .icon svg {
-  width: 22px;
-  height: 22px;
-  stroke-width: 1.8;
+  width: 24px;
+  height: 24px;
+  stroke-width: 2;
   transition: stroke-width 0.18s ease;
 }
 
@@ -278,7 +286,7 @@ body {
   stroke-width: 2.4;
 }
 
-/* Ponto indicador sob o Ã­cone da aba ativa */
+/* Ponto indicador sob o ícone da aba ativa */
 .toolbar.tabbar .tab-link.tab-link-active .icon::after {
   content: '';
   position: absolute;
@@ -292,10 +300,10 @@ body {
   opacity: 0.7;
 }
 
-/* RÃ³tulo */
+/* Rótulo */
 .toolbar.tabbar .tabbar-label {
   font-family: 'Inter', sans-serif !important;
-  font-size: 10px !important;
+  font-size: 11px !important;
   font-weight: 600 !important;
   line-height: 1;
   white-space: nowrap;
@@ -305,10 +313,10 @@ body {
 /* keep nav-item fallback for compat */
 .nav-item { display: none; }
 
-/* Telas â€” com animaÃ§Ãµes de entrada/saÃ­da estilo app */
+/* Telas — com animações de entrada/saída estilo app */
 .screen {
   display: none;
-  padding: 4px;
+  padding: 6px 4px;
 }
 
 .screen.active {
@@ -337,7 +345,7 @@ body {
   to   { opacity: 0; }
 }
 
-/* Cards Base â€” borda uniforme (sem faixa lateral colorida) */
+/* Cards Base — borda uniforme (sem faixa lateral colorida) */
 .card {
   background: var(--surface-card);
   border-radius: var(--radius-card);
@@ -416,7 +424,7 @@ body {
   margin-bottom: 6px;
 }
 
-/* MedicaÃ§Ã£o - Novo PadrÃ£o */
+/* Medicação - Novo Padrão */
 .med-header {
   display: flex;
   justify-content: space-between;
@@ -435,7 +443,7 @@ body {
 .med-name {
   font-size: 16px;
   font-weight: 700;
-  color: #333333;
+  color: var(--text-body);
   line-height: 1.2;
 }
 
@@ -456,7 +464,7 @@ body {
   width: 36px;
   height: 36px;
   padding: 0;
-  border: 1px solid #E0E0E0;
+  border: 1px solid var(--border-soft);
   border-radius: 8px;
   background: white;
   color: var(--text-body);
@@ -476,9 +484,9 @@ body {
 }
 
 .med-action-btn.taken {
-  background: #ececec;
+  background: var(--surface-subtle);
   color: var(--text-title);
-  border-color: #c8c8c8;
+  border-color: var(--border-strong);
 }
 
 .med-details {
@@ -492,11 +500,11 @@ body {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: #F5F5F5;
+  background: var(--surface-subtle);
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 12px;
-  color: #666666;
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
@@ -515,7 +523,7 @@ body {
   height: 64px;
   border-radius: 12px;
   overflow: hidden;
-  background: #F5F5F5;
+  background: var(--surface-subtle);
 }
 
 .med-foto-container img {
@@ -532,7 +540,7 @@ body {
   gap: 8px;
 }
 
-/* BotÃµes de AÃ§Ã£o de Sinais Vitais */
+/* Botões de Ação de Sinais Vitais */
 .vital-action-buttons {
   display: flex;
   gap: 6px;
@@ -544,7 +552,7 @@ body {
   flex: 1;
   min-width: 60px;
   padding: 6px 8px;
-  border: 1px solid #E0E0E0;
+  border: 1px solid var(--border-soft);
   border-radius: 6px;
   background: white;
   color: var(--text-body);
@@ -580,7 +588,7 @@ body {
 .exame-title {
   font-size: 16px;
   font-weight: 700;
-  color: #333333;
+  color: var(--text-body);
 }
 
 .exame-status {
@@ -645,16 +653,16 @@ body {
 }
 
 .exame-detail-text {
-  color: #333333;
+  color: var(--text-body);
   flex: 1;
 }
 
 .resultado-box {
-  background: #f5f5f5;
+  background: var(--surface-subtle);
   border-radius: 8px;
   padding: 10px;
   margin-top: 10px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-soft);
 }
 
 .resultado-title {
@@ -683,16 +691,16 @@ body {
 .empty-text {
   font-size: 18px;
   font-weight: 600;
-  color: #333333;
+  color: var(--text-body);
   margin-bottom: 8px;
 }
 
 .empty-subtext {
   font-size: 14px;
-  color: #999999;
+  color: var(--text-muted);
 }
 
-/* SeÃ§Ãµes */
+/* Seções */
 .section-title {
   font-size: 18px;
   font-weight: 700;
@@ -752,7 +760,7 @@ body {
   color: var(--text-muted);
 }
 
-/* Home â€” status card (medicaÃ§Ãµes) */
+/* Home — status card (medicações) */
 .home-status-card {
   display: flex;
   align-items: center;
@@ -760,6 +768,10 @@ body {
   border-radius: 999px;
   padding: 7px 14px;
   margin-bottom: 14px;
+}
+
+.home-status-card--clickable {
+  cursor: pointer;
 }
 
 .home-status-card--ok {
@@ -783,6 +795,12 @@ body {
   font-size: 11px;
   font-weight: 800;
   flex-shrink: 0;
+}
+
+.home-status-icon svg {
+  width: 13px;
+  height: 13px;
+  display: block;
 }
 
 .home-status-icon--ok {
@@ -820,7 +838,7 @@ body {
   margin-top: 1px;
 }
 
-/* Home â€” alinhado Ã  legibilidade para leitura rÃ¡pida */
+/* Home — alinhado à legibilidade para leitura rápida */
 #homeScreen .page-subtitle,
 #homeScreen .page-context-sub {
   font-size: 15px;
@@ -944,7 +962,7 @@ body {
   color: #b91c1c;
 }
 
-/* PrÃ³xima Consulta â€” home simplified */
+/* Próxima Consulta — home simplified */
 #homeScreen #homeConsulta .card-agenda--home,
 #agendaScreen .card-agenda--home {
   border-radius: 14px;
@@ -1029,7 +1047,7 @@ body {
   text-transform: uppercase;
 }
 
-/* BotÃ£o Adicionar */
+/* Botão Adicionar */
 .add-button {
   width: 44px;
   height: 44px;
@@ -1054,7 +1072,7 @@ body {
 }
 
 /* Perfil */
-/* ── PERFIL HERO ── */
+/* -- PERFIL HERO -- */
 .perfil-hero {
   background: #ffffff;
   border-radius: 18px;
@@ -1154,7 +1172,7 @@ body {
 }
 .perfil-reveal-btn:active { color: #2563eb; }
 
-/* Título de seção do perfil — usa o mesmo estilo do .section-title do sistema */
+/* T�tulo de se��o do perfil � usa o mesmo estilo do .section-title do sistema */
 .perfil-section-title {
   font-size: 18px;
   font-weight: 700;
@@ -1168,7 +1186,7 @@ body {
   border: 1px solid #fee2e2;
 }
 
-/* ── PROFILE CARD (legado, mantido para compatibilidade) ── */
+/* -- PROFILE CARD (legado, mantido para compatibilidade) -- */
 .profile-card {
   background: white;
   border-radius: 18px;
@@ -1202,7 +1220,7 @@ body {
 .profile-name {
   font-size: 16px;
   font-weight: 700;
-  color: #333333;
+  color: var(--text-body);
 }
 
 .profile-email {
@@ -1211,7 +1229,7 @@ body {
   margin-top: 4px;
 }
 
-/* ConfiguraÃ§Ãµes */
+/* Configurações */
 .config-item {
   background: white;
   border-radius: 14px;
@@ -1246,7 +1264,7 @@ body {
 
 .config-subtitle {
   font-size: 14px;
-  color: #999999;
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
@@ -1272,7 +1290,7 @@ body {
 .toggle {
   width: 50px;
   height: 28px;
-  background: #E0E0E0;
+  background: var(--border-soft);
   border-radius: 14px;
   border: none;
   cursor: pointer;
@@ -1300,7 +1318,7 @@ body {
   left: 24px;
 }
 
-/* BotÃµes */
+/* Botões */
 .button {
   padding: 12px;
   border-radius: 8px;
@@ -1359,7 +1377,7 @@ body {
   z-index: 1300;
 }
 
-/* Modal adicionar mediÃ§Ã£o â€” layout e cores alinhados ao app */
+/* Modal adicionar medição — layout e cores alinhados ao app */
 .add-vital-modal .modal-content--add-vital {
   padding: 0;
   max-width: 420px;
@@ -1372,7 +1390,7 @@ body {
 .add-vital-modal .modal-header--add-vital {
   margin: 0;
   padding: 18px 20px 14px;
-  border-bottom: 1px solid #ececec;
+  border-bottom: 1px solid var(--surface-subtle);
   font-size: 17px;
   font-weight: 700;
   color: var(--text-title);
@@ -1435,7 +1453,7 @@ body {
   font-size: 18px;
   padding: 12px 14px;
   border-radius: 10px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-soft);
 }
 
 .add-vital-modal .pressure-input-hint {
@@ -1486,7 +1504,7 @@ body {
 .add-vital-actions {
   margin-top: auto;
   padding: 16px 20px 20px;
-  border-top: 1px solid #ececec;
+  border-top: 1px solid var(--surface-subtle);
   background: #fff;
   gap: 10px;
   flex-shrink: 0;
@@ -1494,11 +1512,11 @@ body {
 
 .add-vital-modal .pressure-med-group .add-med-freq-btn.selected {
   border-color: #9e9e9e;
-  background: #ececec;
+  background: var(--surface-subtle);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
 
-/* ConfirmaÃ§Ã£o â€” nÃºmeros grandes */
+/* Confirmação — números grandes */
 .vital-save-confirm-content {
   max-width: 400px;
 }
@@ -1615,7 +1633,7 @@ body {
   width: 40px;
   height: 40px;
   border-radius: 14px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-soft);
   background: #f3f3f3;
   color: var(--text-body);
   font-size: 24px;
@@ -1626,7 +1644,7 @@ body {
 .mood-title {
   font-size: 18px;
   font-weight: 900;
-  color: #2f2f2f;
+  color: var(--text-title);
 }
 
 .mood-subtitle {
@@ -1639,7 +1657,7 @@ body {
 .mood-section-title {
   font-size: 13px;
   font-weight: 800;
-  color: #2f2f2f;
+  color: var(--text-title);
   margin-bottom: 8px;
 }
 
@@ -1647,7 +1665,7 @@ body {
   display: flex;
   gap: 10px;
   padding: 12px;
-  border: 1px solid #ececec;
+  border: 1px solid var(--surface-subtle);
   border-radius: 14px;
   background: #fff;
   justify-content: space-between;
@@ -1657,7 +1675,7 @@ body {
   width: 54px;
   height: 54px;
   border-radius: 18px;
-  border: 1px solid #ececec;
+  border: 1px solid var(--surface-subtle);
   background: #fafafa;
   font-size: 24px;
   cursor: pointer;
@@ -1685,17 +1703,17 @@ body {
   background: #fff;
   font-size: 14px;
   font-weight: 800;
-  color: #2f2f2f;
+  color: var(--text-title);
   cursor: pointer;
 }
 
 .mood-outline-btn:hover {
   border-color: #a8a8a8;
-  background: #f5f5f5;
+  background: var(--surface-subtle);
 }
 
 .mood-panel {
-  border: 1px solid #ececec;
+  border: 1px solid var(--surface-subtle);
   border-radius: 14px;
   background: #fff;
   padding: 12px;
@@ -1722,7 +1740,7 @@ body {
   border-radius: 12px;
   border: 1px solid #e4e4e4;
   background: #fff;
-  color: #2f2f2f;
+  color: var(--text-title);
   font-size: 14px;
   font-weight: 700;
   text-align: left;
@@ -1732,14 +1750,14 @@ body {
 
 .mood-symptom-btn.selected {
   border-color: #a8a8a8;
-  background: #ececec;
+  background: var(--surface-subtle);
   color: var(--text-title);
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.06);
 }
 
 .mood-note {
   width: 100%;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-soft);
   border-radius: 12px;
   padding: 10px;
   font-size: 14px;
@@ -1757,13 +1775,13 @@ body {
 .mood-time-label {
   font-size: 14px;
   font-weight: 800;
-  color: #2f2f2f;
+  color: var(--text-title);
 }
 
 .mood-time-input {
   height: 42px;
   border-radius: 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-soft);
   padding: 0 10px;
   font-size: 14px;
   font-weight: 800;
@@ -1787,7 +1805,7 @@ body {
 }
 
 .mood-btn.ghost {
-  background: #ececec;
+  background: var(--surface-subtle);
   color: var(--text-body);
 }
 
@@ -1851,7 +1869,7 @@ body {
 .mood-history-values {
   font-size: 14px;
   font-weight: 900;
-  color: #2f2f2f;
+  color: var(--text-title);
   margin-top: 3px;
 }
 
@@ -1958,7 +1976,7 @@ body {
   transform: scale(0.9);
 }
 
-/* FormulÃ¡rios */
+/* Formulários */
 .form-group {
   margin-bottom: 16px;
 }
@@ -1999,7 +2017,7 @@ body {
   cursor: pointer;
 }
 
-/* SaÃºde e Corpo: datas/horas legÃ­veis (idoso) */
+/* Saúde e Corpo: datas/horas legíveis (idoso) */
 #vitalDetailModal input[type="date"],
 #vitalDetailModal input[type="time"],
 #vitalDetailModal input[type="datetime-local"],
@@ -2088,7 +2106,7 @@ body {
 
 .pulseira-step-btn.selected {
   border-color: #9e9e9e;
-  background: #ececec;
+  background: var(--surface-subtle);
   color: var(--text-title);
   box-shadow: none;
 }
@@ -2182,7 +2200,7 @@ body {
   flex: 1;
 }
 
-/* Grupos de BotÃµes */
+/* Grupos de Botões */
 .button-group {
   display: flex;
   gap: 12px;
@@ -2269,9 +2287,23 @@ body {
 }
 
 .alarm-icon {
-  font-size: 80px;
+  width: 80px;
+  height: 80px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-soft);
+  color: var(--accent-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 20px;
   animation: ring 0.5s ease-in-out infinite;
+}
+
+.alarm-icon svg {
+  width: 38px;
+  height: 38px;
+  display: block;
 }
 
 @keyframes ring {
@@ -2283,7 +2315,7 @@ body {
 .alarm-title {
   font-size: 24px;
   font-weight: 700;
-  color: #333333;
+  color: var(--text-title);
   margin-bottom: 8px;
 }
 
@@ -2296,7 +2328,7 @@ body {
 
 .alarm-time {
   font-size: 16px;
-  color: #999999;
+  color: var(--text-muted);
   margin-bottom: 24px;
 }
 
@@ -2317,12 +2349,12 @@ body {
 }
 
 .alarm-btn-dismiss {
-  background: #E0E0E0;
-  color: #333333;
+  background: var(--border-soft);
+  color: var(--text-body);
 }
 
 .alarm-btn-dismiss:hover {
-  background: #D0D0D0;
+  background: var(--border-soft);
 }
 
 .alarm-btn-take {
@@ -2337,7 +2369,7 @@ body {
 
 /* Upload de Foto */
 .photo-upload-area {
-  border: 2px dashed #E0E0E0;
+  border: 2px dashed var(--border-soft);
   border-radius: 8px;
   padding: 16px;
   text-align: center;
@@ -2346,12 +2378,173 @@ body {
 }
 
 .photo-upload-area:hover {
-  border-color: #b8b8b8;
+  border-color: var(--border-strong);
   background: #F9F9F9;
 }
 
 .photo-upload-placeholder {
   cursor: pointer;
+}
+
+.agenda-reminder-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-title);
+  margin-bottom: 8px;
+}
+
+.alert-section-heading {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-title);
+  margin: 4px 0 8px;
+}
+
+.is-hidden {
+  display: none;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+.modal-scroll-body {
+  overflow-y: auto;
+}
+
+.modal-scroll-body--lg {
+  max-height: 500px;
+}
+
+.modal-scroll-body--md {
+  max-height: 430px;
+}
+
+.modal-scroll-body--sm {
+  max-height: 300px;
+}
+
+.modal-content--alertas {
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.alerta-vital-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alerta-vital-input-grow {
+  flex: 1;
+}
+
+.alerta-vital-unit {
+  font-size: 13px;
+  color: var(--text-body);
+  font-weight: 600;
+}
+
+.modal-content--scroll-90 {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.section-title--mt20 {
+  margin-top: 20px;
+}
+
+.inline-actions-row {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-flex {
+  flex: 1;
+}
+
+.btn-full-top {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.take-med-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.take-med-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-body);
+  margin-bottom: 8px;
+}
+
+.take-med-scheduled {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.take-med-time-strong {
+  font-weight: 600;
+}
+
+.take-med-now-time {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.take-med-divider {
+  text-align: center;
+  margin: 16px 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.modal-content--followup {
+  max-width: 350px;
+  text-align: center;
+}
+
+.followup-icon-wrap {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.followup-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-title);
+  margin-bottom: 8px;
+}
+
+.followup-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.composicao-history-wrap {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.toggle-row--mb14 {
+  margin-bottom: 14px;
+}
+
+.config-helper-text {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.add-button--mini {
+  width: 32px;
+  height: 32px;
+  border-radius: 16px;
+  font-size: 18px;
 }
 
 .photo-preview {
@@ -2399,7 +2592,7 @@ body {
 
 /* ===== SINAIS VITAIS MELHORADOS ===== */
 
-/* Card mais compacto: menos padding interno, mesma estrutura (Ã­cone / valor / status â†’ data â†’ faixa 24h â†’ +) */
+/* Card mais compacto: menos padding interno, mesma estrutura (ícone / valor / status → data → faixa 24h → +) */
 .vital-card {
   cursor: pointer;
   transition: all 0.2s;
@@ -2407,7 +2600,7 @@ body {
   margin-bottom: 12px !important;
 }
 
-/* EspaÃ§o mÃ­nimo para o "+" no canto */
+/* Espaço mínimo para o "+" no canto */
 .vital-card.card-has-action {
   padding-bottom: 32px !important;
 }
@@ -2517,7 +2710,7 @@ body {
   content: attr(data-ideal);
   font-size: 17px;
   font-weight: 500;
-  color: #999999;
+  color: var(--text-muted);
 }
 
 .vital-status-icon {
@@ -2543,7 +2736,7 @@ body {
   line-height: 1.15;
 }
 
-/* PressÃ£o: SIS/DIA na mesma linha sem aumentar altura do card */
+/* Pressão: SIS/DIA na mesma linha sem aumentar altura do card */
 .vital-value-main--pressure {
   font-size: 17px;
   letter-spacing: -0.02em;
@@ -2561,7 +2754,7 @@ body {
   vertical-align: 0.05em;
 }
 
-/* Batimento cardÃ­aco: tÃ­tulo + selo minâ€“mÃ¡x; valor grande + unidade (sem data) */
+/* Batimento cardíaco: título + selo min–máx; valor grande + unidade (sem data) */
 .vital-card--batimento {
   padding: 12px 14px 12px 12px !important;
   margin-bottom: 8px !important;
@@ -2586,7 +2779,7 @@ body {
   color: #94a3b8;
 }
 
-/* Item 3 â€” Chevron affordance on home vital cards */
+/* Item 3 — Chevron affordance on home vital cards */
 #homeScreen .home-vital-card::after {
   content: '\203a';
   position: absolute;
@@ -2600,7 +2793,7 @@ body {
   pointer-events: none;
 }
 
-/* Item 9 â€” Header compacto: saudaÃ§Ã£o + nome na mesma linha */
+/* Item 9 — Header compacto: saudação + nome na mesma linha */
 .header-name-row {
   display: flex;
   flex-direction: row;
@@ -2608,15 +2801,15 @@ body {
   gap: 4px;
 }
 .header-name-row .header-greeting {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
-  color: #94a3b8;
+  color: #64748b;
 }
 .header-name-row .header-greeting::after {
   content: ',';
 }
 .header-name-row .header-user-name {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 700;
   color: #1a2332;
   white-space: nowrap;
@@ -2778,7 +2971,7 @@ body {
   color: #6b7280;
 }
 
-/* Selo tipo pÃ­lula: minâ€“mÃ¡x bpm */
+/* Selo tipo pílula: min–máx bpm */
 .vital-batimento-badge {
   font-size: 12px;
   font-weight: 600;
@@ -2814,7 +3007,7 @@ body {
   color: #6b7280;
 }
 
-/* PressÃ£o arterial: mesmo padrÃ£o visual do card de batimento */
+/* Pressão arterial: mesmo padrão visual do card de batimento */
 .vital-card--pressao {
   padding: 12px 14px 12px 12px !important;
   margin-bottom: 8px !important;
@@ -2949,7 +3142,7 @@ body {
 }
 
 .vital-historico {
-  color: #666666;
+  color: var(--text-muted);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -2959,7 +3152,7 @@ body {
   align-items: center;
   gap: 8px;
   font-size: 18px;
-  color: #666666;
+  color: var(--text-muted);
   font-weight: 600;
 }
 
@@ -2986,14 +3179,14 @@ body {
 
 .vital-tendencia-arrow.up {
   color: var(--text-title);
-  background: #ececec;
-  border-color: #d0d0d0;
+  background: var(--surface-subtle);
+  border-color: var(--border-soft);
 }
 
 .vital-tendencia-arrow.down {
   color: var(--text-title);
-  background: #ececec;
-  border-color: #d0d0d0;
+  background: var(--surface-subtle);
+  border-color: var(--border-soft);
 }
 
 .vital-24h-line {
@@ -3005,7 +3198,7 @@ body {
   margin-top: 0;
   margin-bottom: 0;
   padding-top: 6px;
-  border-top: 1px solid #ececec;
+  border-top: 1px solid var(--surface-subtle);
   color: var(--text-body);
   font-weight: 600;
 }
@@ -3029,7 +3222,7 @@ body {
   font-weight: 600;
 }
 
-/* PressÃ£o: faixa 24 h sÃ³ com nÃºmeros (sis maxâ€“min / dia maxâ€“min) */
+/* Pressão: faixa 24 h só com números (sis max–min / dia max–min) */
 .vital-24h-line--pressure {
   justify-content: flex-start;
   align-items: center;
@@ -3050,8 +3243,8 @@ body {
   font-weight: 500;
 }
 
-/* Modal histÃ³rico vital â€” menos padding, mais Ã¡rea Ãºtil no mobile */
-/* â•â• Vital Detail: TELA CHEIA (substitui popup) â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+/* Modal histórico vital — menos padding, mais área útil no mobile */
+/* ══ Vital Detail: TELA CHEIA (substitui popup) ══════════════ */
 #vitalDetailModal {
   background: #f3f3f3;
   align-items: stretch;
@@ -3122,7 +3315,7 @@ body {
   line-height: 1.2;
 }
 
-/* BotÃ£o Voltar (seta) e Fechar: cÃ­rculos pequenos 36px */
+/* Botão Voltar (seta) e Fechar: círculos pequenos 36px */
 #vitalDetailModal .vital-detail-back-btn,
 #vitalDetailModal .vital-detail-close-btn,
 #vitalDetailModal .bat-share-btn {
@@ -3162,7 +3355,7 @@ body {
   flex-shrink: 0;
 }
 
-/* Ãrea de scroll: conteÃºdo abaixo do header â€” padding lateral */
+/* Área de scroll: conteúdo abaixo do header — padding lateral */
 #vitalDetailModal .vital-batimento-chrome,
 #vitalDetailModal .vital-detail-default-chrome {
   padding: 12px 12px 0;
@@ -3183,7 +3376,7 @@ body {
   border: var(--border-card-soft);
 }
 
-/* No drill-down "Detalhado por hora", reserva altura para a lista nÃ£o sumir. */
+/* No drill-down "Detalhado por hora", reserva altura para a lista não sumir. */
 #vitalDetailModal #vitalDetailContent.vital-detail-content--batimento-day {
   min-height: 170px;
 }
@@ -3214,6 +3407,7 @@ body {
 }
 
 #vitalDetailModal #addVitalMedicaoBtn {
+  width: 100%;
   margin-top: 0;
   min-height: 50px;
   border-radius: 14px;
@@ -3232,12 +3426,25 @@ body {
   transform: scale(0.98);
 }
 
-/* Modal histÃ³rico â€” Batimento: perÃ­odo + barras diÃ¡rias */
+.vital-filter-date-row {
+  display: flex;
+  gap: 8px;
+}
+
+.vital-filter-date-input {
+  flex: 1;
+}
+
+.sparkline-chart--tight {
+  margin-bottom: 8px;
+}
+
+/* Modal histórico — Batimento: período + barras diárias */
 .vital-batimento-chrome {
   margin-bottom: 8px;
 }
 
-/* Card: grÃ¡fico + controles de perÃ­odo */
+/* Card: gráfico + controles de período */
 .vital-detail-chart-card {
   background: #ffffff;
   border-radius: var(--radius-card);
@@ -3247,7 +3454,7 @@ body {
   margin-bottom: 12px;
 }
 
-/* â”€â”€ Batimento: card Min/Max â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Batimento: card Min/Max ─────────────────────────────── */
 .bat-minmax-card {
   background: #ffffff;
   border: var(--border-card-soft);
@@ -3309,7 +3516,7 @@ body {
   margin-top: 10px;
 }
 
-/* â”€â”€ Batimento: tabela horÃ¡ria â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Batimento: tabela horária ───────────────────────────── */
 .bat-hourly-section {
   background: #ffffff;
   border-radius: var(--radius-card);
@@ -3403,7 +3610,7 @@ body {
 
 .bat-hourly-more:hover { background: #eff6ff; }
 
-/* â”€â”€ Batimento: detalhe por hora â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Batimento: detalhe por hora ────────────────────────── */
 .bat-hourly-row { cursor: pointer; }
 .bat-hourly-row:hover { background: #f1f5f9; }
 
@@ -3535,7 +3742,7 @@ body {
   margin-left: 4px;
 }
 
-/* Valor mÃ©dio em destaque */
+/* Valor médio em destaque */
 .bat-resting-avg {
   display: flex;
   align-items: baseline;
@@ -3588,7 +3795,7 @@ body {
   background: #fafbff;
 }
 
-/* â”€â”€â”€ Batimento: Detalhe Repouso (brd-*) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Batimento: Detalhe Repouso (brd-*) ────────────────────────────────── */
 .brd-header {
   display: flex;
   align-items: center;
@@ -3815,7 +4022,7 @@ body {
   background: #e2e8f0;
 }
 
-/* â”€â”€â”€ Hourly Bar Chart Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Hourly Bar Chart Card ──────────────────────────────────────────────── */
 .bat-hourly-chart-card {
   background: #fff;
   border-radius: var(--radius-card);
@@ -3879,7 +4086,7 @@ body {
   border-top: 1px dashed rgba(34,197,94,0.6);
 }
 
-/* â”€â”€â”€ Day Picker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ─── Day Picker ─────────────────────────────────────────────────────────── */
 .bat-day-picker-card {
   background: #fff;
   border-radius: var(--radius-card);
@@ -3984,7 +4191,7 @@ body {
 }
 
 .vital-batimento-quick-summary {
-  border: 1px solid #ececec;
+  border: 1px solid var(--surface-subtle);
   border-radius: 10px;
   background: #fafafa;
   padding: 8px 10px;
@@ -4159,7 +4366,7 @@ body {
   line-height: 1.3;
 }
 
-/* GrÃ¡fico colado Ã  largura do modal */
+/* Gráfico colado à largura do modal */
 .vital-batimento-canvas {
   display: block;
   width: 100%;
@@ -4178,7 +4385,7 @@ body {
   flex: 1;
 }
 
-/* Vista dia (drill-down): resumo + barra na faixa do indicador + grÃ¡fico por hora */
+/* Vista dia (drill-down): resumo + barra na faixa do indicador + gráfico por hora */
 .vital-batimento-day-scope {
   margin-bottom: 6px;
 }
@@ -4330,7 +4537,7 @@ body {
   background: linear-gradient(180deg, #ffedd5, #c2410c);
 }
 
-/* Lista perÃ­odo: linha inteira abre detalhe do dia (como a coluna do grÃ¡fico) */
+/* Lista período: linha inteira abre detalhe do dia (como a coluna do gráfico) */
 .vital-list-item--day-nav {
   cursor: pointer;
 }
@@ -4413,7 +4620,7 @@ body {
   margin-bottom: 16px;
 }
 
-/* ===== COMPOSIÃ‡ÃƒO CORPORAL (mesma paleta/tipografia das outras telas) ===== */
+/* ===== COMPOSIÇÃO CORPORAL (mesma paleta/tipografia das outras telas) ===== */
 
 .card-composicao {
   background: var(--surface-card);
@@ -4634,7 +4841,7 @@ body {
 .ecg-value-unit {
   font-size: 16px;
   font-weight: 600;
-  color: #666666;
+  color: var(--text-muted);
 }
 
 .ecg-rhythm-line {
@@ -4654,7 +4861,7 @@ body {
 
 .ecg-date {
   font-size: 17px;
-  color: #999999;
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
@@ -4663,7 +4870,7 @@ body {
   gap: 12px;
   margin-bottom: 8px;
   padding: 8px;
-  background: #F5F5F5;
+  background: var(--surface-subtle);
   border-radius: 6px;
 }
 
@@ -4676,7 +4883,7 @@ body {
 
 .ecg-label {
   font-weight: 600;
-  color: #666666;
+  color: var(--text-muted);
 }
 
 .ecg-value {
@@ -4689,11 +4896,11 @@ body {
   color: var(--text-title);
   font-weight: 600;
   padding: 8px;
-  background: #ececec;
+  background: var(--surface-subtle);
   border-radius: 4px;
 }
 
-/* ===== COMPOSIÃ‡ÃƒO SECTION ===== */
+/* ===== COMPOSIÇÃO SECTION ===== */
 
 .composicao-section {
   margin-bottom: 16px;
@@ -4706,7 +4913,7 @@ body {
 
 /* ===== CLOCK WIDGET ===== */
 
-/* MedicaÃ§Ãµes: CalendÃ¡rio Â· Agenda Â· Atraso Â· RelatÃ³rio â€” uma linha compacta */
+/* Medicações: Calendário · Agenda · Atraso · Relatório — uma linha compacta */
 .med-calendar-unified {
   display: flex;
   flex-wrap: nowrap;
@@ -4760,7 +4967,7 @@ body {
 
 .med-cal-unified-seg + .med-cal-unified-seg,
 .med-calendar-unified > .med-calendar-actions {
-  border-left: 1px solid #ececec;
+  border-left: 1px solid var(--surface-subtle);
 }
 
 .med-cal-unified-texts {
@@ -4811,8 +5018,10 @@ body {
 }
 
 .med-calendar-unified .med-calendar-icon {
-  font-size: 16px;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-title);
 }
 
 .med-header-add-btn {
@@ -4844,7 +5053,15 @@ body {
 }
 
 .med-calendar-icon {
-  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-title);
+}
+
+.med-calendar-icon svg {
+  width: 18px;
+  height: 18px;
 }
 
 .med-calendar-title {
@@ -4904,7 +5121,7 @@ body {
 
 .med-overdue-more {
   font-size: 13px;
-  color: #666666;
+  color: var(--text-muted);
   font-weight: 600;
   margin: 8px 0 0;
   line-height: 1.35;
@@ -4939,7 +5156,7 @@ body {
 }
 
 .med-overdue-btn {
-  border: 1px solid #b8b8b8;
+  border: 1px solid var(--border-strong);
   background: white;
   color: var(--text-title);
   border-radius: 999px;
@@ -4958,7 +5175,7 @@ body {
   transform: translateX(-50%) translateY(12px);
   min-width: 220px;
   max-width: 84%;
-  background: #2f2f2f;
+  background: var(--text-title);
   color: #fff;
   border-radius: 10px;
   padding: 10px 12px;
@@ -4985,7 +5202,7 @@ body {
   background: #5a5a5a;
 }
 
-/* ── Push notification simulation banner ── */
+/* -- Push notification simulation banner -- */
 .push-notif-banner {
   position: fixed;
   top: 12px;
@@ -5071,7 +5288,7 @@ body {
   width: 100%;
 }
 
-/* ── Alert popup demo ── */
+/* -- Alert popup demo -- */
 .alert-popup-overlay {
   position: fixed;
   inset: 0;
@@ -5177,7 +5394,7 @@ body {
 .feedback-modal-content {
   max-width: 360px;
   text-align: center;
-  border-top: 3px solid #6e6e6e;
+  border-top: 3px solid var(--border-strong);
 }
 
 .feedback-modal-icon {
@@ -5188,50 +5405,58 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
-  background: #ececec;
-  border: 1px solid #d0d0d0;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-soft);
+}
+
+.feedback-modal-icon svg {
+  width: 28px;
+  height: 28px;
+  display: block;
 }
 
 .feedback-modal-title {
   font-size: 20px;
   font-weight: 800;
-  color: #2f2f2f;
+  color: var(--text-title);
   margin-bottom: 8px;
 }
 
 .feedback-modal-message {
   font-size: 14px;
-  color: #565656;
+  color: var(--text-muted);
   line-height: 1.45;
   margin-bottom: 14px;
 }
 
 .feedback-modal-content.type-success {
-  border-top-color: #6e6e6e;
+  border-top-color: #16a34a;
 }
 
 .feedback-modal-content.type-success .feedback-modal-icon {
-  background: #ececec;
-  border-color: #d0d0d0;
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #15803d;
 }
 
 .feedback-modal-content.type-warning {
-  border-top-color: #6e6e6e;
+  border-top-color: #ea580c;
 }
 
 .feedback-modal-content.type-warning .feedback-modal-icon {
-  background: #ececec;
-  border-color: #d0d0d0;
+  background: #fff7ed;
+  border-color: #fdba74;
+  color: #c2410c;
 }
 
 .feedback-modal-content.type-error {
-  border-top-color: #6e6e6e;
+  border-top-color: #dc2626;
 }
 
 .feedback-modal-content.type-error .feedback-modal-icon {
-  background: #ececec;
-  border-color: #d0d0d0;
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
 }
 
 .confirm-modal-content {
@@ -5242,7 +5467,7 @@ body {
 .confirm-modal-title {
   font-size: 20px;
   font-weight: 800;
-  color: #2f2f2f;
+  color: var(--text-title);
   margin-bottom: 8px;
 }
 
@@ -5268,22 +5493,22 @@ body {
 }
 
 .calendar-day-pill.ok {
-  background: #ececec;
+  background: var(--surface-subtle);
   color: var(--text-title);
 }
 
 .calendar-day-pill.pending {
-  background: #f5f5f5;
-  color: #666666;
+  background: var(--surface-subtle);
+  color: var(--text-muted);
 }
 
 .calendar-day-pill.missed {
-  background: #ececec;
+  background: var(--surface-subtle);
   color: var(--text-title);
 }
 
 .calendar-med-item {
-  border: 1px solid #E0E0E0;
+  border: 1px solid var(--border-soft);
   border-radius: 10px;
   padding: 9px 10px;
   margin-bottom: 8px;
@@ -5325,13 +5550,13 @@ body {
 }
 
 .calendar-slot.taken {
-  background: #ececec;
+  background: var(--surface-subtle);
   color: var(--text-title);
 }
 
 .calendar-slot.pending {
-  background: #f5f5f5;
-  color: #666666;
+  background: var(--surface-subtle);
+  color: var(--text-muted);
 }
 
 .calendar-slot.missed {
@@ -5345,7 +5570,7 @@ body {
   border: var(--border-card);
   border-radius: var(--radius-card);
   padding: 8px 10px;
-  color: #2f2f2f;
+  color: var(--text-title);
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
   box-shadow: var(--shadow-card);
@@ -5408,7 +5633,7 @@ body {
 }
 
 .summary-item-clickable:hover {
-  border-color: #c8c8c8;
+  border-color: var(--border-strong);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
@@ -5446,10 +5671,10 @@ body {
   flex: 1;
   min-width: 70px;
   padding: 8px 12px;
-  border: 1px solid #E0E0E0;
+  border: 1px solid var(--border-soft);
   border-radius: 8px;
   background: white;
-  color: #666666;
+  color: var(--text-muted);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -5457,7 +5682,7 @@ body {
 }
 
 .filter-btn:hover {
-  border-color: #b8b8b8;
+  border-color: var(--border-strong);
   color: var(--text-title);
 }
 
@@ -5504,14 +5729,14 @@ body {
 .schedule-med {
   font-size: 18px;
   font-weight: 700;
-  color: #2f2f2f;
+  color: var(--text-title);
   line-height: 1.25;
 }
 
 .schedule-meta {
   margin-top: 4px;
   font-size: 15px;
-  color: #666666;
+  color: var(--text-muted);
 }
 
 .schedule-item-right {
@@ -5531,7 +5756,7 @@ body {
 
 .schedule-status--tomado {
   color: var(--text-title);
-  background: #ececec;
+  background: var(--surface-subtle);
 }
 
 .schedule-status--pendente {
@@ -5541,12 +5766,12 @@ body {
 
 .schedule-status--atrasado {
   color: var(--text-title);
-  background: #e0e0e0;
+  background: var(--border-soft);
 }
 
 .schedule-btn {
   padding: 8px 14px;
-  border: 1px solid #b8b8b8;
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   background: white;
   color: var(--text-title);
@@ -5563,7 +5788,7 @@ body {
   border-color: #2563eb;
 }
 
-/* ===== MEDICATION SEARCH (adicionar â€” um item por vez) ===== */
+/* ===== MEDICATION SEARCH (adicionar — um item por vez) ===== */
 
 .med-pick-hint {
   font-size: 12px;
@@ -5576,7 +5801,7 @@ body {
 #searchResults {
   margin-top: 8px;
   background: white;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-soft);
   border-radius: 8px;
   max-height: 180px;
   overflow-y: auto;
@@ -5598,13 +5823,23 @@ body {
   min-height: 48px;
   padding: 10px 14px;
   border-radius: 12px;
-  border: 2px solid #d8d8d8;
-  background: #f7f7f7;
+  border: 2px solid var(--border-soft);
+  background: var(--surface-soft);
 }
 
 .med-selected-emoji {
-  font-size: 22px;
-  line-height: 1;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary);
+}
+
+.med-selected-emoji svg {
+  width: 22px;
+  height: 22px;
+  display: block;
 }
 
 .med-selected-name {
@@ -5620,7 +5855,7 @@ body {
   min-height: 44px;
   padding: 0 16px;
   border-radius: 12px;
-  border: 2px solid #b8b8b8;
+  border: 2px solid var(--border-strong);
   background: #fff;
   color: var(--text-title);
   font-size: 14px;
@@ -5629,7 +5864,7 @@ body {
 }
 
 .med-change-btn:active {
-  background: #ececec;
+  background: var(--surface-subtle);
 }
 
 .search-result-item {
@@ -5638,12 +5873,12 @@ body {
   cursor: pointer;
   transition: background 0.2s;
   font-size: 14px;
-  color: #333333;
+  color: var(--text-body);
 }
 
 .search-result-name {
   font-weight: 700;
-  color: #2f2f2f;
+  color: var(--text-title);
   font-size: 13px;
 }
 
@@ -5654,7 +5889,7 @@ body {
 }
 
 .search-result-item:hover {
-  background: #F5F5F5;
+  background: var(--surface-subtle);
   color: var(--text-title);
   font-weight: 600;
 }
@@ -5663,7 +5898,7 @@ body {
   border-bottom: none;
 }
 
-/* ===== HORÃRIOS DINÃ‚MICOS ===== */
+/* ===== HORÁRIOS DINÂMICOS ===== */
 
 #horariosContainer,
 #editHorariosContainer {
@@ -5677,7 +5912,7 @@ body {
 .edit-horario-input {
   width: 100%;
   padding: 10px;
-  border: 1px solid #E0E0E0;
+  border: 1px solid var(--border-soft);
   border-radius: 6px;
   font-size: 14px;
   margin-bottom: 8px;
@@ -5752,7 +5987,7 @@ body {
   flex-shrink: 0;
   text-align: center;
   padding-left: 12px;
-  border-left: 1px solid #ececec;
+  border-left: 1px solid var(--surface-subtle);
 }
 
 .med-col-label {
@@ -5909,7 +6144,7 @@ body {
   max-height: 62vh;
   object-fit: contain;
   border-radius: 10px;
-  border: 1px solid #ececec;
+  border: 1px solid var(--surface-subtle);
   background: #f9f9f9;
 }
 
@@ -5926,7 +6161,7 @@ body {
   color: var(--text-muted);
 }
 
-/* Nome + dosagem â€” alinhado aos valores principais / metadados da SaÃºde */
+/* Nome + dosagem — alinhado aos valores principais / metadados da Saúde */
 .card-medicacao-enhanced .med-name {
   font-size: 21px;
   font-weight: 700;
@@ -5950,7 +6185,7 @@ body {
   width: 30px;
   height: 30px;
   padding: 0;
-  border: 1px solid #E0E0E0;
+  border: 1px solid var(--border-soft);
   border-radius: 8px;
   background: white;
   color: var(--text-body);
@@ -5970,7 +6205,7 @@ body {
   transform: scale(1.05);
 }
 
-/* PrÃ³xima Dose */
+/* Próxima Dose */
 .med-proxima-dose {
   background: #FFF8F0;
   border-radius: 8px;
@@ -6001,14 +6236,14 @@ body {
   font-weight: 600;
 }
 
-/* HorÃ¡rios */
+/* Horários */
 .med-horarios {
   margin-bottom: 12px;
 }
 
 .horarios-label {
   font-size: 11px;
-  color: #999999;
+  color: var(--text-muted);
   font-weight: 600;
   margin-bottom: 6px;
   text-transform: uppercase;
@@ -6022,7 +6257,7 @@ body {
 
 .horario-badge {
   display: inline-block;
-  background: #ececec;
+  background: var(--surface-subtle);
   color: var(--text-title);
   padding: 4px 10px;
   border-radius: 12px;
@@ -6030,7 +6265,7 @@ body {
   font-weight: 600;
 }
 
-/* HistÃ³rico */
+/* Histórico */
 .med-historico {
   margin-bottom: 8px;
   padding: 8px 9px;
@@ -6060,13 +6295,13 @@ body {
   background: white;
   padding: 3px 7px;
   border-radius: 6px;
-  border: 1px solid #E0E0E0;
+  border: 1px solid var(--border-soft);
   font-size: 14px;
 }
 
 .historico-hora {
   font-weight: 600;
-  color: #333333;
+  color: var(--text-body);
 }
 
 .historico-status {
@@ -6168,14 +6403,14 @@ body {
   font-size: 13px;
 }
 
-/* Warning â€” texto auxiliar; menor que dados principais do card */
+/* Warning — texto auxiliar; menor que dados principais do card */
 .med-warning {
   font-size: 14px;
   line-height: 1.35;
   color: var(--text-title);
   font-weight: 600;
   padding: 6px 9px;
-  background: #ececec;
+  background: var(--surface-subtle);
   border-radius: 8px;
   text-align: center;
   margin-top: 8px;
@@ -6190,7 +6425,7 @@ body {
 
 .med-horarios-interactive .horarios-label {
   font-size: 12px;
-  color: #666666;
+  color: var(--text-muted);
   font-weight: 600;
   margin-bottom: 8px;
   text-transform: uppercase;
@@ -6221,7 +6456,7 @@ body {
   border-radius: 9px;
   cursor: pointer;
   transition: all 0.3s;
-  border: 1px solid #ececec;
+  border: 1px solid var(--surface-subtle);
   font-weight: 600;
   font-size: 14px;
   min-width: 0;
@@ -6285,7 +6520,7 @@ body {
 
 .horario-item.status-a-tomar {
   background: #f3f3f3;
-  border-color: #e0e0e0;
+  border-color: var(--border-soft);
   color: var(--text-title);
 }
 
@@ -6341,7 +6576,7 @@ body {
   margin-top: 0;
   margin-bottom: 8px;
   font-size: 14px;
-  color: #666666;
+  color: var(--text-muted);
   line-height: 1.45;
 }
 
@@ -6385,7 +6620,7 @@ body {
 .med-manage-name {
   font-size: 14px;
   font-weight: 700;
-  color: #2f2f2f;
+  color: var(--text-title);
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -6430,7 +6665,7 @@ body {
 .med-chip-btn-secondary {
   background: #ffffff;
   color: var(--text-title);
-  border: 1px solid #c8c8c8;
+  border: 1px solid var(--border-strong);
   height: 34px;
   font-size: 12px;
   padding: 0 12px;
@@ -6505,10 +6740,10 @@ body {
 
 .period-btn {
   padding: 12px;
-  border: 1px solid #E0E0E0;
+  border: 1px solid var(--border-soft);
   border-radius: 8px;
   background: white;
-  color: #333333;
+  color: var(--text-body);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -6517,7 +6752,7 @@ body {
 }
 
 .period-btn:hover {
-  border-color: #b8b8b8;
+  border-color: var(--border-strong);
   background: #F9F9F9;
 }
 
@@ -6535,18 +6770,18 @@ body {
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #E0E0E0;
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .adherence-period {
   font-size: 14px;
   font-weight: 600;
-  color: #666666;
+  color: var(--text-muted);
 }
 
 .period-filter-btn {
   padding: 8px 12px;
-  border: 1px solid #E0E0E0;
+  border: 1px solid var(--border-soft);
   border-radius: 6px;
   background: white;
   color: var(--text-title);
@@ -6588,7 +6823,7 @@ body {
 
 .stat-label {
   font-size: 12px;
-  color: #999999;
+  color: var(--text-muted);
   font-weight: 600;
   text-transform: uppercase;
 }
@@ -6613,7 +6848,7 @@ body {
 .adherence-med-name {
   font-size: 14px;
   font-weight: 600;
-  color: #333333;
+  color: var(--text-body);
 }
 
 .adherence-med-percentage {
@@ -6625,7 +6860,7 @@ body {
 .adherence-med-bar {
   width: 100%;
   height: 8px;
-  background: #E0E0E0;
+  background: var(--border-soft);
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -6639,7 +6874,7 @@ body {
 
 .adherence-med-stats {
   font-size: 12px;
-  color: #666666;
+  color: var(--text-muted);
   font-weight: 600;
 }
 
@@ -6659,7 +6894,7 @@ body {
 .daily-date {
   font-size: 13px;
   font-weight: 600;
-  color: #333333;
+  color: var(--text-body);
 }
 
 .daily-stats {
@@ -6671,13 +6906,20 @@ body {
 .daily-stats span:first-child {
   font-size: 12px;
   font-weight: 600;
-  color: #666666;
+  color: var(--text-muted);
   min-width: 40px;
   text-align: right;
 }
 
 .daily-icon {
-  font-size: 18px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-title);
+  background: var(--surface-subtle);
+  border-radius: 999px;
+  padding: 4px 8px;
+  min-width: 70px;
+  text-align: center;
 }
 
 
@@ -6685,7 +6927,7 @@ body {
   display: block;
   width: 100%;
   padding: 10px;
-  border: 1px dashed #d0d0d0;
+  border: 1px dashed var(--border-soft);
   border-radius: 8px;
   background: #fafafa;
   color: var(--text-muted);
@@ -6699,7 +6941,7 @@ body {
 
 .vital-ver-mais-btn:hover {
   background: #f0f0f0;
-  border-color: #b8b8b8;
+  border-color: var(--border-strong);
   color: var(--text-body);
 }
 
@@ -6798,7 +7040,7 @@ body {
   gap: 0;
 }
 
-/* Minuto a minuto: mesma hierarquia da lista por hora (valor em destaque, horÃ¡rio abaixo, chevron) */
+/* Minuto a minuto: mesma hierarquia da lista por hora (valor em destaque, horário abaixo, chevron) */
 .modal-content--bmin .bmin-lista .vital-list-item--minuto-historico {
   align-items: flex-start;
 }
@@ -6861,7 +7103,7 @@ body {
   min-width: 0;
 }
 
-/* Detalhe do dia â€” lista por hora: medida em cima, intervalo em baixo (formato tipo â€œTodos reg.â€). Cores de fundo da linha inalteradas. */
+/* Detalhe do dia — lista por hora: medida em cima, intervalo em baixo (formato tipo “Todos reg.”). Cores de fundo da linha inalteradas. */
 .vital-list-main--hour-detail {
   display: flex;
   flex-direction: column;
@@ -6908,7 +7150,7 @@ body {
 }
 
 .vital-list-date {
-  color: #666666;
+  color: var(--text-muted);
   font-weight: 500;
   font-size: 16px;
   line-height: 1.25;
@@ -6959,7 +7201,7 @@ body {
   background: #fff4e6;
 }
 
-/* Lista perÃ­odo (uma linha por dia): pico Baixo / Normal / Alto vs faixa ideal â€” alinhado ao grÃ¡fico */
+/* Lista período (uma linha por dia): pico Baixo / Normal / Alto vs faixa ideal — alinhado ao gráfico */
 .vital-list-item--bc-chart-baixo {
   background: #fff4e6;
 }
@@ -7030,7 +7272,7 @@ body {
   padding-top: 2px;
 }
 
-/* Detalhe de sessÃ£o de exercÃ­cio (FC) */
+/* Detalhe de sessão de exercício (FC) */
 .modal-exercicio-detalhe {
   z-index: 1100;
 }
@@ -7146,7 +7388,7 @@ body {
   display: block;
   width: 100%;
   border-radius: 10px;
-  background: #f5f5f5;
+  background: var(--surface-subtle);
 }
 
 .exercise-chart-axis {
@@ -7224,7 +7466,7 @@ body {
   display: flex;
   align-items: center;
   padding: 12px 0;
-  border-bottom: 1px solid #F5F5F5;
+  border-bottom: 1px solid var(--surface-subtle);
   gap: 10px;
 }
 
@@ -7335,7 +7577,7 @@ body {
   font-weight: 600;
 }
 
-/* ===== WIZARD ADICIONAR MEDICAÃ‡ÃƒO ===== */
+/* ===== WIZARD ADICIONAR MEDICAÇÃO ===== */
 
 #addMedicacaoModal .modal-content--med-wizard {
   padding: 0;
@@ -7350,7 +7592,7 @@ body {
 #addMedicacaoModal .modal-header--med-wizard {
   margin: 0;
   padding: 16px 20px 12px;
-  border-bottom: 1px solid #ececec;
+  border-bottom: 1px solid var(--surface-subtle);
   font-size: 17px;
   font-weight: 700;
   color: var(--text-title);
@@ -7474,7 +7716,7 @@ body {
 #addMedicacaoModal .add-med-wizard-footer {
   margin-top: 0;
   padding: 14px 20px 18px;
-  border-top: 1px solid #ececec;
+  border-top: 1px solid var(--surface-subtle);
   background: #fff;
   flex-shrink: 0;
   display: flex;
@@ -7485,7 +7727,7 @@ body {
   justify-content: space-between;
 }
 
-/* Uma linha: Cancelar | Voltar + PrÃ³ximo/Salvar (sem empilhar) */
+/* Uma linha: Cancelar | Voltar + Próximo/Salvar (sem empilhar) */
 #addMedicacaoModal .add-med-wizard-footer > .button-cancel {
   flex: 0 0 auto;
   margin: 0;
@@ -7559,7 +7801,7 @@ body {
 
 #addMedicacaoModal .add-med-freq-btn.selected {
   border-color: #9e9e9e;
-  background: #ececec;
+  background: var(--surface-subtle);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
 
@@ -7590,7 +7832,7 @@ body {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #d0d0d0;
+  background: var(--border-soft);
   transition: background 0.2s, transform 0.2s;
 }
 
@@ -7627,7 +7869,7 @@ body {
   margin-top: 8px;
   padding: 14px 14px 4px;
   border-radius: 12px;
-  border: 1px solid #ececec;
+  border: 1px solid var(--surface-subtle);
   background: #fafafa;
 }
 
@@ -7668,7 +7910,7 @@ body {
 
 .add-med-freq-btn.selected {
   border-color: #9e9e9e;
-  background: #ececec;
+  background: var(--surface-subtle);
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
 
@@ -7710,7 +7952,7 @@ body {
   cursor: pointer;
 }
 
-/* Doc: cores de texto em cards de medicaÃ§Ã£o */
+/* Doc: cores de texto em cards de medicação */
 .card-medicacao-enhanced,
 .card-medicacao-enhanced .med-name {
   color: var(--text-title);
@@ -7725,7 +7967,7 @@ body {
   color: var(--text-muted);
 }
 
-/* PressÃ£o: lembretes medicamento (botÃµes compactos) */
+/* Pressão: lembretes medicamento (botões compactos) */
 .pressure-med-group .add-med-freq-options--inline {
   flex-direction: row;
   flex-wrap: wrap;
@@ -7739,7 +7981,7 @@ body {
   padding: 10px 8px;
 }
 
-/* ── Wizard inline Glicemia (dentro do vitalDetailModal) ─── */
+/* -- Wizard inline Glicemia (dentro do vitalDetailModal) --- */
 #glicemiaInsertView {
   display: flex;
   flex-direction: column;
@@ -7758,7 +8000,7 @@ body {
   background: #a78bfa;
 }
 
-/* Ícone droplet roxo */
+/* �cone droplet roxo */
 .pi-step-icon-glic {
   display: flex;
   justify-content: center;
@@ -7833,7 +8075,7 @@ body {
 .glic-range-badge--atencao { color: #d97706; }
 .glic-range-badge--alto    { color: #dc2626; }
 
-/* Teclado numérico */
+/* Teclado num�rico */
 .glic-numpad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -7876,7 +8118,7 @@ body {
   pointer-events: none;
 }
 
-/* Botão Próximo (step 2) */
+/* Bot�o Pr�ximo (step 2) */
 .glic-next-btn {
   background: #7c3aed !important;
   margin-top: 12px;
@@ -7885,7 +8127,7 @@ body {
 
 .glic-next-btn:active { background: #5b21b6 !important; }
 
-/* ── Glicemia wizard: resumo step 7 ── */
+/* -- Glicemia wizard: resumo step 7 -- */
 .glic-resumo-list {
   flex: 1;
   display: flex;
@@ -7975,13 +8217,13 @@ body {
   margin-bottom: 4px;
 }
 
-/* Cabeçalho do step 3 */
+/* Cabe�alho do step 3 */
 .glic-s3-header {
   text-align: center;
   margin-bottom: 24px;
 }
 
-/* Botões de opção grandes */
+/* Bot�es de op��o grandes */
 .glic-s3-opt-btn {
   display: flex;
   align-items: center;
@@ -8000,11 +8242,20 @@ body {
 .glic-s3-opt-btn:active { opacity: 0.8; }
 
 .glic-s3-opt-icon {
-  font-size: 28px;
   flex-shrink: 0;
   width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   line-height: 1;
+}
+
+.glic-s3-opt-icon svg {
+  width: 24px;
+  height: 24px;
+  display: block;
 }
 
 .glic-s3-opt-text {
@@ -8026,7 +8277,7 @@ body {
   opacity: 0.75;
 }
 
-/* Variante verde — Medido agora */
+/* Variante verde � Medido agora */
 .glic-s3-agora {
   background: #f0fdf4;
   color: #15803d;
@@ -8039,7 +8290,7 @@ body {
   border-color: #16a34a;
 }
 
-/* Variante cinza — Outro horário */
+/* Variante cinza � Outro hor�rio */
 .glic-s3-outro {
   background: #f1f5f9;
   color: #0f172a;
@@ -8052,7 +8303,7 @@ body {
   border-color: #a78bfa;
 }
 
-/* Link "← Voltar" no painel de data/hora */
+/* Link "? Voltar" no painel de data/hora */
 .glic-s3-back-link {
   display: block;
   width: 100%;
@@ -8070,7 +8321,7 @@ body {
 }
 .glic-s3-back-link:active { opacity: 0.6; }
 
-/* Botão principal verde "Salvar agora" */
+/* Bot�o principal verde "Salvar agora" */
 .glic-save-agora {
   background: #16a34a !important;
   margin-top: 8px;
@@ -8079,7 +8330,7 @@ body {
 
 .glic-save-agora:active { background: #15803d !important; }
 
-/* Link "Medida em outro horário" */
+/* Link "Medida em outro hor�rio" */
 .glic-edit-time-link {
   display: block;
   width: 100%;
@@ -8143,7 +8394,7 @@ body {
 
 .glic-cal-btn:active { background: #f3e8ff; }
 
-/* Botão Salvar roxo escuro (painel expandido) */
+/* Bot�o Salvar roxo escuro (painel expandido) */
 .glic-save-btn {
   background: #6d28d9 !important;
   margin-top: 12px;
@@ -8151,12 +8402,12 @@ body {
 
 .glic-save-btn:active { background: #4c1d95 !important; }
 
-/* ===== ABAS PRESSÃƒO DIÃRIA ===== */
+/* ===== ABAS PRESSÃO DIÁRIA ===== */
 .pressao-tab-nav {
   display: flex;
   gap: 6px;
   margin-bottom: 12px;
-  background: var(--bg-secondary, #f5f5f5);
+  background: var(--bg-secondary, var(--surface-subtle));
   border-radius: 10px;
   padding: 4px;
 }
@@ -8181,7 +8432,7 @@ body {
   box-shadow: 0 1px 4px rgba(0,0,0,0.10);
 }
 
-/* ===== PRESSÃƒO DIÃRIA â€” lista por dia ===== */
+/* ===== PRESSÃO DIÁRIA — lista por dia ===== */
 .pressao-diaria-content {
   display: flex;
   flex-direction: column;
@@ -8404,7 +8655,7 @@ body {
   margin-top: 3px;
 }
 
-/* Lado direito: ícones + chevron */
+/* Lado direito: �cones + chevron */
 .pc-right {
   display: flex;
   align-items: center;
@@ -8431,7 +8682,7 @@ body {
   flex-shrink: 0;
 }
 
-/* â”€â”€ PressÃ£o: detail view header & list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Pressão: detail view header & list ───────────────────────────────────── */
 .pressao-dia-det-header {
   display: flex;
   align-items: center;
@@ -8457,7 +8708,7 @@ body {
   margin-top: 8px;
 }
 
-/* â”€â”€ BotÃ£o inserir dados â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Botão inserir dados ─────────────────────────────────────────────────── */
 .pressao-inserir-btn {
   display: block;
   width: 100%;
@@ -8482,7 +8733,7 @@ body {
   background: #d97706;
 }
 
-/* Oculta scrollbar nativa no gráfico de pressão (scroll por arrastar continua funcional) */
+/* Oculta scrollbar nativa no gr�fico de press�o (scroll por arrastar continua funcional) */
 #pressaoHistoricoView {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -8491,7 +8742,7 @@ body {
   display: none;
 }
 
-/* â”€â”€ BotÃ£o "ver mais" inline na lista â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Botão "ver mais" inline na lista ────────────────────────────────────── */
 .pressao-ver-mais-btn {
   display: block;
   width: 100%;
@@ -8512,7 +8763,7 @@ body {
   background: #f8fafc;
 }
 
-/* â”€â”€ Tela de detalhe de uma coleta â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Tela de detalhe de uma coleta ───────────────────────────────────────── */
 .pressao-coleta-det-card {
   background: #fff;
   border-radius: 16px;
@@ -8616,7 +8867,7 @@ body {
   font-size: 11px;
 }
 
-/* â”€â”€ Card de notas da coleta â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Card de notas da coleta ─────────────────────────────────────────────── */
 .pressao-nota-card {
   background: #fff;
   border-radius: 16px;
@@ -8643,7 +8894,7 @@ body {
   line-height: 1.6;
 }
 
-/* ===== CARD PRESSÃƒO â€” revisÃ£o visual ===== */
+/* ===== CARD PRESSÃO — revisão visual ===== */
 .vital-card--pressao {
   padding: 12px 14px 12px 12px !important;
 }
@@ -9031,7 +9282,7 @@ body {
   color: #98a1af;
 }
 
-/* PressÃ£o HistÃ³rico â€” valor Ã  direita alinhado */
+/* Pressão Histórico — valor à direita alinhado */
 .vital-list-value--pressao {
   font-size: 15px;
   font-weight: 700;
@@ -9041,7 +9292,7 @@ body {
   text-align: right;
 }
 
-/* â”€â”€ FormulÃ¡rio de inserÃ§Ã£o de pressÃ£o (passo a passo) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Formulário de inserção de pressão (passo a passo) ───────────────────── */
 .pressao-ins-header {
   display: flex;
   align-items: center;
@@ -9279,7 +9530,7 @@ body {
   background: #16a34a;
 }
 
-/* â”€â”€ Drum roller (scroll gesture on number) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Drum roller (scroll gesture on number) ──────────────────────────────── */
 .pressao-ins-drum {
   touch-action: none;
   cursor: ns-resize;
@@ -9333,7 +9584,7 @@ body {
   opacity: 0.5;
 }
 
-/* â”€â”€ Step icons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Step icons ───────────────────────────────────────────────────────────── */
 .pressao-ins-step-icon {
   width: 68px;
   height: 68px;
@@ -9350,7 +9601,7 @@ body {
 .pressao-ins-step-icon--blue  { background: #3b82f6; }
 .pressao-ins-step-icon--green { background: #22c55e; }
 
-/* â”€â”€ Drum picker (5-slot roller) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Drum picker (5-slot roller) ─────────────────────────────────────────── */
 .pi-drum-wrap {
   position: relative;
   width: 100%;
@@ -9436,11 +9687,11 @@ body {
 /* Slash alignment with drum center */
 .pressao-ins-slash {
   align-self: flex-start !important;
-  margin-top: 218px; /* label(20) + gap(14) + btn(64) + gap(14) + 2 items(112) - half slash(26) â‰ˆ 198 â†’ tuned */
+  margin-top: 218px; /* label(20) + gap(14) + btn(64) + gap(14) + 2 items(112) - half slash(26) ≈ 198 → tuned */
   padding-top: 0 !important;
 }
 
-/* â”€â”€ Sticky confirm button wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Sticky confirm button wrapper ────────────────────────────────────────── */
 .pressao-ins-confirm-wrap {
   position: sticky;
   bottom: 0;
@@ -9449,7 +9700,7 @@ body {
   margin-top: 16px;
 }
 
-/* â”€â”€ Summary list (step 5) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ── Summary list (step 5) ────────────────────────────────────────────────── */
 .pi-summary-list {
   width: 100%;
   background: #fff;
@@ -9497,7 +9748,7 @@ body {
   color: #0f172a;
 }
 
-/* ── Formulario wizard imersivo de pressao arterial ─────────────────────── */
+/* -- Formulario wizard imersivo de pressao arterial ----------------------- */
 
 :root {
   --pi-ih: 72px;
@@ -9573,7 +9824,7 @@ body {
   color: #94a3b8;
 }
 
-/* ── STEP 1: Drums SIS / DIA ─────────────────────────────────────────────── */
+/* -- STEP 1: Drums SIS / DIA ----------------------------------------------- */
 
 .pi-bp-drums {
   display: flex;
@@ -9601,8 +9852,13 @@ body {
 
 .pi-drum-lbl--sis { color: #f59e0b; }
 .pi-drum-lbl--dia { color: #3b82f6; }
+.pi-drum-lbl--accent { color: var(--accent-primary); }
 
-/* Drum picker — 5 items x 72px = 360px */
+.home-empty-card {
+  padding: 8px;
+}
+
+/* Drum picker � 5 items x 72px = 360px */
 .pi-drum {
   position: relative;
   width: 100%;
@@ -9778,7 +10034,7 @@ body {
   transform: scale(0.98);
 }
 
-/* ── STEP 3: Remedios — 3 cards grandes ─────────────────────────────────── */
+/* -- STEP 3: Remedios � 3 cards grandes ----------------------------------- */
 
 .pi-med-grid {
   flex: 1;
@@ -9872,7 +10128,7 @@ body {
   background-position: center;
 }
 
-/* ── STEP 4: Nota + Salvar ───────────────────────────────────────────────── */
+/* -- STEP 4: Nota + Salvar ------------------------------------------------- */
 
 .pi-nota-area {
   flex: 1;
@@ -9918,7 +10174,7 @@ body {
   background: #d97706;
   transform: scale(0.98);
 }
-/* ── Step 1: icone ECG da pressao ─────────────────────────────────────────── */
+/* -- Step 1: icone ECG da pressao ------------------------------------------- */
 .pi-step-icon-bp {
   display: flex;
   justify-content: center;
@@ -9931,7 +10187,7 @@ body {
   height: 48px;
 }
 
-/* ── Step 2: wrapper do drum de FC ─────────────────────────────────────────── */
+/* -- Step 2: wrapper do drum de FC ------------------------------------------- */
 .pi-hr-drum-wrap {
   flex: 1;
   display: flex;
@@ -9958,7 +10214,7 @@ body {
   font-size: 20px;
 }
 
-/* ── Step 5: Resumo ─────────────────────────────────────────────────────────── */
+/* -- Step 5: Resumo ----------------------------------------------------------- */
 .pi-summary {
   flex: 1;
   display: flex;
@@ -10073,7 +10329,7 @@ body {
   background: #fff7ed;
 }
 
-/* ───────── Sono home card ───────── */
+/* --------- Sono home card --------- */
 .vital-card--sono {
   background: #faf5ff;
   border-radius: 20px;
@@ -10286,7 +10542,7 @@ body {
   color: #2d1b69;
 }
 
-/* ───────── Oxigenação home card ───────── */
+/* --------- Oxigena��o home card --------- */
 .vital-card--oxig {
   background: #f0fdfa;
   border-radius: 20px;
@@ -10463,7 +10719,7 @@ body {
   color: #134e4a;
 }
 
-/* ───────── Hidratação home card ───────── */
+/* --------- Hidrata��o home card --------- */
 .vital-card--hidra {
   background: #eff6ff;
   border-radius: 20px;
@@ -10630,7 +10886,7 @@ body {
   line-height: 1;
 }
 
-/* ── Detail summary panels (Sono / Oxigenação) ─────────────────────── */
+/* -- Detail summary panels (Sono / Oxigena��o) ----------------------- */
 .vital-detail-summary-panel {
   margin: 0 0 16px;
   padding: 14px 16px;
@@ -10649,7 +10905,7 @@ body {
   border: 1px solid #bfdbfe;
 }
 
-/* ── Sono detail chrome — estilo Batimento ──────────────────────────── */
+/* -- Sono detail chrome � estilo Batimento ---------------------------- */
 .sono-det-chrome {
   padding: 0 0 4px;
 }
@@ -10795,7 +11051,7 @@ body {
 .sono-status-chip--pouco { background: #fee2e2; color: #ef4444; }
 .sono-status-chip--muito { background: #fef3c7; color: #d97706; }
 
-/* Status chips na lista de oxigenação */
+/* Status chips na lista de oxigena��o */
 .oxig-status-chip {
   display: inline-block;
   font-size: 10px;
@@ -10810,7 +11066,7 @@ body {
 .oxig-status-chip--atencao { background: #fef3c7; color: #d97706; }
 .oxig-status-chip--critico { background: #fee2e2; color: #ef4444; }
 
-/* Status chips na lista de hidratação */
+/* Status chips na lista de hidrata��o */
 .hidra-chip {
   display: inline-block;
   font-size: 10px;
@@ -10825,8 +11081,8 @@ body {
 .hidra-chip--baixo { background: #dbeafe; color: #1d4ed8; }
 .hidra-chip--muito { background: #fef3c7; color: #d97706; }
 
-/* ─── Hidratação quick-add inline view ───────────────────────────────── */
-/* ── Hidratação — inserção estilo wizard ─────────────────────────────────── */
+/* --- Hidrata��o quick-add inline view --------------------------------- */
+/* -- Hidrata��o � inser��o estilo wizard ----------------------------------- */
 
 #hidraInsertView {
   display: flex;
@@ -10835,7 +11091,7 @@ body {
   background: #fff;
 }
 
-/* Ícone de gota d'água no cabeçalho */
+/* �cone de gota d'�gua no cabe�alho */
 .hi-step-icon {
   width: 56px;
   height: 56px;
@@ -10853,7 +11109,7 @@ body {
   height: 28px;
 }
 
-/* Campo numérico grande */
+/* Campo num�rico grande */
 .hi-value-block {
   display: flex;
   flex-direction: column;
@@ -10908,7 +11164,7 @@ body {
   padding-bottom: 10px;
 }
 
-/* Botões de incremento rápido */
+/* Bot�es de incremento r�pido */
 .hi-steppers {
   display: flex;
   gap: 8px;
@@ -10944,7 +11200,7 @@ body {
   background: #dbeafe;
 }
 
-/* Lista de atalhos rápidos (adiciona direto) */
+/* Lista de atalhos r�pidos (adiciona direto) */
 .hi-preset-rows {
   background: #fff;
   border: 1.5px solid #e2e8f0;
@@ -11015,7 +11271,7 @@ body {
   flex-shrink: 0;
 }
 
-/* Botão confirmar valor digitado */
+/* Bot�o confirmar valor digitado */
 .hi-confirm-btn {
   display: block;
   width: 100%;
@@ -11057,7 +11313,7 @@ body {
   flex-shrink: 0;
 }
 
-/* ── Oxigenação insert view ──────────────────────────────────── */
+/* -- Oxigena��o insert view ------------------------------------ */
 #oxigInsertView {
   display: flex;
   flex-direction: column;
@@ -11078,7 +11334,7 @@ body {
   flex-shrink: 0;
 }
 
-/* Grade 3×2 de valores rápidos */
+/* Grade 3�2 de valores r�pidos */
 .oxi-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -11188,7 +11444,7 @@ body {
 .oxi-step-btn--pos { color: #16a34a; background: #f0fdf4; }
 .oxi-step-btn:active { opacity: 0.7; }
 
-/* ── Corpo tab — grid de cards ─────────────────────────────── */
+/* -- Corpo tab � grid de cards ------------------------------- */
 .corpo-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -11198,93 +11454,1095 @@ body {
 
 .corpo-card {
   background: #fff;
-  border-radius: 20px;
+  border-radius: 22px;
   border: 1.5px solid #e2e8f0;
-  padding: 16px 14px 14px;
+  padding: 18px 16px 16px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 3px;
+  gap: 6px;
   cursor: pointer;
   text-align: left;
-  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
   width: 100%;
   font-family: inherit;
-  transition: box-shadow .15s;
+  transition: transform .15s, box-shadow .15s;
 }
 
-.corpo-card:active { background: #f8fafc; }
+.corpo-card:active {
+  background: #f8fafc;
+  transform: scale(0.99);
+}
 
 .corpo-card-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
   flex-shrink: 0;
 }
 
 .corpo-card-icon svg {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   display: block;
 }
 
 .corpo-card-name {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
   color: #64748b;
-  line-height: 1.3;
+  line-height: 1.2;
   text-transform: uppercase;
   letter-spacing: .04em;
 }
 
 .corpo-card-value {
-  font-size: 32px;
+  font-size: 34px;
   font-weight: 800;
   color: #0f172a;
-  letter-spacing: -1.5px;
+  letter-spacing: -1px;
   line-height: 1.0;
-  margin-top: 2px;
+  margin-top: 0;
 }
 
 .corpo-card-meta {
-  font-size: 12px;
+  font-size: 13px;
   color: #94a3b8;
   font-weight: 500;
-  margin-top: 2px;
+  margin-top: -1px;
 }
 
-/* ── Corpo insert view ─────────────────────────────────────── */
+/* -- Corpo insert view --------------------------------------- */
 #corpoInsertView {
   display: flex;
   flex-direction: column;
 }
 
-.corpo-ins-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
+.corpo-detail-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin: 0 auto 10px;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.corpo-detail-back-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
   background: #f1f5f9;
-  color: #475569;
+  color: #334155;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
   flex-shrink: 0;
 }
 
-.corpo-ins-icon svg {
+.corpo-detail-back-btn:hover {
+  background: #e2e8f0;
+}
+
+.corpo-detail-head-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.corpo-detail-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.15;
+}
+
+.corpo-detail-subtitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+/* Corpo - layout alinhado ao restante do app */
+#composicaoScreen #composicaoContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.corpo-av-list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: calc(86px + env(safe-area-inset-bottom));
+}
+
+.corpo-av-head {
+  background: #ffffff;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.corpo-av-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-title);
+  line-height: 1.2;
+}
+
+.corpo-av-sub {
+  margin-top: 3px;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.corpo-av-new-btn {
+  border: 1px solid #1d4ed8;
+  background: #2563eb;
+  color: #fff;
+  border-radius: 10px;
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.corpo-av-new-btn--sticky {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 12px;
+  font-size: 15px;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.22);
+}
+
+.corpo-av-sticky-cta {
+  position: sticky;
+  bottom: calc(72px + env(safe-area-inset-bottom));
+  z-index: 5;
+  padding-top: 8px;
+  background: linear-gradient(180deg, rgba(241,245,249,0) 0%, rgba(241,245,249,0.95) 30%, rgba(241,245,249,1) 100%);
+}
+
+.corpo-av-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.corpo-av-row {
+  background: #ffffff;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.corpo-av-row-main {
+  min-width: 0;
+}
+
+.corpo-av-row-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-title);
+  line-height: 1.2;
+}
+
+.corpo-av-row-date {
+  margin-top: 3px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.corpo-av-view-btn {
+  border: 1px solid var(--border-strong);
+  background: #fff;
+  color: var(--text-title);
+  border-radius: 10px;
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.corpo-av-detail-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: linear-gradient(180deg, #f8fbff 0%, #f3f7fc 100%);
+  border-radius: 16px;
+  padding: 10px;
+}
+
+.corpo-av-kpi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.corpo-av-kpi {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.corpo-av-kpi--gorda {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-color: var(--border-soft);
+}
+
+.corpo-av-kpi--magra {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-color: var(--border-soft);
+}
+
+.corpo-av-kpi-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.corpo-av-kpi-value {
+  margin-top: 6px;
+  font-size: 28px;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--text-title);
+}
+
+.corpo-av-kpi-status {
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: #475569;
+  background: #e2e8f0;
+}
+
+.corpo-av-kpi.is-good .corpo-av-kpi-status {
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.corpo-av-kpi.is-good {
+  background: linear-gradient(180deg, #f7fef9 0%, #f0fdf4 100%);
+  border-color: #86efac;
+}
+
+.corpo-av-kpi.is-attention .corpo-av-kpi-status {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.corpo-av-kpi.is-attention {
+  background: linear-gradient(180deg, #fffdf5 0%, #fffbeb 100%);
+  border-color: #fcd34d;
+}
+
+.corpo-av-kpi.is-high .corpo-av-kpi-status {
+  color: #b91c1c;
+  background: #ffe4e6;
+}
+
+.corpo-av-kpi.is-high,
+.corpo-av-kpi.is-low {
+  background: linear-gradient(180deg, #fff7f8 0%, #fff1f2 100%);
+  border-color: #fda4af;
+}
+
+.corpo-av-kpi.is-low .corpo-av-kpi-status {
+  color: #b91c1c;
+  background: #ffe4e6;
+}
+
+.corpo-av-section {
+  background: #ffffff;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+}
+
+.corpo-av-section--geral {
+  border-top: 3px solid #3b82f6;
+}
+
+.corpo-av-section--circ {
+  border-top: 3px solid #14b8a6;
+}
+
+.corpo-av-section--dobras {
+  border-top: 3px solid #a855f7;
+}
+
+.corpo-av-section-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-title);
+  margin-bottom: 10px;
+}
+
+.corpo-av-rows {
+  display: flex;
+  flex-direction: column;
+}
+
+.corpo-av-data-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--surface-subtle);
+  transition: background-color 0.16s ease;
+}
+
+.corpo-av-data-row:hover {
+  background: #f8fafc;
+}
+
+.corpo-av-data-row:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.corpo-av-data-row:last-child {
+  padding-bottom: 0;
+}
+
+.corpo-av-data-row span {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.corpo-av-data-row strong {
+  font-size: 14px;
+  color: var(--text-title);
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.corpo-av-wizard {
+  background: #ffffff;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.corpo-av-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.corpo-av-form-grid--single {
+  grid-template-columns: 1fr;
+}
+
+.corpo-av-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.corpo-av-field > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.corpo-av-date-wrap {
+  position: relative;
+}
+
+.corpo-av-date-input {
+  padding-right: 44px;
+}
+
+.corpo-av-date-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 28px;
   height: 28px;
+  border: none;
+  background: transparent;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.corpo-av-date-btn:hover {
+  color: #0f172a;
+}
+
+.corpo-av-date-native {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+}
+
+.corpo-av-review {
+  margin-top: 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  padding: 10px;
+}
+
+.corpo-av-review-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-title);
+  margin-bottom: 8px;
+}
+
+.corpo-av-review-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 0;
+  border-top: 1px solid #e7edf5;
+}
+
+.corpo-av-review-row:first-of-type {
+  border-top: none;
+}
+
+.corpo-av-review-row span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.corpo-av-review-row strong {
+  font-size: 13px;
+  color: var(--text-title);
+}
+
+.corpo-av-wizard-footer {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.corpo-av-wizard-footer .glic-s3-back-link {
+  width: auto;
+  margin: 0;
+  min-height: 42px;
+  padding: 0 10px;
+  font-size: 14px;
+}
+
+.corpo-av-wizard-footer .corpo-ins-confirm {
+  flex: 1;
+  margin: 0;
+  min-height: 42px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  box-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .corpo-av-head {
+    padding: 12px;
+  }
+
+  .corpo-av-form-grid,
+  .corpo-av-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .corpo-av-row {
+    align-items: flex-start;
+  }
+
+  .corpo-av-view-btn {
+    min-width: 86px;
+  }
+
+  .corpo-av-sticky-cta {
+    bottom: calc(68px + env(safe-area-inset-bottom));
+  }
+}
+
+.corpo-ins-step {
+  padding: 6px 0 18px;
+}
+
+.corpo-ins-panel {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.09);
+  padding: 18px 16px 16px;
+}
+
+.corpo-ins-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 14px;
+  text-align: left;
+  padding: 0;
+  margin-bottom: 14px;
+}
+
+.corpo-ins-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.corpo-ins-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  color: #475569;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.55);
+}
+
+.corpo-ins-icon svg {
+  width: 30px;
+  height: 30px;
   display: block;
 }
 
-.corpo-ins-last {
-  text-align: center;
-  color: #94a3b8;
+.corpo-ins-hint {
+  color: #64748b;
   font-size: 13px;
-  margin: -4px 0 16px;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.corpo-ins-chart-card {
+  border-radius: var(--radius-card);
+  padding: 14px 12px 12px;
+  margin-bottom: 14px;
+}
+
+.corpo-ins-chart-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.corpo-ins-chart-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.corpo-ins-chart-subtitle {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.corpo-ins-chart-current {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2563eb;
+  background: #eff6ff;
+  border-radius: 999px;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+.corpo-ins-chart-periods {
+  margin-bottom: 12px;
+}
+
+.corpo-chart-period-btn {
+  font-size: 12px;
+  padding: 7px 4px;
+}
+
+.corpo-ins-chart-surface {
+  position: relative;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+.corpo-ins-chart-canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.corpo-ins-chart-empty {
+  min-height: 220px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.corpo-ins-chart-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.corpo-ins-chart-legend-line {
+  width: 16px;
+  height: 3px;
+  border-radius: 999px;
+  background: #3b82f6;
+}
+
+.corpo-history-card {
+  border-radius: var(--radius-card);
+  padding: 10px;
+  margin-bottom: 12px;
+}
+
+.corpo-history-head {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  margin: 2px 4px 8px;
+}
+
+.corpo-history-item {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.corpo-history-item:last-child {
+  margin-bottom: 0;
+}
+
+.corpo-history-main {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.corpo-history-date {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.corpo-ins-form-wrap {
+  margin-top: 2px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 12px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+  margin-bottom: 8px;
+}
+
+.corpo-ins-form-wrap.is-screen-active {
+  position: fixed;
+  z-index: 1200;
+  inset: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 14px calc(20px + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+}
+
+body.corpo-insert-screen-open {
+  overflow: hidden;
+}
+
+.corpo-ins-screen-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 2px 0 8px;
+}
+
+.corpo-ins-screen-back {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.corpo-ins-screen-title-wrap {
+  min-width: 0;
+}
+
+.corpo-ins-screen-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.corpo-ins-screen-subtitle {
+  margin-top: 2px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.corpo-ins-form-wrap.is-screen-active .corpo-ins-wizard-progress {
+  display: none;
+}
+
+.corpo-ins-wizard-progress {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 2px 0 12px;
+}
+
+.corpo-wizard-step[hidden] {
+  display: none !important;
+}
+
+.corpo-wizard-group-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  margin: 6px 0 10px;
+}
+
+.corpo-fonte-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.corpo-fonte-btn {
+  border: 1px solid #dbe4ef;
+  border-radius: 12px;
+  padding: 10px 8px;
+  background: #fff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.corpo-fonte-btn.is-active {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.corpo-date-chips {
+  margin-bottom: 10px;
+}
+
+.corpo-date-custom-wrap {
+  margin-bottom: 10px;
+}
+
+.corpo-date-inputs {
+  display: flex;
+  gap: 8px;
+}
+
+.corpo-date-inputs .form-input {
+  flex: 1;
+}
+
+.corpo-wizard-next {
+  position: static;
+  margin-top: 0;
+}
+
+.corpo-ins-last {
+  text-align: left;
+  color: #475569;
+  font-size: 14px;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.corpo-ins-input-card {
+  background: #fff;
+  border: 1px solid #dbe4ef;
+  border-radius: 20px;
+  padding: 12px 10px 10px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+}
+
+.corpo-ins-value-block {
+  padding: 0;
+}
+
+.corpo-ins-value-block .hi-value-row {
+  gap: 10px;
+}
+
+.corpo-ins-value-block .hi-value-input {
+  width: min(100%, 190px);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-bottom: 3px solid #cbd5e1;
+  border-radius: 16px;
+  padding: 14px 10px 12px;
+  font-size: 62px;
+}
+
+.corpo-ins-value-block .hi-value-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.corpo-ins-value-block .hi-value-unit {
+  color: #64748b;
+  font-size: 20px;
+  padding-bottom: 8px;
+}
+
+.corpo-ins-stepper-label {
+  margin: 16px 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+}
+
+.corpo-ins-steppers {
+  gap: 10px;
+  margin-top: 0;
+}
+
+.corpo-ins-steppers .hi-stepper {
+  border-radius: 14px;
+  padding: 13px 8px;
+  font-size: 14px;
+  background: #eef2f7;
+}
+
+.corpo-ins-steppers .hi-stepper--pos {
+  background: #eaf2ff;
+}
+
+.corpo-insert-confirm-card {
+  margin-top: 14px;
+  border: 1px solid #dbeafe;
+  background: linear-gradient(180deg, #f8fbff 0%, #eff6ff 100%);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.corpo-insert-confirm-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+}
+
+.corpo-insert-confirm-value {
+  margin-top: 6px;
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.corpo-insert-confirm-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.corpo-insert-confirm-edit,
+.corpo-insert-confirm-save {
+  flex: 1;
+  min-height: 42px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.corpo-insert-confirm-edit {
+  background: #fff;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.corpo-insert-confirm-save {
+  background: #2563eb;
+  color: #fff;
+  border: 1px solid #1d4ed8;
+}
+
+.corpo-ins-footer {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.corpo-ins-footer--single {
+  margin-top: 12px;
+}
+
+.corpo-ins-confirm {
+  position: static;
+  margin-top: 0;
+  border-radius: 16px;
+  padding: 16px;
+  font-size: 17px;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.18);
+}
+
+.corpo-ins-cancel {
+  color: #475569;
+  font-size: 15px;
+}
+
+.corpo-ins-form-wrap.is-screen-active .corpo-wizard-step {
+  padding-bottom: 8px;
+}
+
+.corpo-ins-form-wrap.is-screen-active .corpo-ins-footer {
+  position: sticky;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 2px);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86) 0%, rgba(255, 255, 255, 1) 36%);
+  backdrop-filter: blur(3px);
+  padding-top: 10px;
+}
+
+.corpo-ins-form-wrap.is-screen-active .corpo-ins-footer button,
+.corpo-ins-form-wrap.is-screen-active .corpo-fonte-btn,
+.corpo-ins-form-wrap.is-screen-active .hi-stepper,
+.corpo-ins-form-wrap.is-screen-active .vital-period-chip,
+.corpo-ins-form-wrap.is-screen-active .form-input {
+  min-height: 46px;
+}
+
+@media (max-width: 480px) {
+  .corpo-ins-form-wrap.is-screen-active {
+    padding: calc(10px + env(safe-area-inset-top, 0px)) 12px calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .corpo-ins-screen-head {
+    margin-bottom: 10px;
+  }
+
+  .corpo-ins-screen-back {
+    width: 38px;
+    height: 38px;
+  }
+
+  .corpo-ins-screen-title {
+    font-size: 17px;
+  }
+
+  .corpo-ins-screen-subtitle {
+    font-size: 13px;
+  }
+
+  .corpo-ins-value-block .hi-value-row {
+    gap: 8px;
+  }
+
+  .corpo-ins-value-block .hi-value-input {
+    width: min(100%, 170px);
+    font-size: 48px;
+    padding: 10px 8px 9px;
+  }
+
+  .corpo-ins-value-block .hi-value-unit {
+    font-size: 18px;
+  }
+
+  .corpo-fonte-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .corpo-date-inputs {
+    flex-direction: column;
+  }
+
+  .corpo-ins-steppers {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .corpo-ins-steppers .hi-stepper {
+    padding: 12px 6px;
+    font-size: 15px;
+  }
+
+  .corpo-ins-confirm,
+  .corpo-wizard-next {
+    width: 100%;
+    font-size: 18px;
+    padding: 15px 12px;
+  }
+
+  .corpo-insert-confirm-actions {
+    flex-direction: column;
+  }
+}
 }
