@@ -63,13 +63,13 @@
 
                 <!-- Composição Corporal Screen -->
                 <div class="screen" id="composicaoScreen">
-                    <div class="page-subtitle page-context-sub" id="composicaoSubtitle">Antropometria</div>
+                    <div class="page-subtitle page-context-sub" id="composicaoSubtitle">Medidas Corporais</div>
                     <div id="composicaoContent">
                         <div id="corpoAvaliacoesListView" class="corpo-av-list-view">
                             <div class="corpo-av-head">
                                 <div>
-                                    <div class="corpo-av-title">Antropometria</div>
-                                    <div class="corpo-av-sub">Visão para paciente e profissional de nutrição</div>
+                                    <div class="corpo-av-title">Medidas Corporais</div>
+                                    <div class="corpo-av-sub">Avaliações antropométricas</div>
                                 </div>
                             </div>
                             <div id="corpoAvaliacoesList" class="corpo-av-list"></div>
@@ -119,90 +119,24 @@
                         </div>
 
                         <div id="corpoAvaliacaoWizardView" class="corpo-av-wizard" style="display:none;">
-                            <div class="corpo-ins-screen-head">
-                                <button type="button" class="corpo-ins-screen-back" onclick="closeCorpoNovaAvaliacaoWizard()" aria-label="Voltar">
+                            <div class="corpo-wizard-head">
+                                <button type="button" class="corpo-wizard-back-btn" onclick="corpoWizardBack()" aria-label="Voltar">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                                 </button>
-                                <div class="corpo-ins-screen-title-wrap">
-                                    <div class="corpo-ins-screen-title">Nova avaliação antropométrica</div>
-                                    <div class="corpo-ins-screen-subtitle" id="corpoWizardStepLabel">Etapa 1 de 4</div>
+                                <div class="corpo-wizard-head-copy">
+                                    <div class="corpo-wizard-title" id="corpoWizardTitle">Nova avaliação</div>
+                                    <div class="corpo-wizard-subtitle" id="corpoWizardSubtitle">Etapa 1 de 22</div>
                                 </div>
                             </div>
-
-                            <div class="corpo-ins-wizard-progress corpo-av-wizard-progress">
-                                <span class="pi-progress-dot" data-corpo-av-dot="1"></span>
-                                <span class="pi-progress-dot" data-corpo-av-dot="2"></span>
-                                <span class="pi-progress-dot" data-corpo-av-dot="3"></span>
-                                <span class="pi-progress-dot" data-corpo-av-dot="4"></span>
+                            <div class="corpo-wizard-progress-bar">
+                                <div class="corpo-wizard-progress-fill" id="corpoWizardProgressFill"></div>
                             </div>
-
-                            <div id="corpoWizardStep1" class="corpo-wizard-step">
-                                <div class="corpo-av-form-grid corpo-av-form-grid--single">
-                                    <label class="corpo-av-field">
-                                        <span>Título da avaliação</span>
-                                        <input type="text" id="corpoAvNomePreview" class="form-input" readonly />
-                                    </label>
-                                    <label class="corpo-av-field">
-                                        <span>Data da avaliação *</span>
-                                        <div class="corpo-av-date-wrap">
-                                            <input type="text" id="corpoAvData" class="form-input corpo-av-date-input" inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa" />
-                                            <button type="button" class="corpo-av-date-btn" onclick="openCorpoWizardNativeDatePicker()" aria-label="Selecionar data">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                                            </button>
-                                            <input type="date" id="corpoAvDataNative" class="corpo-av-date-native" tabindex="-1" aria-hidden="true" />
-                                        </div>
-                                    </label>
-                                </div>
+                            <div class="corpo-wizard-body" id="corpoWizardBody">
+                                <!-- Dynamic content rendered by JS -->
                             </div>
-
-                            <div id="corpoWizardStep2" class="corpo-wizard-step" style="display:none;">
-                                <div class="corpo-av-form-grid">
-                                    <label class="corpo-av-field"><span>Peso (kg) *</span><input type="number" id="corpoAvPeso" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Altura (m) *</span><input type="number" id="corpoAvAltura" class="form-input" step="0.01" min="0" /></label>
-                                    <label class="corpo-av-field"><span>IMC</span><input type="number" id="corpoAvImc" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>% Massa gorda *</span><input type="number" id="corpoAvPercGorda" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>% Massa magra *</span><input type="number" id="corpoAvPercMagra" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Massa gorda (kg)</span><input type="number" id="corpoAvGordaKg" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Massa magra (kg)</span><input type="number" id="corpoAvMagraKg" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Razão cintura/quadril</span><input type="number" id="corpoAvRcq" class="form-input" step="0.01" min="0" /></label>
-                                </div>
-                            </div>
-
-                            <div id="corpoWizardStep3" class="corpo-wizard-step" style="display:none;">
-                                <div class="corpo-av-form-grid">
-                                    <label class="corpo-av-field"><span>Ombro (cm)</span><input type="number" id="corpoAvCircOmbro" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Peitoral (cm)</span><input type="number" id="corpoAvCircPeitoral" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Cintura (cm)</span><input type="number" id="corpoAvCircCintura" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Abdômen (cm)</span><input type="number" id="corpoAvCircAbdomen" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Quadril (cm)</span><input type="number" id="corpoAvCircQuadril" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Braço E relaxado (cm)</span><input type="number" id="corpoAvCircBracoEsqRelax" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Braço D relaxado (cm)</span><input type="number" id="corpoAvCircBracoDirRelax" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Braço E contraído (cm)</span><input type="number" id="corpoAvCircBracoEsqContr" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Braço D contraído (cm)</span><input type="number" id="corpoAvCircBracoDirContr" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Panturrilha E (cm)</span><input type="number" id="corpoAvCircPantuEsq" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Panturrilha D (cm)</span><input type="number" id="corpoAvCircPantuDir" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Coxa E (cm)</span><input type="number" id="corpoAvCircCoxaEsq" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Coxa D (cm)</span><input type="number" id="corpoAvCircCoxaDir" class="form-input" step="0.1" min="0" /></label>
-                                </div>
-                            </div>
-
-                            <div id="corpoWizardStep4" class="corpo-wizard-step" style="display:none;">
-                                <div class="corpo-av-form-grid">
-                                    <label class="corpo-av-field"><span>Abdominal (mm)</span><input type="number" id="corpoAvDobraAbdominal" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Tríceps (mm)</span><input type="number" id="corpoAvDobraTriceps" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Suprailíaca (mm)</span><input type="number" id="corpoAvDobraSuprailiaca" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Axilar média (mm)</span><input type="number" id="corpoAvDobraAxilarMedia" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Subescapular (mm)</span><input type="number" id="corpoAvDobraSubescapular" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Tórax (mm)</span><input type="number" id="corpoAvDobraTorax" class="form-input" step="0.1" min="0" /></label>
-                                    <label class="corpo-av-field"><span>Coxa (mm)</span><input type="number" id="corpoAvDobraCoxa" class="form-input" step="0.1" min="0" /></label>
-                                </div>
-                                <div id="corpoAvReview" class="corpo-av-review"></div>
-                            </div>
-
-                            <div class="corpo-ins-footer corpo-av-wizard-footer">
-                                <button type="button" class="glic-s3-back-link" id="corpoAvBackBtn" onclick="corpoAvaliacaoWizardBack()">Voltar</button>
-                                <button type="button" class="hi-confirm-btn corpo-ins-confirm" id="corpoAvNextBtn" onclick="corpoAvaliacaoWizardNext()">Avançar</button>
-                                <button type="button" class="hi-confirm-btn corpo-ins-confirm" id="corpoAvSaveBtn" style="display:none;" onclick="corpoAvaliacaoWizardSave()">Salvar avaliação</button>
+                            <div class="corpo-wizard-footer">
+                                <button type="button" class="corpo-wizard-next-btn" id="corpoWizardNextBtn" onclick="corpoWizardNext()">Avançar →</button>
+                                <button type="button" class="corpo-wizard-save-btn" id="corpoWizardSaveBtn" style="display:none;" onclick="corpoWizardSave()">Salvar avaliação</button>
                             </div>
                         </div>
                     </div>

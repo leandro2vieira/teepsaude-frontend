@@ -3219,7 +3219,7 @@ function setupAgendaModal() {
 function renderComposicao() {
   ensureCorpoAvaliacoesData();
   var subtitle = document.getElementById('composicaoSubtitle');
-  if (subtitle) subtitle.textContent = 'Antropometria';
+  if (subtitle) subtitle.textContent = 'Medidas Corporais';
 
   var listView = document.getElementById('corpoAvaliacoesListView');
   var detailView = document.getElementById('corpoAvaliacaoDetailView');
@@ -3278,42 +3278,59 @@ var CORPO_DOBRAS_FIELDS = [
   { key: 'coxa', label: 'Coxa', unit: 'mm' }
 ];
 
-var CORPO_WIZARD_INPUT_MAP = {
-  geral: {
-    peso: 'corpoAvPeso',
-    altura: 'corpoAvAltura',
-    imc: 'corpoAvImc',
-    percMassaGorda: 'corpoAvPercGorda',
-    percMassaMagra: 'corpoAvPercMagra',
-    massaGordaKg: 'corpoAvGordaKg',
-    massaMagraKg: 'corpoAvMagraKg',
-    rcq: 'corpoAvRcq'
-  },
-  circunferencias: {
-    ombro: 'corpoAvCircOmbro',
-    peitoral: 'corpoAvCircPeitoral',
-    cintura: 'corpoAvCircCintura',
-    abdomen: 'corpoAvCircAbdomen',
-    quadril: 'corpoAvCircQuadril',
-    bracoEsqRelaxado: 'corpoAvCircBracoEsqRelax',
-    bracoDirRelaxado: 'corpoAvCircBracoDirRelax',
-    bracoEsqContraido: 'corpoAvCircBracoEsqContr',
-    bracoDirContraido: 'corpoAvCircBracoDirContr',
-    panturrilhaEsq: 'corpoAvCircPantuEsq',
-    panturrilhaDir: 'corpoAvCircPantuDir',
-    coxaEsq: 'corpoAvCircCoxaEsq',
-    coxaDir: 'corpoAvCircCoxaDir'
-  },
-  dobras: {
-    abdominal: 'corpoAvDobraAbdominal',
-    triceps: 'corpoAvDobraTriceps',
-    suprailiaca: 'corpoAvDobraSuprailiaca',
-    axilarMedia: 'corpoAvDobraAxilarMedia',
-    subescapular: 'corpoAvDobraSubescapular',
-    torax: 'corpoAvDobraTorax',
-    coxa: 'corpoAvDobraCoxa'
-  }
-};
+// --- Wizard 1-measurement-per-screen ---
+
+var CORPO_WIZARD_STEPS = [
+  { type: 'date', title: 'Data da avaliação' },
+  { type: 'measure', group: 'geral', key: 'peso', label: 'Peso', unit: 'kg', decimals: 1, icon: 'weight' },
+  { type: 'measure', group: 'geral', key: 'altura', label: 'Altura', unit: 'm', decimals: 2, icon: 'height' },
+  { type: 'measure', group: 'geral', key: 'imc', label: 'IMC', unit: '', decimals: 1, icon: 'imc' },
+  { type: 'measure', group: 'geral', key: 'percMassaGorda', label: '% Massa Gorda', unit: '%', decimals: 1, icon: 'fat' },
+  { type: 'measure', group: 'geral', key: 'percMassaMagra', label: '% Massa Magra', unit: '%', decimals: 1, icon: 'muscle' },
+  { type: 'measure', group: 'geral', key: 'massaGordaKg', label: 'Massa Gorda (kg)', unit: 'kg', decimals: 1, icon: 'fat' },
+  { type: 'measure', group: 'geral', key: 'massaMagraKg', label: 'Massa Magra (kg)', unit: 'kg', decimals: 1, icon: 'muscle' },
+  { type: 'measure', group: 'geral', key: 'rcq', label: 'Razão Cintura/Quadril', unit: '', decimals: 2, icon: 'waist' },
+  { type: 'measure', group: 'circunferencias', key: 'ombro', label: 'Ombro', unit: 'cm', icon: 'shoulder' },
+  { type: 'measure', group: 'circunferencias', key: 'peitoral', label: 'Peitoral', unit: 'cm', icon: 'chest' },
+  { type: 'measure', group: 'circunferencias', key: 'cintura', label: 'Cintura', unit: 'cm', icon: 'waist' },
+  { type: 'measure', group: 'circunferencias', key: 'abdomen', label: 'Abdômen', unit: 'cm', icon: 'abdomen' },
+  { type: 'measure', group: 'circunferencias', key: 'quadril', label: 'Quadril', unit: 'cm', icon: 'hip' },
+  { type: 'measure', group: 'circunferencias', key: 'bracoEsqRelaxado', label: 'Braço Relaxado', unit: 'cm', icon: 'arm', dual: true, key2: 'bracoDirRelaxado', label2: 'Direito Relaxado', sideLabel: 'Esquerdo' },
+  { type: 'measure', group: 'circunferencias', key: 'bracoEsqContraido', label: 'Braço Contraído', unit: 'cm', icon: 'armFlex', dual: true, key2: 'bracoDirContraido', label2: 'Direito Contraído', sideLabel: 'Esquerdo' },
+  { type: 'measure', group: 'circunferencias', key: 'panturrilhaEsq', label: 'Panturrilha', unit: 'cm', icon: 'calf', dual: true, key2: 'panturrilhaDir', label2: 'Direita', sideLabel: 'Esquerda' },
+  { type: 'measure', group: 'circunferencias', key: 'coxaEsq', label: 'Coxa', unit: 'cm', icon: 'thigh', dual: true, key2: 'coxaDir', label2: 'Direita', sideLabel: 'Esquerda' },
+  { type: 'measure', group: 'dobras', key: 'abdominal', label: 'Dobra Abdominal', unit: 'mm', icon: 'fold' },
+  { type: 'measure', group: 'dobras', key: 'triceps', label: 'Dobra Tríceps', unit: 'mm', icon: 'fold' },
+  { type: 'measure', group: 'dobras', key: 'suprailiaca', label: 'Dobra Suprailíaca', unit: 'mm', icon: 'fold' },
+  { type: 'measure', group: 'dobras', key: 'axilarMedia', label: 'Dobra Axilar Média', unit: 'mm', icon: 'fold' },
+  { type: 'measure', group: 'dobras', key: 'subescapular', label: 'Dobra Subescapular', unit: 'mm', icon: 'fold' },
+  { type: 'measure', group: 'dobras', key: 'torax', label: 'Dobra Tórax', unit: 'mm', icon: 'fold' },
+  { type: 'measure', group: 'dobras', key: 'coxa', label: 'Dobra Coxa', unit: 'mm', icon: 'fold' },
+  { type: 'review' }
+];
+
+var CORPO_WIZARD_TOTAL_STEPS = CORPO_WIZARD_STEPS.length;
+
+function getCorpoMeasurementIcon(iconName) {
+  var icons = {
+    weight: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="28" width="32" height="28" rx="4"/><circle cx="32" cy="42" r="6"/><line x1="24" y1="28" x2="20" y2="18"/><line x1="40" y1="28" x2="44" y2="18"/><line x1="20" y1="18" x2="44" y2="18"/></svg>',
+    height: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="32" y1="8" x2="32" y2="56"/><polyline points="24,16 32,8 40,16"/><polyline points="24,48 32,56 40,48"/><line x1="24" y1="24" x2="40" y2="24"/><line x1="24" y1="40" x2="40" y2="40"/></svg>',
+    imc: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="32" r="24"/><text x="32" y="38" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor" stroke="none">IMC</text></svg>',
+    fat: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="32" cy="34" rx="18" ry="20"/><path d="M26 28 Q32 20 38 28"/></svg>',
+    muscle: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 40 Q16 32 20 24 Q24 18 32 18 Q40 18 44 24 Q48 32 44 40"/><line x1="24" y1="40" x2="40" y2="40"/><line x1="32" y1="18" x2="32" y2="40"/></svg>',
+    waist: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20 Q24 36 20 48"/><path d="M44 20 Q40 36 44 48"/><line x1="20" y1="34" x2="44" y2="34" stroke-dasharray="4,3"/></svg>',
+    shoulder: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 36 Q16 20 32 16 Q48 20 52 36"/><line x1="12" y1="36" x2="12" y2="52"/><line x1="52" y1="36" x2="52" y2="52"/></svg>',
+    chest: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 24 Q32 16 48 24 Q48 44 32 48 Q16 44 16 24Z"/><line x1="32" y1="24" x2="32" y2="48"/></svg>',
+    abdomen: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="32" cy="34" rx="16" ry="20"/><line x1="32" y1="18" x2="32" y2="50" stroke-dasharray="4,3"/></svg>',
+    hip: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 22 Q20 42 24 52"/><path d="M48 22 Q44 42 40 52"/><line x1="16" y1="36" x2="48" y2="36" stroke-dasharray="4,3"/></svg>',
+    arm: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M24 12 Q20 28 22 44 Q24 52 28 52 Q32 52 34 44 Q36 28 32 12"/><line x1="22" y1="32" x2="34" y2="32" stroke-dasharray="4,3"/></svg>',
+    armFlex: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 44 Q16 32 20 20 Q24 12 32 16 Q38 20 36 32 Q34 40 30 44"/><circle cx="28" cy="26" r="4"/></svg>',
+    calf: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M26 8 Q22 24 24 40 Q26 52 30 56 Q34 52 36 40 Q38 24 34 8"/><line x1="24" y1="32" x2="36" y2="32" stroke-dasharray="4,3"/></svg>',
+    thigh: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 8 Q18 28 20 48 Q22 56 28 56 Q34 56 36 48 Q38 28 34 8"/><line x1="20" y1="30" x2="36" y2="30" stroke-dasharray="4,3"/></svg>',
+    fold: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 16 Q32 8 44 16 Q48 32 44 48 Q32 56 20 48 Q16 32 20 16Z"/><path d="M28 28 Q32 24 36 28 Q38 34 36 38 Q32 42 28 38 Q26 34 28 28Z"/></svg>'
+  };
+  return icons[iconName] || icons.waist;
+}
 
 function ensureCorpoAvaliacoesData() {
   if (!Array.isArray(mockData.avaliacoesAntropometricas)) {
@@ -3329,7 +3346,7 @@ function getCorpoAvaliacoesSorted() {
 }
 
 function getCorpoAvaliacaoOrdinalLabel(index) {
-  return (index + 1) + 'ª Avaliação Física';
+  return (index + 1) + '\u00aa Avalia\u00e7\u00e3o F\u00edsica';
 }
 
 function getNextCorpoAvaliacaoOrdinalLabel() {
@@ -3357,40 +3374,6 @@ function parseCorpoWizardDateInputToISO(rawValue) {
   var m = normalized.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (!m) return '';
   return m[3] + '-' + m[2] + '-' + m[1];
-}
-
-function bindCorpoWizardDateInputMask() {
-  var dataEl = document.getElementById('corpoAvData');
-  var nativeEl = document.getElementById('corpoAvDataNative');
-  if (!dataEl || dataEl.dataset.brDateMaskBound === '1') return;
-  dataEl.dataset.brDateMaskBound = '1';
-  dataEl.addEventListener('input', function() {
-    this.value = normalizeCorpoWizardDateInput(this.value);
-  });
-  dataEl.addEventListener('blur', function() {
-    var iso = parseCorpoWizardDateInputToISO(this.value);
-    if (iso) this.value = formatCorpoWizardDateBR(iso);
-    if (nativeEl) nativeEl.value = iso || '';
-  });
-  if (nativeEl && nativeEl.dataset.brNativeDateBound !== '1') {
-    nativeEl.dataset.brNativeDateBound = '1';
-    nativeEl.addEventListener('change', function() {
-      var iso = this.value || '';
-      if (!iso) return;
-      dataEl.value = formatCorpoWizardDateBR(iso);
-      if (corpoAvaliacaoDraft) corpoAvaliacaoDraft.data = iso;
-    });
-  }
-}
-
-function openCorpoWizardNativeDatePicker() {
-  var nativeEl = document.getElementById('corpoAvDataNative');
-  var dataEl = document.getElementById('corpoAvData');
-  if (!nativeEl) return;
-  var iso = parseCorpoWizardDateInputToISO(dataEl ? dataEl.value : '');
-  nativeEl.value = iso || getTodayISODate();
-  if (typeof nativeEl.showPicker === 'function') nativeEl.showPicker();
-  else nativeEl.click();
 }
 
 function formatCorpoMeasure(value, unit, decimals) {
@@ -3484,7 +3467,7 @@ function renderCorpoAvaliacaoDetail() {
 
   if (Number.isFinite(percGorda)) {
     if (percGorda <= 20) setKpiState(kpiGordaCard, kpiGordaStatus, 'is-good', 'Bom');
-    else if (percGorda <= 25) setKpiState(kpiGordaCard, kpiGordaStatus, 'is-attention', 'Atenção');
+    else if (percGorda <= 25) setKpiState(kpiGordaCard, kpiGordaStatus, 'is-attention', 'Atencao');
     else setKpiState(kpiGordaCard, kpiGordaStatus, 'is-high', 'Alto');
   } else {
     setKpiState(kpiGordaCard, kpiGordaStatus, '', 'Sem dado');
@@ -3492,7 +3475,7 @@ function renderCorpoAvaliacaoDetail() {
 
   if (Number.isFinite(percMagra)) {
     if (percMagra >= 80) setKpiState(kpiMagraCard, kpiMagraStatus, 'is-good', 'Bom');
-    else if (percMagra >= 70) setKpiState(kpiMagraCard, kpiMagraStatus, 'is-attention', 'Atenção');
+    else if (percMagra >= 70) setKpiState(kpiMagraCard, kpiMagraStatus, 'is-attention', 'Atencao');
     else setKpiState(kpiMagraCard, kpiMagraStatus, 'is-low', 'Baixo');
   } else {
     setKpiState(kpiMagraCard, kpiMagraStatus, '', 'Sem dado');
@@ -3527,55 +3510,148 @@ function closeCorpoNovaAvaliacaoWizard() {
   renderComposicao();
 }
 
-function readWizardNumeric(id) {
-  var el = document.getElementById(id);
-  if (!el) return null;
-  var v = Number(el.value);
-  return Number.isFinite(v) ? v : null;
-}
-
 function syncCorpoWizardDraftFromInputs() {
   if (!corpoAvaliacaoDraft) return;
-  var nomeEl = document.getElementById('corpoAvNomePreview');
-  var dataEl = document.getElementById('corpoAvData');
-  corpoAvaliacaoDraft.nome = getNextCorpoAvaliacaoOrdinalLabel();
-  if (nomeEl) nomeEl.value = corpoAvaliacaoDraft.nome;
-  if (dataEl) {
-    var isoDate = parseCorpoWizardDateInputToISO(dataEl.value);
-    corpoAvaliacaoDraft.data = isoDate || '';
+  var stepIdx = corpoAvaliacaoWizardStep - 1;
+  var stepDef = CORPO_WIZARD_STEPS[stepIdx];
+  if (!stepDef) return;
+
+  if (stepDef.type === 'date') {
+    var dataEl = document.getElementById('corpoWizDateInput');
+    if (dataEl) {
+      var isoDate = parseCorpoWizardDateInputToISO(dataEl.value);
+      corpoAvaliacaoDraft.data = isoDate || '';
+    }
+    return;
   }
 
-  Object.keys(CORPO_WIZARD_INPUT_MAP).forEach(function(group) {
-    var map = CORPO_WIZARD_INPUT_MAP[group];
-    Object.keys(map).forEach(function(key) {
-      corpoAvaliacaoDraft[group][key] = readWizardNumeric(map[key]);
-    });
-  });
+  if (stepDef.type === 'measure') {
+    var group = corpoAvaliacaoDraft[stepDef.group];
+    if (!group) return;
+    var inputEl = document.getElementById('corpoWizInput');
+    if (inputEl) {
+      var v = Number(inputEl.value);
+      group[stepDef.key] = Number.isFinite(v) ? v : null;
+    }
+    if (stepDef.dual) {
+      var inputEl2 = document.getElementById('corpoWizInput2');
+      if (inputEl2) {
+        var v2 = Number(inputEl2.value);
+        group[stepDef.key2] = Number.isFinite(v2) ? v2 : null;
+      }
+    }
+  }
 }
 
-function writeCorpoWizardDraftToInputs() {
-  if (!corpoAvaliacaoDraft) return;
-  var nomeEl = document.getElementById('corpoAvNomePreview');
-  var dataEl = document.getElementById('corpoAvData');
-  var nativeEl = document.getElementById('corpoAvDataNative');
-  corpoAvaliacaoDraft.nome = getNextCorpoAvaliacaoOrdinalLabel();
-  if (nomeEl) nomeEl.value = corpoAvaliacaoDraft.nome;
-  if (dataEl) {
-    var dataIso = corpoAvaliacaoDraft.data || getTodayISODate();
-    dataEl.value = formatCorpoWizardDateBR(dataIso);
-    if (nativeEl) nativeEl.value = dataIso;
+function getHistoricoParaMedida(group, key) {
+  var list = getCorpoAvaliacoesSorted();
+  var results = [];
+  for (var i = 0; i < list.length && results.length < 3; i++) {
+    var item = list[i];
+    var source = item[group];
+    if (source && Number.isFinite(Number(source[key]))) {
+      results.push({ data: item.data, value: Number(source[key]) });
+    }
   }
-  bindCorpoWizardDateInputMask();
+  return results;
+}
 
-  Object.keys(CORPO_WIZARD_INPUT_MAP).forEach(function(group) {
-    var map = CORPO_WIZARD_INPUT_MAP[group];
-    Object.keys(map).forEach(function(key) {
-      var el = document.getElementById(map[key]);
-      if (!el) return;
-      var val = corpoAvaliacaoDraft[group][key];
-      el.value = Number.isFinite(Number(val)) ? String(val) : '';
+function renderCorpoWizardHistoryTable(group, key, unit) {
+  var historico = getHistoricoParaMedida(group, key);
+  if (!historico.length) {
+    return '<div class="corpo-wiz-history-empty">Sem medicoes anteriores</div>';
+  }
+  var rows = historico.map(function(h, idx) {
+    var formatted = formatCorpoMeasure(h.value, unit, 1);
+    var variation = '';
+    if (idx < historico.length - 1) {
+      var diff = h.value - historico[idx + 1].value;
+      if (diff > 0) variation = '<span class="corpo-wiz-var-up">\u2191 +' + Math.abs(diff).toFixed(1) + '</span>';
+      else if (diff < 0) variation = '<span class="corpo-wiz-var-down">\u2193 ' + diff.toFixed(1) + '</span>';
+      else variation = '<span class="corpo-wiz-var-same">\u2014</span>';
+    }
+    var dateTxt = h.data ? formatDateForUI(h.data) : '-';
+    return '<tr><td>' + dateTxt + '</td><td>' + formatted + '</td><td>' + variation + '</td></tr>';
+  }).join('');
+  return '<table class="corpo-wiz-history-table"><thead><tr><th>Data</th><th>' + unit + '</th><th>Variacao</th></tr></thead><tbody>' + rows + '</tbody></table>';
+}
+
+function renderCorpoWizardDateStep() {
+  var body = document.getElementById('corpoWizardBody');
+  if (!body) return;
+  var dateVal = corpoAvaliacaoDraft.data ? formatCorpoWizardDateBR(corpoAvaliacaoDraft.data) : '';
+  body.innerHTML =
+    '<div class="corpo-wiz-date-wrap">' +
+      '<div class="corpo-wiz-date-icon">' +
+        '<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' +
+      '</div>' +
+      '<div class="corpo-wiz-date-label">Quando foi a avaliacao?</div>' +
+      '<input type="text" id="corpoWizDateInput" class="corpo-wiz-date-input" inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa" value="' + dateVal + '" />' +
+    '</div>';
+
+  var dateInput = document.getElementById('corpoWizDateInput');
+  if (dateInput && dateInput.dataset.brDateMaskBound !== '1') {
+    dateInput.dataset.brDateMaskBound = '1';
+    dateInput.addEventListener('input', function() {
+      this.value = normalizeCorpoWizardDateInput(this.value);
     });
-  });
+    dateInput.addEventListener('blur', function() {
+      var iso = parseCorpoWizardDateInputToISO(this.value);
+      if (iso) this.value = formatCorpoWizardDateBR(iso);
+    });
+    dateInput.focus();
+  }
+}
+
+function renderCorpoWizardMeasureStep(stepDef) {
+  var body = document.getElementById('corpoWizardBody');
+  if (!body) return;
+  var group = corpoAvaliacaoDraft[stepDef.group] || {};
+  var currentVal = Number.isFinite(Number(group[stepDef.key])) ? String(group[stepDef.key]) : '';
+  var iconSvg = getCorpoMeasurementIcon(stepDef.icon);
+
+  var subtitle = stepDef.dual ? (stepDef.sideLabel + ' / ' + stepDef.label2) : stepDef.group === 'dobras' ? 'Dobras cutaneas' : 'Circunferencia';
+
+  var inputHtml;
+  if (stepDef.dual) {
+    var currentVal2 = Number.isFinite(Number(group[stepDef.key2])) ? String(group[stepDef.key2]) : '';
+    inputHtml =
+      '<div class="corpo-wiz-dual-inputs">' +
+        '<div class="corpo-wiz-input-group">' +
+          '<label class="corpo-wiz-input-label">' + stepDef.sideLabel + '</label>' +
+          '<input type="number" id="corpoWizInput" class="corpo-wiz-input-field" step="0.1" min="0" placeholder="0" value="' + currentVal + '" />' +
+        '</div>' +
+        '<div class="corpo-wiz-input-group">' +
+          '<label class="corpo-wiz-input-label">' + stepDef.label2 + '</label>' +
+          '<input type="number" id="corpoWizInput2" class="corpo-wiz-input-field" step="0.1" min="0" placeholder="0" value="' + currentVal2 + '" />' +
+        '</div>' +
+      '</div>';
+  } else {
+    inputHtml =
+      '<div class="corpo-wiz-input-group">' +
+        '<input type="number" id="corpoWizInput" class="corpo-wiz-input-field" step="0.1" min="0" placeholder="0" value="' + currentVal + '" />' +
+      '</div>';
+  }
+
+  var historyHtml = renderCorpoWizardHistoryTable(stepDef.group, stepDef.key, stepDef.unit);
+  if (stepDef.dual) {
+    historyHtml += '<div style="margin-top:12px;">' + renderCorpoWizardHistoryTable(stepDef.group, stepDef.key2, stepDef.unit) + '</div>';
+  }
+
+  body.innerHTML =
+    '<div class="corpo-wiz-measure-wrap">' +
+      '<div class="corpo-wiz-illustration">' + iconSvg + '</div>' +
+      '<div class="corpo-wiz-measure-title">' + stepDef.label + '</div>' +
+      '<div class="corpo-wiz-measure-subtitle">' + subtitle + ' \u00b7 ' + stepDef.unit + '</div>' +
+      inputHtml +
+      '<div class="corpo-wiz-history">' +
+        '<div class="corpo-wiz-history-title">Ultimas medicoes</div>' +
+        historyHtml +
+      '</div>' +
+    '</div>';
+
+  var firstInput = document.getElementById(stepDef.dual ? 'corpoWizInput2' : 'corpoWizInput');
+  if (firstInput) firstInput.focus();
 }
 
 function normalizeCorpoDraftValues() {
@@ -3603,75 +3679,87 @@ function normalizeCorpoDraftValues() {
   }
 }
 
-function validateCorpoWizardStep(step) {
-  if (!corpoAvaliacaoDraft) return false;
-  if (step === 1) {
-    if (!corpoAvaliacaoDraft.data) {
-      showFeedbackModal('Informe a data da avaliação no formato dd/mm/aaaa.', 'warning');
-      return false;
-    }
-  }
-  if (step === 2) {
-    var g = corpoAvaliacaoDraft.geral || {};
-    if (!Number.isFinite(Number(g.peso)) || !Number.isFinite(Number(g.altura)) || !Number.isFinite(Number(g.percMassaGorda)) || !Number.isFinite(Number(g.percMassaMagra))) {
-      showFeedbackModal('Preencha os campos obrigatorios de medidas gerais.', 'warning');
-      return false;
-    }
-  }
-  return true;
-}
+function renderCorpoWizardReview() {
+  var body = document.getElementById('corpoWizardBody');
+  if (!body || !corpoAvaliacaoDraft) return;
 
-function renderCorpoAvaliacaoWizardReview() {
-  var review = document.getElementById('corpoAvReview');
-  if (!review || !corpoAvaliacaoDraft) return;
   var g = corpoAvaliacaoDraft.geral || {};
-  review.innerHTML =
-    '<div class="corpo-av-review-title">Resumo da avaliacao</div>' +
-    '<div class="corpo-av-review-row"><span>Data</span><strong>' + (corpoAvaliacaoDraft.data ? formatDateForUI(corpoAvaliacaoDraft.data) : '-') + '</strong></div>' +
-    '<div class="corpo-av-review-row"><span>Peso</span><strong>' + formatCorpoMeasure(g.peso, 'kg', 1) + '</strong></div>' +
-    '<div class="corpo-av-review-row"><span>IMC</span><strong>' + formatCorpoMeasure(g.imc, '', 1) + '</strong></div>' +
-    '<div class="corpo-av-review-row"><span>Massa gorda</span><strong>' + formatCorpoMeasure(g.percMassaGorda, '%', 1) + '</strong></div>' +
-    '<div class="corpo-av-review-row"><span>Massa magra</span><strong>' + formatCorpoMeasure(g.percMassaMagra, '%', 1) + '</strong></div>';
+  var c = corpoAvaliacaoDraft.circunferencias || {};
+  var d = corpoAvaliacaoDraft.dobras || {};
+
+  var geralRows = CORPO_GERAL_FIELDS.map(function(f) {
+    return '<div class="corpo-wiz-review-row"><span class="corpo-wiz-review-label">' + f.label + '</span><span class="corpo-wiz-review-value">' + formatCorpoMeasure(g[f.key], f.unit, f.decimals || 1) + '</span></div>';
+  }).join('');
+
+  var circRows = CORPO_CIRC_FIELDS.map(function(f) {
+    return '<div class="corpo-wiz-review-row"><span class="corpo-wiz-review-label">' + f.label + '</span><span class="corpo-wiz-review-value">' + formatCorpoMeasure(c[f.key], f.unit, 1) + '</span></div>';
+  }).join('');
+
+  var dobraRows = CORPO_DOBRAS_FIELDS.map(function(f) {
+    return '<div class="corpo-wiz-review-row"><span class="corpo-wiz-review-label">' + f.label + '</span><span class="corpo-wiz-review-value">' + formatCorpoMeasure(d[f.key], f.unit, 1) + '</span></div>';
+  }).join('');
+
+  body.innerHTML =
+    '<div class="corpo-wiz-review">' +
+      '<div class="corpo-wiz-review-section"><div class="corpo-wiz-review-section-title">Dados gerais</div>' + geralRows + '</div>' +
+      '<div class="corpo-wiz-review-section"><div class="corpo-wiz-review-section-title">Circunferencias</div>' + circRows + '</div>' +
+      '<div class="corpo-wiz-review-section"><div class="corpo-wiz-review-section-title">Dobras cutaneas</div>' + dobraRows + '</div>' +
+    '</div>';
 }
 
 function renderCorpoAvaliacaoWizardStep() {
   if (!corpoAvaliacaoDraft) corpoAvaliacaoDraft = buildEmptyCorpoAvaliacaoDraft();
-  writeCorpoWizardDraftToInputs();
 
-  var labelEl = document.getElementById('corpoWizardStepLabel');
-  if (labelEl) labelEl.textContent = 'Etapa ' + corpoAvaliacaoWizardStep + ' de 4';
+  var stepIdx = corpoAvaliacaoWizardStep - 1;
+  var stepDef = CORPO_WIZARD_STEPS[stepIdx];
+  if (!stepDef) return;
 
-  for (var i = 1; i <= 4; i++) {
-    var stepEl = document.getElementById('corpoWizardStep' + i);
-    if (stepEl) stepEl.style.display = i === corpoAvaliacaoWizardStep ? '' : 'none';
-    var dot = document.querySelector('[data-corpo-av-dot="' + i + '"]');
-    if (dot) dot.classList.toggle('pi-progress-dot--active', i <= corpoAvaliacaoWizardStep);
-  }
+  var titleEl = document.getElementById('corpoWizardTitle');
+  var subtitleEl = document.getElementById('corpoWizardSubtitle');
+  var progressFill = document.getElementById('corpoWizardProgressFill');
+  var nextBtn = document.getElementById('corpoWizardNextBtn');
+  var saveBtn = document.getElementById('corpoWizardSaveBtn');
 
-  var backBtn = document.getElementById('corpoAvBackBtn');
-  var nextBtn = document.getElementById('corpoAvNextBtn');
-  var saveBtn = document.getElementById('corpoAvSaveBtn');
-  if (backBtn) backBtn.style.visibility = corpoAvaliacaoWizardStep === 1 ? 'hidden' : 'visible';
-  if (nextBtn) nextBtn.style.display = corpoAvaliacaoWizardStep < 4 ? '' : 'none';
-  if (saveBtn) saveBtn.style.display = corpoAvaliacaoWizardStep === 4 ? '' : 'none';
+  var progress = Math.round((corpoAvaliacaoWizardStep / CORPO_WIZARD_TOTAL_STEPS) * 100);
+  if (progressFill) progressFill.style.width = progress + '%';
 
-  if (corpoAvaliacaoWizardStep === 4) {
+  if (stepDef.type === 'date') {
+    if (titleEl) titleEl.textContent = 'Nova avaliacao';
+    if (subtitleEl) subtitleEl.textContent = 'Etapa 1 de ' + CORPO_WIZARD_TOTAL_STEPS;
+    syncCorpoWizardDraftFromInputs();
+    renderCorpoWizardDateStep();
+  } else if (stepDef.type === 'measure') {
+    syncCorpoWizardDraftFromInputs();
+    if (titleEl) titleEl.textContent = stepDef.label;
+    if (subtitleEl) subtitleEl.textContent = 'Etapa ' + corpoAvaliacaoWizardStep + ' de ' + CORPO_WIZARD_TOTAL_STEPS;
+    renderCorpoWizardMeasureStep(stepDef);
+  } else if (stepDef.type === 'review') {
     syncCorpoWizardDraftFromInputs();
     normalizeCorpoDraftValues();
-    renderCorpoAvaliacaoWizardReview();
+    if (titleEl) titleEl.textContent = 'Revisar avaliacao';
+    if (subtitleEl) subtitleEl.textContent = 'Etapa ' + corpoAvaliacaoWizardStep + ' de ' + CORPO_WIZARD_TOTAL_STEPS;
+    renderCorpoWizardReview();
   }
+
+  if (nextBtn) nextBtn.style.display = stepDef.type === 'review' ? 'none' : '';
+  if (saveBtn) saveBtn.style.display = stepDef.type === 'review' ? '' : 'none';
 }
 
-function corpoAvaliacaoWizardNext() {
+function corpoWizardNext() {
   syncCorpoWizardDraftFromInputs();
-  if (!validateCorpoWizardStep(corpoAvaliacaoWizardStep)) return;
-  if (corpoAvaliacaoWizardStep < 4) {
+  var stepDef = CORPO_WIZARD_STEPS[corpoAvaliacaoWizardStep - 1];
+  if (stepDef && stepDef.type === 'date' && !corpoAvaliacaoDraft.data) {
+    showFeedbackModal('Informe a data da avaliacao no formato dd/mm/aaaa.', 'warning');
+    return;
+  }
+  normalizeCorpoDraftValues();
+  if (corpoAvaliacaoWizardStep < CORPO_WIZARD_TOTAL_STEPS) {
     corpoAvaliacaoWizardStep++;
     renderCorpoAvaliacaoWizardStep();
   }
 }
 
-function corpoAvaliacaoWizardBack() {
+function corpoWizardBack() {
   syncCorpoWizardDraftFromInputs();
   if (corpoAvaliacaoWizardStep > 1) {
     corpoAvaliacaoWizardStep--;
@@ -3679,9 +3767,12 @@ function corpoAvaliacaoWizardBack() {
   }
 }
 
-function corpoAvaliacaoWizardSave() {
+function corpoWizardSave() {
   syncCorpoWizardDraftFromInputs();
-  if (!validateCorpoWizardStep(1) || !validateCorpoWizardStep(2)) return;
+  if (!corpoAvaliacaoDraft.data) {
+    showFeedbackModal('Informe a data da avaliacao.', 'warning');
+    return;
+  }
   normalizeCorpoDraftValues();
 
   ensureCorpoAvaliacoesData();
