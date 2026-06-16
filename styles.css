@@ -11801,7 +11801,6 @@ body {
   font-size: 14px;
   font-weight: 800;
   color: var(--text-title);
-  margin-bottom: 10px;
 }
 
 .corpo-av-rows {
@@ -11844,6 +11843,237 @@ body {
   font-weight: 700;
   text-align: right;
   white-space: nowrap;
+}
+
+/* ===== Hero Card (última avaliação) ===== */
+.corpo-av-hero {
+  background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 50%, #f8fafc 100%);
+  border: 1px solid #c7d9f8;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.08);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.corpo-av-hero:active {
+  transform: scale(0.985);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.10);
+}
+
+.corpo-av-hero-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.corpo-av-hero-tag {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #c7d9f8;
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
+.corpo-av-hero-date {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.corpo-av-hero-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.corpo-av-hero-kpi {
+  text-align: center;
+}
+
+.corpo-av-hero-kpi-val {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-title);
+  line-height: 1.1;
+}
+
+.corpo-av-hero-kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.corpo-av-hero-foot {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.corpo-av-hero-foot-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.corpo-av-hero-foot-link {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ===== Empty State ===== */
+.corpo-av-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 20px 32px;
+}
+
+.corpo-av-empty-icon {
+  width: 72px;
+  height: 72px;
+  background: #eff6ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2563eb;
+  margin-bottom: 16px;
+}
+
+.corpo-av-empty-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-title);
+  margin-bottom: 4px;
+}
+
+.corpo-av-empty-text {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  max-width: 240px;
+}
+
+/* ===== Section Icons ===== */
+.corpo-av-section-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.corpo-av-section-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.corpo-av-section--geral .corpo-av-section-icon {
+  background: #eff6ff;
+  color: #3b82f6;
+}
+
+.corpo-av-section--circ .corpo-av-section-icon {
+  background: #f0fdfa;
+  color: #14b8a6;
+}
+
+.corpo-av-section--dobras .corpo-av-section-icon {
+  background: #faf5ff;
+  color: #a855f7;
+}
+
+/* ===== Variation Badge ===== */
+.corpo-av-data-var {
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 2px 7px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.corpo-av-data-var--up {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.corpo-av-data-var--down {
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.corpo-av-data-var--same {
+  color: #94a3b8;
+  background: #f1f5f9;
+}
+
+/* ===== Staggered Animation ===== */
+@keyframes corpoFadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.corpo-av-hero,
+.corpo-av-row,
+.corpo-av-section,
+.corpo-av-empty {
+  animation: corpoFadeSlideIn 0.35s ease both;
+}
+
+.corpo-av-row:nth-child(1) { animation-delay: 0ms; }
+.corpo-av-row:nth-child(2) { animation-delay: 40ms; }
+.corpo-av-row:nth-child(3) { animation-delay: 80ms; }
+.corpo-av-row:nth-child(4) { animation-delay: 120ms; }
+.corpo-av-row:nth-child(5) { animation-delay: 160ms; }
+.corpo-av-row:nth-child(6) { animation-delay: 200ms; }
+
+.corpo-av-hero { animation-delay: 0ms; }
+.corpo-av-section:nth-child(1) { animation-delay: 60ms; }
+.corpo-av-section:nth-child(2) { animation-delay: 120ms; }
+.corpo-av-section:nth-child(3) { animation-delay: 180ms; }
+
+/* ===== KPI Count Animation ===== */
+@keyframes corpoKpiCount {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.corpo-av-kpi-value--animated {
+  animation: corpoKpiCount 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ===== Corpo-av-data-row with variation ===== */
+.corpo-av-data-row-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 .corpo-av-wizard {

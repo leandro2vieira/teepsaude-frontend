@@ -3389,11 +3389,44 @@ function renderCorpoAvaliacoesList() {
   if (!listEl) return;
   var list = getCorpoAvaliacoesSorted();
   if (!list.length) {
-    listEl.innerHTML = '<div class="empty-state"><div class="empty-text">Sem avaliacoes cadastradas.</div></div>';
+    listEl.innerHTML =
+      '<div class="corpo-av-empty">' +
+        '<div class="corpo-av-empty-icon">' +
+          '<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12Q6 6 12 6Q18 6 18 12Q18 18 12 18Q6 18 6 12Z"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>' +
+        '</div>' +
+        '<div class="corpo-av-empty-title">Nenhuma avaliação ainda</div>' +
+        '<div class="corpo-av-empty-text">Registre sua primeira avaliação antropométrica para acompanhar sua evolução.</div>' +
+      '</div>';
     return;
   }
 
-  listEl.innerHTML = list.map(function(item, idx) {
+  var heroHtml = '';
+  var latest = list[0];
+  if (latest) {
+    var g = latest.geral || {};
+    var pesoVal = formatCorpoMeasure(g.peso, 'kg', 1);
+    var imcVal = formatCorpoMeasure(g.imc, '', 1);
+    var gordaVal = formatCorpoMeasure(g.percMassaGorda, '%', 1);
+    var heroDate = latest.data ? formatDateForUI(latest.data) : 'Sem data';
+    heroHtml =
+      '<div class="corpo-av-hero" onclick="openCorpoAvaliacaoDetail(' + latest.id + ')">' +
+        '<div class="corpo-av-hero-head">' +
+          '<span class="corpo-av-hero-tag">Última avaliação</span>' +
+          '<span class="corpo-av-hero-date">' + heroDate + '</span>' +
+        '</div>' +
+        '<div class="corpo-av-hero-kpis">' +
+          '<div class="corpo-av-hero-kpi"><div class="corpo-av-hero-kpi-val">' + pesoVal + '</div><div class="corpo-av-hero-kpi-label">Peso</div></div>' +
+          '<div class="corpo-av-hero-kpi"><div class="corpo-av-hero-kpi-val">' + imcVal + '</div><div class="corpo-av-hero-kpi-label">IMC</div></div>' +
+          '<div class="corpo-av-hero-kpi"><div class="corpo-av-hero-kpi-val">' + gordaVal + '</div><div class="corpo-av-hero-kpi-label">% Gordura</div></div>' +
+        '</div>' +
+        '<div class="corpo-av-hero-foot">' +
+          '<span class="corpo-av-hero-foot-label">Ver detalhes</span>' +
+          '<span class="corpo-av-hero-foot-link">Abrir →</span>' +
+        '</div>' +
+      '</div>';
+  }
+
+  var rowsHtml = list.map(function(item, idx) {
     var title = (item.nome && String(item.nome).trim()) ? String(item.nome).trim() : getCorpoAvaliacaoOrdinalLabel(idx);
     var dateTxt = item.data ? formatDateForUI(item.data) : 'Sem data';
     return (
@@ -3406,6 +3439,8 @@ function renderCorpoAvaliacoesList() {
       '</div>'
     );
   }).join('');
+
+  listEl.innerHTML = heroHtml + '<div class="corpo-av-list">' + rowsHtml + '</div>';
 }
 
 function openCorpoAvaliacaoDetail(id) {
@@ -3431,6 +3466,59 @@ function renderCorpoRows(targetId, fields, source) {
   el.innerHTML = rows.join('');
 }
 
+function renderCorpoRowsWithVariation(targetId, fields, source, prevSource, defaultUnit) {
+  var el = document.getElementById(targetId);
+  if (!el) return;
+  var rows = fields.map(function(field) {
+    var val = source ? source[field.key] : null;
+    var unit = field.unit || defaultUnit || '';
+    var decimals = Number.isFinite(field.decimals) ? field.decimals : 1;
+    var formatted = formatCorpoMeasure(val, unit, decimals);
+    var prevVal = prevSource ? prevSource[field.key] : null;
+    var variation = getVariacaoHtml(val, prevVal, unit);
+    return '<div class="corpo-av-data-row"><span>' + field.label + '</span><div class="corpo-av-data-row-left"><strong>' + formatted + '</strong>' + variation + '</div></div>';
+  });
+  el.innerHTML = rows.join('');
+}
+
+function animateCorpoKpi(el, targetValue, unit, decimals) {
+  if (!el) return;
+  if (!Number.isFinite(Number(targetValue))) {
+    el.textContent = formatCorpoMeasure(targetValue, unit, decimals);
+    return;
+  }
+  var target = Number(targetValue);
+  var duration = 500;
+  var start = performance.now();
+  el.classList.add('corpo-av-kpi-value--animated');
+  function tick(now) {
+    var elapsed = now - start;
+    var progress = Math.min(elapsed / duration, 1);
+    var eased = 1 - Math.pow(1 - progress, 3);
+    var current = target * eased;
+    el.textContent = formatCorpoMeasure(current, unit, decimals);
+    if (progress < 1) requestAnimationFrame(tick);
+    else el.textContent = formatCorpoMeasure(target, unit, decimals);
+  }
+  requestAnimationFrame(tick);
+}
+
+function getPreviousCorpoAvaliacao(currentId) {
+  var list = getCorpoAvaliacoesSorted();
+  var idx = list.findIndex(function(a) { return a.id === currentId; });
+  if (idx < 0 || idx >= list.length - 1) return null;
+  return list[idx + 1];
+}
+
+function getVariacaoHtml(current, previous, unit) {
+  if (!previous || !Number.isFinite(Number(current)) || !Number.isFinite(Number(previous))) return '';
+  var diff = Number(current) - Number(previous);
+  if (diff === 0) return '<span class="corpo-av-data-var corpo-av-data-var--same">0</span>';
+  var sign = diff > 0 ? '+' : '';
+  var cls = diff > 0 ? 'corpo-av-data-var--up' : 'corpo-av-data-var--down';
+  return '<span class="corpo-av-data-var ' + cls + '">' + sign + diff.toFixed(1) + '</span>';
+}
+
 function renderCorpoAvaliacaoDetail() {
   var list = getCorpoAvaliacoesSorted();
   var item = list.find(function(a) { return a.id === corpoAvaliacaoSelectedId; });
@@ -3446,14 +3534,17 @@ function renderCorpoAvaliacaoDetail() {
   if (titleEl) titleEl.textContent = title;
   if (dateEl) dateEl.textContent = item.data ? formatDateForUI(item.data) : 'Sem data';
 
+  var prev = getPreviousCorpoAvaliacao(item.id);
+
   var kpiGorda = document.getElementById('corpoKpiMassaGorda');
   var kpiMagra = document.getElementById('corpoKpiMassaMagra');
   var kpiGordaCard = document.getElementById('corpoKpiMassaGordaCard');
   var kpiMagraCard = document.getElementById('corpoKpiMassaMagraCard');
   var kpiGordaStatus = document.getElementById('corpoKpiMassaGordaStatus');
   var kpiMagraStatus = document.getElementById('corpoKpiMassaMagraStatus');
-  if (kpiGorda) kpiGorda.textContent = formatCorpoMeasure(item.geral && item.geral.percMassaGorda, '%', 1);
-  if (kpiMagra) kpiMagra.textContent = formatCorpoMeasure(item.geral && item.geral.percMassaMagra, '%', 1);
+
+  animateCorpoKpi(kpiGorda, item.geral && item.geral.percMassaGorda, '%', 1);
+  animateCorpoKpi(kpiMagra, item.geral && item.geral.percMassaMagra, '%', 1);
 
   function setKpiState(cardEl, statusEl, state, text) {
     if (!cardEl || !statusEl) return;
@@ -3481,9 +3572,9 @@ function renderCorpoAvaliacaoDetail() {
     setKpiState(kpiMagraCard, kpiMagraStatus, '', 'Sem dado');
   }
 
-  renderCorpoRows('corpoAvaliacaoGeralRows', CORPO_GERAL_FIELDS, item.geral || {});
-  renderCorpoRows('corpoAvaliacaoCircRows', CORPO_CIRC_FIELDS, item.circunferencias || {});
-  renderCorpoRows('corpoAvaliacaoDobrasRows', CORPO_DOBRAS_FIELDS, item.dobras || {});
+  renderCorpoRowsWithVariation('corpoAvaliacaoGeralRows', CORPO_GERAL_FIELDS, item.geral || {}, prev ? (prev.geral || {}) : {}, '');
+  renderCorpoRowsWithVariation('corpoAvaliacaoCircRows', CORPO_CIRC_FIELDS, item.circunferencias || {}, prev ? (prev.circunferencias || {}) : {}, 'cm');
+  renderCorpoRowsWithVariation('corpoAvaliacaoDobrasRows', CORPO_DOBRAS_FIELDS, item.dobras || {}, prev ? (prev.dobras || {}) : {}, 'mm');
 }
 
 function buildEmptyCorpoAvaliacaoDraft() {
