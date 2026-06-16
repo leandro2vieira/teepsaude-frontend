@@ -3219,7 +3219,7 @@ function setupAgendaModal() {
 function renderComposicao() {
   ensureCorpoAvaliacoesData();
   var subtitle = document.getElementById('composicaoSubtitle');
-  if (subtitle) subtitle.textContent = 'Medidas Corporais';
+  if (subtitle) subtitle.textContent = 'Avaliações';
 
   var listView = document.getElementById('corpoAvaliacoesListView');
   var detailView = document.getElementById('corpoAvaliacaoDetailView');
@@ -3394,39 +3394,13 @@ function renderCorpoAvaliacoesList() {
         '<div class="corpo-av-empty-icon">' +
           '<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 12Q6 6 12 6Q18 6 18 12Q18 18 12 18Q6 18 6 12Z"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg>' +
         '</div>' +
-        '<div class="corpo-av-empty-title">Nenhuma avaliação ainda</div>' +
-        '<div class="corpo-av-empty-text">Registre sua primeira avaliação antropométrica para acompanhar sua evolução.</div>' +
+        '<div class="corpo-av-empty-title">Nenhuma avaliação</div>' +
+        '<div class="corpo-av-empty-text">Registre sua primeira avaliação para acompanhar sua evolução.</div>' +
       '</div>';
     return;
   }
 
-  var heroHtml = '';
-  var latest = list[0];
-  if (latest) {
-    var g = latest.geral || {};
-    var pesoVal = formatCorpoMeasure(g.peso, 'kg', 1);
-    var imcVal = formatCorpoMeasure(g.imc, '', 1);
-    var gordaVal = formatCorpoMeasure(g.percMassaGorda, '%', 1);
-    var heroDate = latest.data ? formatDateForUI(latest.data) : 'Sem data';
-    heroHtml =
-      '<div class="corpo-av-hero" onclick="openCorpoAvaliacaoDetail(' + latest.id + ')">' +
-        '<div class="corpo-av-hero-head">' +
-          '<span class="corpo-av-hero-tag">Última avaliação</span>' +
-          '<span class="corpo-av-hero-date">' + heroDate + '</span>' +
-        '</div>' +
-        '<div class="corpo-av-hero-kpis">' +
-          '<div class="corpo-av-hero-kpi"><div class="corpo-av-hero-kpi-val">' + pesoVal + '</div><div class="corpo-av-hero-kpi-label">Peso</div></div>' +
-          '<div class="corpo-av-hero-kpi"><div class="corpo-av-hero-kpi-val">' + imcVal + '</div><div class="corpo-av-hero-kpi-label">IMC</div></div>' +
-          '<div class="corpo-av-hero-kpi"><div class="corpo-av-hero-kpi-val">' + gordaVal + '</div><div class="corpo-av-hero-kpi-label">% Gordura</div></div>' +
-        '</div>' +
-        '<div class="corpo-av-hero-foot">' +
-          '<span class="corpo-av-hero-foot-label">Ver detalhes</span>' +
-          '<span class="corpo-av-hero-foot-link">Abrir →</span>' +
-        '</div>' +
-      '</div>';
-  }
-
-  var rowsHtml = list.map(function(item, idx) {
+  listEl.innerHTML = list.map(function(item, idx) {
     var title = (item.nome && String(item.nome).trim()) ? String(item.nome).trim() : getCorpoAvaliacaoOrdinalLabel(idx);
     var dateTxt = item.data ? formatDateForUI(item.data) : 'Sem data';
     return (
@@ -3435,12 +3409,10 @@ function renderCorpoAvaliacoesList() {
           '<div class="corpo-av-row-title">' + title + '</div>' +
           '<div class="corpo-av-row-date">' + dateTxt + '</div>' +
         '</div>' +
-        '<button type="button" class="corpo-av-view-btn" onclick="openCorpoAvaliacaoDetail(' + item.id + ')">Visualizar</button>' +
+        '<button type="button" class="corpo-av-view-btn" onclick="openCorpoAvaliacaoDetail(' + item.id + ')">Ver</button>' +
       '</div>'
     );
   }).join('');
-
-  listEl.innerHTML = heroHtml + '<div class="corpo-av-list">' + rowsHtml + '</div>';
 }
 
 function openCorpoAvaliacaoDetail(id) {

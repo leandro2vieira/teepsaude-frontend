@@ -11845,95 +11845,6 @@ body {
   white-space: nowrap;
 }
 
-/* ===== Hero Card (última avaliação) ===== */
-.corpo-av-hero {
-  background: linear-gradient(135deg, #f0f6ff 0%, #ffffff 50%, #f8fafc 100%);
-  border: 1px solid #c7d9f8;
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.08);
-  cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-}
-
-.corpo-av-hero:active {
-  transform: scale(0.985);
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.10);
-}
-
-.corpo-av-hero-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.corpo-av-hero-tag {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #2563eb;
-  background: #eff6ff;
-  border: 1px solid #c7d9f8;
-  border-radius: 999px;
-  padding: 3px 10px;
-}
-
-.corpo-av-hero-date {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.corpo-av-hero-kpis {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.corpo-av-hero-kpi {
-  text-align: center;
-}
-
-.corpo-av-hero-kpi-val {
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--text-title);
-  line-height: 1.1;
-}
-
-.corpo-av-hero-kpi-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-.corpo-av-hero-foot {
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.corpo-av-hero-foot-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.corpo-av-hero-foot-link {
-  font-size: 13px;
-  font-weight: 700;
-  color: #2563eb;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
 /* ===== Empty State ===== */
 .corpo-av-empty {
   display: flex;
@@ -12039,7 +11950,6 @@ body {
   }
 }
 
-.corpo-av-hero,
 .corpo-av-row,
 .corpo-av-section,
 .corpo-av-empty {
@@ -12053,7 +11963,6 @@ body {
 .corpo-av-row:nth-child(5) { animation-delay: 160ms; }
 .corpo-av-row:nth-child(6) { animation-delay: 200ms; }
 
-.corpo-av-hero { animation-delay: 0ms; }
 .corpo-av-section:nth-child(1) { animation-delay: 60ms; }
 .corpo-av-section:nth-child(2) { animation-delay: 120ms; }
 .corpo-av-section:nth-child(3) { animation-delay: 180ms; }
