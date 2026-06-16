@@ -12081,16 +12081,27 @@ body {
 
 /* Date Step */
 .corpo-wiz-date-wrap {
-  text-align: center;
-  padding: 20px 0 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 0 0;
+}
+
+.corpo-wiz-date-card {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid var(--border-soft, #e2e8f0);
+  border-radius: 16px;
+  padding: 28px 20px 24px;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
 }
 
 .corpo-wiz-date-icon {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 16px;
-  background: linear-gradient(135deg, #eef4ff, #dbeafe);
-  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12098,31 +12109,55 @@ body {
 }
 
 .corpo-wiz-date-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted, #64748b);
-  margin-bottom: 8px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-title, #1e293b);
+  margin-bottom: 16px;
+  text-align: center;
 }
 
 .corpo-wiz-date-input {
   width: 100%;
-  max-width: 260px;
+  max-width: 240px;
   margin: 0 auto;
-  padding: 14px 16px;
-  font-size: 18px;
-  font-weight: 600;
+  display: block;
+  padding: 16px 20px;
+  font-size: 22px;
+  font-weight: 700;
   text-align: center;
+  letter-spacing: 0.04em;
   border: 2px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 14px;
   background: #f8fafc;
   color: var(--text-title, #1e293b);
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -moz-appearance: textfield;
+}
+
+.corpo-wiz-date-input::-webkit-outer-spin-button,
+.corpo-wiz-date-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.corpo-wiz-date-input::placeholder {
+  color: #cbd5e1;
+  font-weight: 500;
 }
 
 .corpo-wiz-date-input:focus {
   border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
   background: #ffffff;
+}
+
+.corpo-wiz-date-hint {
+  margin-top: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted, #94a3b8);
+  text-align: center;
 }
 
 /* Measurement Step */

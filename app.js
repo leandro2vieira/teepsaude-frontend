@@ -3645,11 +3645,14 @@ function renderCorpoWizardDateStep() {
   var dateVal = corpoAvaliacaoDraft.data ? formatCorpoWizardDateBR(corpoAvaliacaoDraft.data) : '';
   body.innerHTML =
     '<div class="corpo-wiz-date-wrap">' +
-      '<div class="corpo-wiz-date-icon">' +
-        '<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' +
+      '<div class="corpo-wiz-date-card">' +
+        '<div class="corpo-wiz-date-icon">' +
+          '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' +
+        '</div>' +
+        '<div class="corpo-wiz-date-label">Data da avaliação</div>' +
+        '<input type="text" id="corpoWizDateInput" class="corpo-wiz-date-input" inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa" value="' + dateVal + '" />' +
+        '<div class="corpo-wiz-date-hint">Formato dd/mm/aaaa</div>' +
       '</div>' +
-      '<div class="corpo-wiz-date-label">Quando foi a avaliacao?</div>' +
-      '<input type="text" id="corpoWizDateInput" class="corpo-wiz-date-input" inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa" value="' + dateVal + '" />' +
     '</div>';
 
   var dateInput = document.getElementById('corpoWizDateInput');
