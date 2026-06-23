@@ -1,7 +1,7 @@
 // Dados Mockados - Sistema de Saúde
 // Base visual e de decisão (dados fictícios para análise de produto/UX)
 const MOCK_META = {
-  projeto: 'APP Saude',
+  projeto: 'APP Saúde',
   ambiente: 'mock',
   versao: '1.1.0',
   dataReferencia: '2024-01-25',
@@ -49,9 +49,9 @@ const mockData = {
     { id: 2, nome: 'Losartana', formas: ['comprimido'], dosagens: ['25mg', '50mg', '100mg', '1 comprimido'], foto: '💊' },
     { id: 3, nome: 'Metformina', formas: ['comprimido'], dosagens: ['500mg', '850mg', '1000mg', '1 comprimido'], foto: '💊' },
     { id: 4, nome: 'Atorvastatina', formas: ['comprimido'], dosagens: ['10mg', '20mg', '40mg', '1 comprimido'], foto: '💊' },
-    { id: 5, nome: 'Omeprazol', formas: ['capsula'], dosagens: ['20mg', '40mg', '1 capsula'], foto: '💊' },
+    { id: 5, nome: 'Omeprazol', formas: ['cápsula'], dosagens: ['20mg', '40mg', '1 capsula'], foto: '💊' },
     { id: 6, nome: 'Diazepam', formas: ['comprimido', 'gotas'], dosagens: ['5mg', '10mg', '5 gotas'], foto: '💊' },
-    { id: 7, nome: 'Amoxicilina', formas: ['capsula', 'solucao'], dosagens: ['250mg', '500mg', '5ml', '1 capsula'], foto: '💊' },
+    { id: 7, nome: 'Amoxicilina', formas: ['cápsula', 'solucao'], dosagens: ['250mg', '500mg', '5ml', '1 capsula'], foto: '💊' },
     { id: 8, nome: 'Ibuprofeno', formas: ['comprimido', 'solucao'], dosagens: ['200mg', '400mg', '600mg', '5ml'], foto: '💊' },
     { id: 9, nome: 'Paracetamol', formas: ['comprimido', 'gotas', 'solucao'], dosagens: ['500mg', '750mg', '200mg/ml', '15 gotas'], foto: '💊' },
     { id: 10, nome: 'AAS', formas: ['comprimido'], dosagens: ['100mg', '300mg', '1 comprimido'], foto: '💊' },
@@ -68,13 +68,13 @@ const mockData = {
     { id: 21, nome: 'Pantoprazol', formas: ['comprimido'], dosagens: ['20mg', '40mg', '1 comprimido'], foto: '💊' },
     { id: 22, nome: 'Azitromicina', formas: ['comprimido', 'solucao'], dosagens: ['500mg', '40mg/ml', '5ml'], foto: '💊' },
     { id: 23, nome: 'Clavulin', formas: ['comprimido', 'solucao'], dosagens: ['500mg + 125mg', '875mg + 125mg', '5ml'], foto: '💊' },
-    { id: 24, nome: 'Insulina NPH', formas: ['injetavel'], dosagens: ['10 UI', '20 UI', '30 UI', '1 unidade'], foto: '💉' },
+    { id: 24, nome: 'Insulina NPH', formas: ['injetável'], dosagens: ['10 UI', '20 UI', '30 UI', '1 unidade'], foto: '💉' },
     { id: 25, nome: 'Salbutamol', formas: ['spray', 'solucao'], dosagens: ['100mcg/jato', '2 jatos', '5ml'], foto: '💨' },
-    { id: 26, nome: 'Vitamina D', formas: ['capsula', 'gotas'], dosagens: ['1000 UI', '7000 UI', '1 capsula'], foto: '💊' },
-    { id: 27, nome: 'Complexo B', formas: ['capsula', 'comprimido', 'solucao'], dosagens: ['1 capsula', '2 comprimidos', '5ml'], foto: '💊' },
-    { id: 28, nome: 'Xarope para Tosse', formas: ['xarope', 'colher'], dosagens: ['5ml', '10ml', '1 colher de cha', '1 colher de sopa'], foto: '🥄' },
+    { id: 26, nome: 'Vitamina D', formas: ['cápsula', 'gotas'], dosagens: ['1000 UI', '7000 UI', '1 capsula'], foto: '💊' },
+    { id: 27, nome: 'Complexo B', formas: ['cápsula', 'comprimido', 'solucao'], dosagens: ['1 capsula', '2 comprimidos', '5ml'], foto: '💊' },
+    { id: 28, nome: 'Xarope para Tosse', formas: ['xarope', 'colher'], dosagens: ['5ml', '10ml', '1 colher de chá', '1 colher de sopa'], foto: '🥄' },
     { id: 29, nome: 'Lactulose', formas: ['xarope', 'colher'], dosagens: ['10ml', '15ml', '1 colher de sopa'], foto: '🥄' },
-    { id: 30, nome: 'Soro Fisiologico', formas: ['solucao', 'gotas', 'unidade'], dosagens: ['5ml', '10ml', '20 gotas', '1 unidade'], foto: '💧' }
+    { id: 30, nome: 'Soro Fisiológico', formas: ['solucao', 'gotas', 'unidade'], dosagens: ['5ml', '10ml', '20 gotas', '1 unidade'], foto: '💧' }
   ],
 
   /** Onde registrar pressão: Manual, Pulseira, Google Fit, Apple Health (definido em Perfil) */

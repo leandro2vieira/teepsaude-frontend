@@ -431,7 +431,7 @@ function _glicemiaUpdateDisplay() {
     if (badge) { badge.textContent = '? Normal (70–99)'; badge.className = 'glic-range-badge glic-range-badge--normal'; }
   } else if (val <= 125) {
     disp.className = 'glic-display glic-display--atencao';
-    if (badge) { badge.textContent = '? Aten��o (100–125)'; badge.className = 'glic-range-badge glic-range-badge--atencao'; }
+    if (badge) { badge.textContent = '? Atenção (100–125)'; badge.className = 'glic-range-badge glic-range-badge--atencao'; }
   } else {
     disp.className = 'glic-display glic-display--alto';
     if (badge) { badge.textContent = '? Alto (acima de 125)'; badge.className = 'glic-range-badge glic-range-badge--alto'; }
@@ -546,19 +546,19 @@ function _glicResumoRow(label, value, editStep) {
     'Glicose': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.25c0 0-6.75 7.313-6.75 11.25a6.75 6.75 0 0 0 13.5 0C18.75 9.563 12 2.25 12 2.25Z"></path></svg>',
     'Contexto': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v6l4 2"></path><circle cx="12" cy="12" r="9"></circle></svg>',
     'Horário': '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l3 2M9 2h6"></path></svg>',
-    'Rem�dios': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7.07-7.07l-10 10a4.95 4.95 0 1 0 7.07 7.07Z"></path><path d="M8.5 8.5l7 7"></path></svg>',
+    'Remédios': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7.07-7.07l-10 10a4.95 4.95 0 1 0 7.07 7.07Z"></path><path d="M8.5 8.5l7 7"></path></svg>',
     'Insulina': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4l-3 3"></path><path d="M14 7l3 3"></path><path d="M3 21l8-8"></path><path d="M11 13l4-4 2 2-4 4"></path><path d="M2 22l2-1-1-1-1 2Z"></path></svg>',
-    'Observa��o': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>'
+    'Observação': '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>'
   };
   var iconClsMap = {
     'Glicose': 'glic-sum-ico--glicose',
     'Contexto': 'glic-sum-ico--contexto',
     'Horário': 'glic-sum-ico--horario',
-    'Rem�dios': 'glic-sum-ico--remedios',
+    'Remédios': 'glic-sum-ico--remedios',
     'Insulina': 'glic-sum-ico--insulina',
-    'Observa��o': 'glic-sum-ico--obs'
+    'Observação': 'glic-sum-ico--obs'
   };
-  var valCls = (label === 'Observa��o') ? 'pi-sum-val pi-sum-val--nota glic-sum-val' : 'pi-sum-val glic-sum-val';
+  var valCls = (label === 'Observação') ? 'pi-sum-val pi-sum-val--nota glic-sum-val' : 'pi-sum-val glic-sum-val';
   return [
     '<div class="pi-sum-row glic-sum-row">',
       '<div class="pi-sum-ico glic-sum-ico ' + (iconClsMap[label] || '') + '">' + (iconMap[label] || '') + '</div>',
@@ -589,19 +589,19 @@ function _glicRenderResumo() {
     if (_d && _h) timeStr = _d + ' à ' + _h;
   }
   var valColor = val > 125 ? '#ef4444' : val > 99 ? '#f59e0b' : '#22c55e';
-  var medMap = { 'tomados': 'Tomei meus rem�dios', 'nao_tomados': 'Não tomei hoje', 'nenhum': 'Não tomo rem�dios' };
+  var medMap = { 'tomados': 'Tomei meus remédios', 'nao_tomados': 'Não tomei hoje', 'nenhum': 'Não tomo remédios' };
   var medStr = medMap[glicemiaInsertData.medicamentos] || '�';
   var insulinaVal = glicemiaInsertData.insulina;
   var insulinaStr = (!insulinaVal || insulinaVal === 0) ? 'Não registrado' : insulinaVal + ' unidades';
-  var notaStr = (glicemiaInsertData.nota || '').trim() || 'Sem observa��o';
+  var notaStr = (glicemiaInsertData.nota || '').trim() || 'Sem observação';
   container.innerHTML = [
     '<div class="glic-resumo-list">',
       _glicResumoRow('Glicose', '<span style="color:' + valColor + ';font-weight:700;">' + val + ' mg/dL</span>', 1),
       _glicResumoRow('Contexto', ctx, 2),
       _glicResumoRow('Horário', timeStr, 3),
-      _glicResumoRow('Rem�dios', medStr, 4),
+      _glicResumoRow('Remédios', medStr, 4),
       _glicResumoRow('Insulina', insulinaStr, 5),
-      _glicResumoRow('Observa��o', notaStr, 6),
+      _glicResumoRow('Observação', notaStr, 6),
     '</div>',
     '<p class="glic-resumo-note">Verifique os dados antes de salvar</p>',
     '<button class="pi-next-btn glic-next-btn" onclick="saveGlicemiaEntry(null, null)">Confirmar e Salvar ?</button>'
@@ -1075,7 +1075,7 @@ function showFeedbackModal(message, type = 'info', title = '') {
   const config = {
     success: {
       icon: '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
-      title: 'Concluido'
+      title: 'Concluído'
     },
     warning: {
       icon: '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.72 3h16.92a2 2 0 0 0 1.72-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
@@ -1087,7 +1087,7 @@ function showFeedbackModal(message, type = 'info', title = '') {
     },
     info: {
       icon: '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="10" x2="12" y2="16"/><line x1="12" y1="7" x2="12.01" y2="7"/></svg>',
-      title: 'Informacao'
+      title: 'Informação'
     }
   };
   const current = config[type] || config.info;
@@ -1740,7 +1740,7 @@ function renderMedicacoes() {
     hojeHtml += paraTomar.map(createMedicacaoCard).join('');
   }
   if (tomadasHoje.length > 0) {
-    hojeHtml += '<div class="subsection-title">JA? tomadas hoje</div>';
+    hojeHtml += '    <div class="subsection-title">Já tomadas hoje</div>';
     hojeHtml += tomadasHoje.map(createMedicacaoCard).join('');
   }
 
@@ -1876,7 +1876,7 @@ function renderPerfil() {
     {
       screenId: 'medicacoesScreen',
       icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H20a2 2 0 0 1 2 2v3"/><circle cx="18" cy="18" r="3"/><path d="m22 22-1.5-1.5"/></svg>`,
-      title: 'MedicaÇA?es',
+      title: 'Medicações',
       subtitle: 'Mostrar no menu inferior',
       personalize: null
     },
@@ -1932,7 +1932,7 @@ function renderPerfil() {
         ${avatarHtml}
       </div>
       <div class="perfil-hero-name">${usuario.nome}</div>
-      <div class="perfil-hero-meta">${idade} anos A? Paciente</div>
+      <div class="perfil-hero-meta">${idade} anos | Paciente</div>
 
       <!-- Dados pessoais com mA?scara -->
       <div class="perfil-hero-dados">
@@ -1958,7 +1958,7 @@ function renderPerfil() {
     </div>
 
     <!-- ?"–? CONFIGURAA?AES ?"–? -->
-    <div class="perfil-section-title">ConfiguraÇA?es</div>
+    <div class="perfil-section-title">Configurações</div>
     <div class="config-item" onclick="openMeusIndicadoresModal()" style="cursor:pointer;">
       <div class="config-item-content">
         <div class="config-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
@@ -2019,7 +2019,7 @@ function renderPerfil() {
       <div class="config-item-content">
         <div class="config-icon" style="color:#3b82f6;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
         <div class="config-text">
-          <div class="config-title">NotificaÇA?es</div>
+          <div class="config-title">Notificações</div>
           <div class="config-subtitle">Lembretes de medicação e alertas</div>
         </div>
       </div>
@@ -2622,7 +2622,7 @@ function setupMedicacaoModal() {
       showFeedbackModal('Verifique a data de inA-cio e a duração em dias.', 'warning');
       return;
     }
-    if (horarios.length === 0) { showFeedbackModal('Informe pelo menos um horario.', 'warning'); return; }
+    if (horarios.length === 0) {     showFeedbackModal('Informe pelo menos um horário.', 'warning'); return; }
 
     const saveMedicacao = () => {
       const exibirDashboard = document.getElementById('toggleDashboardMed').classList.contains('active');
@@ -2812,7 +2812,7 @@ function markAsTaken(medicacaoId) {
 }
 
 function editMedicacao(medicacaoId) {
-  showFeedbackModal('Funcionalidade de edicao em desenvolvimento.', 'info');
+  showFeedbackModal('Funcionalidade de edição em desenvolvimento.', 'info');
 }
 
 // ===== FUNA?AES AUXILIARES =====
@@ -3087,10 +3087,10 @@ function checkRescheduledMeasurementAlerts() {
     item.alertedAt = `${getTodayISODate()}T${getCurrentHHMM()}:00`;
     const dateTxt = formatDateForUI(item.proximaMedicao.slice(0, 10));
     const timeTxt = item.proximaMedicao.slice(11, 16);
-    const msg = `Hora da proxima medicao (${dateTxt} as ${timeTxt}).`;
-    showFeedbackModal(msg, 'warning', 'Lembrete de medicao');
+    const msg = `Hora da próxima medição (${dateTxt} as ${timeTxt}).`;
+    showFeedbackModal(msg, 'warning', 'Lembrete de medição');
     if (item.notificar) {
-      trySendBrowserNotification('Lembrete de medicao', msg);
+      trySendBrowserNotification('Lembrete de medição', msg);
     }
   });
 }
@@ -4291,7 +4291,7 @@ function renderMedicationOverdueSection() {
 
 function openDailyScheduleModal(initialFilter = 'todos') {
   const hoje = getTodayISODate();
-  document.getElementById('dailyScheduleTitle').textContent = `Agenda de MedicaÇA?es - ${formatDateForUI(hoje)}`;
+  document.getElementById('dailyScheduleTitle').textContent = `Agenda de Medicações - ${formatDateForUI(hoje)}`;
   currentDailyScheduleFilter = initialFilter;
   renderDailySchedule(initialFilter);
   setDailyScheduleActiveFilter(initialFilter);
@@ -4535,7 +4535,7 @@ function renderMedicationCalendarDay() {
 
   const titleEl = document.getElementById('medicationCalendarTitle');
   if (titleEl) {
-    titleEl.textContent = `CalendA?rio de MedicaÇA?es - ${formatDateForUI(selectedDate)}`;
+    titleEl.textContent = `Calendário de Medicações - ${formatDateForUI(selectedDate)}`;
   }
 
   const content = document.getElementById('medicationCalendarContent');
@@ -4902,7 +4902,7 @@ function applyPeriodFilter() {
     const endDate = document.getElementById('periodEndDate').value;
     
     if (!startDate || !endDate) {
-      showFeedbackModal('Selecione data de inicio e fim.', 'warning');
+      showFeedbackModal('Selecione data de início e fim.', 'warning');
       return;
     }
     
@@ -5049,7 +5049,7 @@ function renderDailyAdherence(startDate, endDate) {
     });
     
     const percentage = dayExpected > 0 ? Math.round((dayTaken / dayExpected) * 100) : 0;
-    const statusText = percentage === 100 ? 'Excelente' : percentage >= 50 ? 'Atencao' : 'Baixa';
+    const statusText = percentage === 100 ? 'Excelente' : percentage >= 50 ? 'Atenção' : 'Baixa';
     
     html += `
       <div class=\"daily-adherence-item\">\n        <div class=\"daily-date\">${formatDateForUI(data)}</div>\n        <div class=\"daily-stats\">\n          <span>${dayTaken}/${dayExpected}</span>\n          <span class=\"daily-icon\">${statusText}</span>\n        </div>\n      </div>\n    `;
@@ -5549,7 +5549,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       // Novo
       if (categoria === 'vitais') {
-        if (mockData.sinaisVitais.find(v => v.tipo.toLowerCase() === nome.toLowerCase())) { showFeedbackModal('Este indicador ja existe.', 'warning'); return; }
+        if (mockData.sinaisVitais.find(v => v.tipo.toLowerCase() === nome.toLowerCase())) { showFeedbackModal('Este indicador já existe.', 'warning'); return; }
         const newId = Math.max(...mockData.sinaisVitais.map(v => v.id), 0) + 1;
         mockData.sinaisVitais.push({
           id: newId, tipo: nome, valor: '-', unidade, ideal: toIdealObjectFromInput(ideal), fonte, tempo: 'Nunca medido',
@@ -5560,7 +5560,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderMeusIndicadoresVitais();
         renderSaude();
       } else {
-        if (mockData.composicaoCorporal.find(c => c.tipo.toLowerCase() === nome.toLowerCase())) { showFeedbackModal('Este indicador ja existe.', 'warning'); return; }
+        if (mockData.composicaoCorporal.find(c => c.tipo.toLowerCase() === nome.toLowerCase())) { showFeedbackModal('Este indicador já existe.', 'warning'); return; }
         const newId = Math.max(...mockData.composicaoCorporal.map(c => c.id), 0) + 1;
         mockData.composicaoCorporal.push({ id: newId, tipo: nome, valor: '-', unidade, ideal: toIdealObjectFromInput(ideal), dataHora: '', variacao: 'normal', icon, fonte, historico: [] });
         mockData.configComposicao[nome] = { exibirCorpo: true, exibirDashboard: false };
@@ -5915,7 +5915,7 @@ function openExercicioDetalheModal(sessao) {
   const axisEl = document.getElementById('exercicioDetalheAxis');
   if (!nomeEl || !durEl || !gridEl || !axisEl) return;
 
-  nomeEl.textContent = sessao.nomeAtividade || 'ExercA-cio';
+  nomeEl.textContent = sessao.nomeAtividade || 'Exercício';
   durEl.textContent = formatDuracaoHMS(sessao.duracaoSegundos);
   if (periodoEl) {
     const ini = sessao.inicioISO ? formatDateTimeForUI(sessao.inicioISO) : '';
@@ -6155,7 +6155,7 @@ function openBatimentoMinutoDetalhe(hour, contexto) {
     : '–';
 
   // Badge de contexto
-  const ctxMap = { exercicio: 'ExercA-cio', sono: 'Sono', repouso: 'Repouso' };
+  const ctxMap = { exercicio: 'Exercício', sono: 'Sono', repouso: 'Repouso' };
   const ctxEl = document.getElementById('batimentoMinutoContexto');
   if (contexto && ctxMap[contexto]) {
     ctxEl.textContent = ctxMap[contexto];
@@ -9333,7 +9333,7 @@ function openPressaoDiaDetail(dayIso, entries) {
 function _pressaoClassificar(sis, dia) {
   if (!Number.isFinite(sis) || !Number.isFinite(dia)) return 'normal';
   if (sis >= 140 || dia >= 90) return 'alta';
-  if (sis >= 130 || dia >= 80) return 'limitrofe';
+  if (sis >= 130 || dia >= 80) return 'limítrofe';
   return 'normal';
 }
 
@@ -12183,7 +12183,7 @@ function renderVitalDetailContent(historico) {
       : h.valor;
     let pmed = '';
     if (currentVitalDetail?.tipo === 'Pressão Arterial' && h.medicamentoPressao && h.medicamentoPressao !== 'nenhum') {
-      pmed = h.medicamentoPressao === 'tomados' ? ' | Tomados' : ' | Nao tomados';
+      pmed = h.medicamentoPressao === 'tomados' ? ' | Tomados' : ' | Não tomados';
     }
 
     const ctxLabel = typeof getLabelContextoColetaHistorico === 'function' ? getLabelContextoColetaHistorico(h) : '';
@@ -12350,11 +12350,11 @@ function buildAddVitalPendingPayload() {
   const fonte = document.getElementById('fonteVitalInput').value;
 
   if (!fonte) {
-    return { ok: false, message: 'Selecione a fonte da medicao.' };
+    return { ok: false, message: 'Selecione a fonte da medição.' };
   }
 
   if (fonte === 'Pulseira' && !isPulseiraChecklistComplete()) {
-    return { ok: false, message: 'Para medicao por pulseira, conclua o checklist de preparo.' };
+    return { ok: false, message: 'Para medição por pulseira, conclua o checklist de preparo.' };
   }
 
   if (tipoVital === 'Pressão Arterial') {
@@ -12609,7 +12609,7 @@ function confirmHeartRateFollowup() {
   const heartRate = document.getElementById('heartRateInput').value;
 
   if (!heartRate) {
-    showFeedbackModal('Digite o batimento cardiaco.', 'warning');
+    showFeedbackModal('Digite o batimento cardíaco.', 'warning');
     return;
   }
   const bpm = parseInt(heartRate, 10);
@@ -12672,7 +12672,7 @@ function closeMoodCheckinModal() {
 
 function ignoreMoodCheckin() {
   closeMoodCheckinModal();
-  showFeedbackModal('Registro concluido. Obrigado!', 'success');
+  showFeedbackModal('Registro concluído. Obrigado!', 'success');
 }
 
 function selectMoodFace(value) {
@@ -12716,7 +12716,7 @@ function getLatestPressureAndHeartRate() {
 
 function confirmMoodCheckin() {
   if (!currentMoodValue) {
-    showFeedbackModal('Selecione como voce esta se sentindo (humor).', 'warning');
+    showFeedbackModal('Selecione como você está se sentindo (humor).', 'warning');
     return;
   }
 
@@ -12765,7 +12765,7 @@ function confirmRescheduleMeasurement() {
   if (!input || !modal) return;
 
   if (!input.value) {
-    showFeedbackModal('Selecione data e hora para a proxima medicao.', 'warning');
+    showFeedbackModal('Selecione data e hora para a próxima medição.', 'warning');
     return;
   }
 
@@ -12789,7 +12789,7 @@ function confirmRescheduleMeasurement() {
   const dateObj = new Date(input.value);
   const dateTxt = formatDateForUI(input.value.slice(0, 10));
   const timeTxt = `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
-  showFeedbackModal(`Reagendado para ${dateTxt} A?s ${timeTxt}. ${notify ? 'Notificacao ativada.' : 'Sem notificacao.'}`, 'success');
+  showFeedbackModal(`Reagendado para ${dateTxt} às ${timeTxt}. ${notify ? 'Notificação ativada.' : 'Sem notificação.'}`, 'success');
 }
 
 function formatPressureValueForUI(value) {
