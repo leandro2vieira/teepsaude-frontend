@@ -12069,8 +12069,21 @@ body {
 /* Wizard Body */
 .corpo-wizard-body {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   padding: 16px;
   overflow-y: auto;
+}
+
+.corpo-wizard-body.is-forward {
+  animation: corpoWizardSlideInRight 0.3s ease;
+}
+
+.corpo-wizard-body.is-back {
+  animation: corpoWizardSlideInLeft 0.3s ease;
+}
+
+.corpo-wizard-body.is-stationary {
   animation: corpoWizardFadeIn 0.3s ease;
 }
 
@@ -12079,12 +12092,24 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes corpoWizardSlideInRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes corpoWizardSlideInLeft {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 /* Date Step */
 .corpo-wiz-date-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24px 0 0;
+  flex: 1;
+  justify-content: center;
+  padding: 8px 0;
 }
 
 .corpo-wiz-date-card {
@@ -12097,8 +12122,8 @@ body {
 }
 
 .corpo-wiz-date-icon {
-  width: 56px;
-  height: 56px;
+  width: 72px;
+  height: 72px;
   margin: 0 auto 14px;
   background: linear-gradient(135deg, #eff6ff, #dbeafe);
   border-radius: 14px;
@@ -12116,12 +12141,22 @@ body {
   text-align: center;
 }
 
+.corpo-wiz-date-input-wrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.corpo-wiz-date-input-inner {
+  position: relative;
+  width: 100%;
+  max-width: 290px;
+}
+
 .corpo-wiz-date-input {
   width: 100%;
-  max-width: 240px;
-  margin: 0 auto;
   display: block;
-  padding: 16px 20px;
+  padding: 16px 50px 16px 20px;
   font-size: 22px;
   font-weight: 700;
   text-align: center;
@@ -12152,7 +12187,25 @@ body {
   background: #ffffff;
 }
 
-.corpo-wiz-date-hint {
+.corpo-wiz-date-picker-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.corpo-wiz-date-picker-icon {
+  width: 22px;
+  height: 22px;
+  color: #64748b;
+  pointer-events: none;
+  z-index: 1;
+}.corpo-wiz-date-hint {
   margin-top: 12px;
   font-size: 12px;
   font-weight: 500;
@@ -12166,6 +12219,8 @@ body {
   flex-direction: column;
   align-items: center;
   text-align: center;
+  flex: 1;
+  justify-content: center;
 }
 
 .corpo-wiz-measure-title {
@@ -12183,8 +12238,8 @@ body {
 }
 
 .corpo-wiz-illustration {
-  width: 120px;
-  height: 120px;
+  width: 96px;
+  height: 96px;
   margin: 0 auto 20px;
   background: linear-gradient(135deg, #eef4ff, #dbeafe);
   border-radius: 50%;
@@ -12196,8 +12251,8 @@ body {
 }
 
 .corpo-wiz-illustration svg {
-  width: 60px;
-  height: 60px;
+  width: 48px;
+  height: 48px;
 }
 
 /* Dual inputs for grouped limbs */
@@ -12260,6 +12315,85 @@ body {
 .corpo-wiz-dual-inputs .corpo-wiz-input-field {
   font-size: 22px;
   padding: 14px 12px;
+}
+
+/* Stepper +/− */
+.corpo-wiz-stepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+.corpo-wiz-stepper .corpo-wiz-input-field {
+  flex: 1;
+  border-radius: 0;
+  text-align: center;
+  padding: 14px 8px;
+  font-size: 30px;
+  -moz-appearance: textfield;
+}
+
+.corpo-wiz-step-btn {
+  width: 52px;
+  height: 56px;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 24px;
+  font-weight: 700;
+  color: #2563eb;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.12s, border-color 0.12s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  line-height: 1;
+}
+
+.corpo-wiz-step-btn--minus {
+  border-radius: 12px 0 0 12px;
+  border-right: none;
+}
+
+.corpo-wiz-step-btn--plus {
+  border-radius: 0 12px 12px 0;
+  border-left: none;
+}
+
+.corpo-wiz-step-btn:active {
+  background: #dbeafe;
+  border-color: #2563eb;
+}
+
+.corpo-wiz-dual-inputs .corpo-wiz-stepper {
+  max-width: 100%;
+}
+
+.corpo-wiz-dual-inputs .corpo-wiz-step-btn {
+  width: 44px;
+  height: 48px;
+  font-size: 20px;
+}
+
+.corpo-wiz-dual-inputs .corpo-wiz-input-field {
+  font-size: 22px;
+  padding: 12px 6px;
+}
+
+/* Review rows hover for clickable */
+.corpo-wiz-review-row[data-step]:hover {
+  background: #f8fafc;
+  border-radius: 6px;
+}
+
+.corpo-wiz-review-row[data-step]:active {
+  background: #f1f5f9;
+  transform: scale(0.99);
 }
 
 /* History table */
@@ -12465,24 +12599,40 @@ body {
     bottom: calc(68px + env(safe-area-inset-bottom));
   }
 
-  .corpo-wiz-input-field {
-    font-size: 24px;
-    padding: 14px;
+  .corpo-wiz-stepper {
+    max-width: 240px;
   }
 
-  .corpo-wiz-dual-inputs .corpo-wiz-input-field {
-    font-size: 20px;
-    padding: 12px 10px;
+  .corpo-wiz-stepper .corpo-wiz-input-field {
+    font-size: 26px;
+    padding: 12px 6px;
+  }
+
+  .corpo-wiz-step-btn {
+    width: 46px;
+    height: 50px;
+    font-size: 22px;
+  }
+
+  .corpo-wiz-dual-inputs .corpo-wiz-stepper {
+    max-width: 100%;
+  }
+
+  .corpo-wiz-dual-inputs .corpo-wiz-step-btn {
+    width: 40px;
+    height: 44px;
+    font-size: 18px;
   }
 
   .corpo-wiz-illustration {
-    width: 100px;
-    height: 100px;
+    width: 60px;
+    height: 60px;
+    margin-bottom: 12px;
   }
 
   .corpo-wiz-illustration svg {
-    width: 48px;
-    height: 48px;
+    width: 30px;
+    height: 30px;
   }
 
   .corpo-wiz-measure-title {

@@ -38,7 +38,7 @@ const mockData = {
     telefone: '(11) 98765-4321',
     /** Emoji ou texto curto; se `fotoPerfilUrl` for data:image/…, o header usa a foto. */
     fotoPerfil: '👤',
-    fotoPerfilUrl: 'Foto_Paciente.jpeg',
+    fotoPerfilUrl: 'assets/img/Foto_Paciente.jpeg',
     dataCadastro: '2024-01-01',
     ativo: true
   },

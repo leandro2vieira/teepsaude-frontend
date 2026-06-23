@@ -37,6 +37,7 @@ let corpoAvaliacaoViewMode = 'list';
 let corpoAvaliacaoSelectedId = null;
 let corpoAvaliacaoWizardStep = 1;
 let corpoAvaliacaoDraft = null;
+let corpoWizardAnimDir = 'stationary';
 
 /** YYYY-MM-DD no calendário local. Evita `toISOString()` (UTC), que desloca o dia e quebra filtros 7d/15d e o gráfico. */
 function dateToLocalISODate(d) {
@@ -3284,11 +3285,8 @@ var CORPO_WIZARD_STEPS = [
   { type: 'date', title: 'Data da avaliação' },
   { type: 'measure', group: 'geral', key: 'peso', label: 'Peso', unit: 'kg', decimals: 1, icon: 'weight' },
   { type: 'measure', group: 'geral', key: 'altura', label: 'Altura', unit: 'm', decimals: 2, icon: 'height' },
-  { type: 'measure', group: 'geral', key: 'imc', label: 'IMC', unit: '', decimals: 1, icon: 'imc' },
   { type: 'measure', group: 'geral', key: 'percMassaGorda', label: '% Massa Gorda', unit: '%', decimals: 1, icon: 'fat' },
   { type: 'measure', group: 'geral', key: 'percMassaMagra', label: '% Massa Magra', unit: '%', decimals: 1, icon: 'muscle' },
-  { type: 'measure', group: 'geral', key: 'massaGordaKg', label: 'Massa Gorda (kg)', unit: 'kg', decimals: 1, icon: 'fat' },
-  { type: 'measure', group: 'geral', key: 'massaMagraKg', label: 'Massa Magra (kg)', unit: 'kg', decimals: 1, icon: 'muscle' },
   { type: 'measure', group: 'geral', key: 'rcq', label: 'Razão Cintura/Quadril', unit: '', decimals: 2, icon: 'waist' },
   { type: 'measure', group: 'circunferencias', key: 'ombro', label: 'Ombro', unit: 'cm', icon: 'shoulder' },
   { type: 'measure', group: 'circunferencias', key: 'peitoral', label: 'Peitoral', unit: 'cm', icon: 'chest' },
@@ -3310,6 +3308,33 @@ var CORPO_WIZARD_STEPS = [
 ];
 
 var CORPO_WIZARD_TOTAL_STEPS = CORPO_WIZARD_STEPS.length;
+var CORPO_VALIDATION = {
+  peso:                    { min: 20,  max: 350, msg: 'Peso deve estar entre 20 e 350 kg' },
+  altura:                  { min: 0.5, max: 2.5, msg: 'Altura deve estar entre 0,50 e 2,50 m' },
+  percMassaGorda:          { min: 3,   max: 70,  msg: '% massa gorda deve estar entre 3% e 70%' },
+  percMassaMagra:          { min: 30,  max: 97,  msg: '% massa magra deve estar entre 30% e 97%' },
+  rcq:                     { min: 0.5, max: 1.5, msg: 'Razão cintura/quadril deve estar entre 0,50 e 1,50' },
+  ombro:                   { min: 50,  max: 200, msg: 'Ombro deve estar entre 50 e 200 cm' },
+  peitoral:                { min: 50,  max: 200, msg: 'Peitoral deve estar entre 50 e 200 cm' },
+  cintura:                 { min: 40,  max: 200, msg: 'Cintura deve estar entre 40 e 200 cm' },
+  abdomen:                 { min: 40,  max: 200, msg: 'Abdômen deve estar entre 40 e 200 cm' },
+  quadril:                 { min: 40,  max: 200, msg: 'Quadril deve estar entre 40 e 200 cm' },
+  bracoEsqRelaxado:        { min: 10,  max: 80,  msg: 'Braço relaxado deve estar entre 10 e 80 cm' },
+  bracoDirRelaxado:        { min: 10,  max: 80,  msg: 'Braço direito relaxado deve estar entre 10 e 80 cm' },
+  bracoEsqContraido:       { min: 10,  max: 80,  msg: 'Braço contraído deve estar entre 10 e 80 cm' },
+  bracoDirContraido:       { min: 10,  max: 80,  msg: 'Braço direito contraído deve estar entre 10 e 80 cm' },
+  panturrilhaEsq:          { min: 10,  max: 80,  msg: 'Panturrilha deve estar entre 10 e 80 cm' },
+  panturrilhaDir:          { min: 10,  max: 80,  msg: 'Panturrilha direita deve estar entre 10 e 80 cm' },
+  coxaEsq:                 { min: 10,  max: 100, msg: 'Coxa deve estar entre 10 e 100 cm' },
+  coxaDir:                 { min: 10,  max: 100, msg: 'Coxa direita deve estar entre 10 e 100 cm' },
+  abdominal:               { min: 2,   max: 80,  msg: 'Dobra abdominal deve estar entre 2 e 80 mm' },
+  triceps:                 { min: 2,   max: 60,  msg: 'Dobra tríceps deve estar entre 2 e 60 mm' },
+  suprailiaca:             { min: 2,   max: 60,  msg: 'Dobra suprailíaca deve estar entre 2 e 60 mm' },
+  axilarMedia:             { min: 2,   max: 60,  msg: 'Dobra axilar média deve estar entre 2 e 60 mm' },
+  subescapular:            { min: 2,   max: 60,  msg: 'Dobra subescapular deve estar entre 2 e 60 mm' },
+  torax:                   { min: 2,   max: 60,  msg: 'Dobra tórax deve estar entre 2 e 60 mm' },
+  coxa:                    { min: 2,   max: 80,  msg: 'Dobra coxa deve estar entre 2 e 80 mm' },
+};
 
 function getCorpoMeasurementIcon(iconName) {
   var icons = {
@@ -3382,6 +3407,69 @@ function formatCorpoMeasure(value, unit, decimals) {
   var precision = Number.isFinite(decimals) ? decimals : 1;
   var txt = n.toLocaleString('pt-BR', { minimumFractionDigits: precision, maximumFractionDigits: precision });
   return unit ? (txt + ' ' + unit) : txt;
+}
+
+function getStepIndexForField(group, key) {
+  for (var i = 0; i < CORPO_WIZARD_STEPS.length; i++) {
+    var s = CORPO_WIZARD_STEPS[i];
+    if (s.group === group && s.key === key) return i + 1;
+    if (s.dual && s.group === group && s.key2 === key) return i + 1;
+  }
+  return -1;
+}
+
+function corpoWizardGoToStep(n) {
+  syncCorpoWizardDraftFromInputs();
+  if (n < 1) n = 1;
+  if (n > CORPO_WIZARD_TOTAL_STEPS) n = CORPO_WIZARD_TOTAL_STEPS;
+  var dir = n > corpoAvaliacaoWizardStep ? 'forward' : n < corpoAvaliacaoWizardStep ? 'back' : 'stationary';
+  corpoWizardAnimDir = dir;
+  corpoAvaliacaoWizardStep = n;
+  renderCorpoAvaliacaoWizardStep();
+}
+
+var _corpoStepTimer = null;
+var _corpoStepInputId = null;
+function corpoStepStart(inputId, dir, step) {
+  _corpoStepInputId = inputId;
+  var el = document.getElementById(inputId);
+  if (!el) return;
+  var v = parseFloat(el.value) || 0;
+  el.value = Math.round((v + dir * step) * 100) / 100;
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+  if (_corpoStepTimer) clearInterval(_corpoStepTimer);
+  _corpoStepTimer = setInterval(function() {
+    var el2 = document.getElementById(inputId);
+    if (!el2) { corpoStepStop(); return; }
+    var v2 = parseFloat(el2.value) || 0;
+    el2.value = Math.round((v2 + dir * step) * 100) / 100;
+    el2.dispatchEvent(new Event('input', { bubbles: true }));
+  }, 100);
+}
+function corpoStepStop() {
+  if (_corpoStepTimer) { clearInterval(_corpoStepTimer); _corpoStepTimer = null; }
+  _corpoStepInputId = null;
+}
+
+var _corpoSwipeData = null;
+function corpoTouchStart(ev) {
+  var t = ev.touches ? ev.touches[0] : ev;
+  _corpoSwipeData = { x: t.clientX, y: t.clientY, t: Date.now() };
+}
+function corpoTouchEnd(ev) {
+  if (!_corpoSwipeData) return;
+  var t = ev.changedTouches ? ev.changedTouches[0] : ev;
+  var dx = t.clientX - _corpoSwipeData.x;
+  var dy = t.clientY - _corpoSwipeData.y;
+  var dt = Date.now() - _corpoSwipeData.t;
+  _corpoSwipeData = null;
+  var target = ev.target;
+  if (target && (target.tagName === 'INPUT' || target.tagName === 'BUTTON' || target.tagName === 'TEXTAREA' || target.closest('.corpo-wiz-step-btn'))) return;
+  if (dt > 500) return;
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+    if (dx < 0) corpoWizardNext();
+    else corpoWizardBack();
+  }
 }
 
 function renderCorpoAvaliacoesList() {
@@ -3593,14 +3681,16 @@ function syncCorpoWizardDraftFromInputs() {
     if (!group) return;
     var inputEl = document.getElementById('corpoWizInput');
     if (inputEl) {
-      var v = Number(inputEl.value);
-      group[stepDef.key] = Number.isFinite(v) ? v : null;
+      var raw = inputEl.value.trim();
+      var v = raw ? Number(raw) : NaN;
+      group[stepDef.key] = (raw && Number.isFinite(v)) ? v : null;
     }
     if (stepDef.dual) {
       var inputEl2 = document.getElementById('corpoWizInput2');
       if (inputEl2) {
-        var v2 = Number(inputEl2.value);
-        group[stepDef.key2] = Number.isFinite(v2) ? v2 : null;
+        var raw2 = inputEl2.value.trim();
+        var v2 = raw2 ? Number(raw2) : NaN;
+        group[stepDef.key2] = (raw2 && Number.isFinite(v2)) ? v2 : null;
       }
     }
   }
@@ -3644,14 +3734,21 @@ function renderCorpoWizardDateStep() {
   if (!body) return;
   var dateVal = corpoAvaliacaoDraft.data ? formatCorpoWizardDateBR(corpoAvaliacaoDraft.data) : '';
   body.innerHTML =
-    '<div class="corpo-wiz-date-wrap">' +
+    '<div class="corpo-wiz-date-wrap" ontouchstart="corpoTouchStart(event)" ontouchend="corpoTouchEnd(event)">' +
       '<div class="corpo-wiz-date-card">' +
         '<div class="corpo-wiz-date-icon">' +
-          '<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' +
+          '<svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' +
         '</div>' +
         '<div class="corpo-wiz-date-label">Data da avaliação</div>' +
-        '<input type="text" id="corpoWizDateInput" class="corpo-wiz-date-input" inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa" value="' + dateVal + '" />' +
-        '<div class="corpo-wiz-date-hint">Formato dd/mm/aaaa</div>' +
+        '<div class="corpo-wiz-date-input-wrap">' +
+          '<div class="corpo-wiz-date-input-inner">' +
+            '<input type="text" id="corpoWizDateInput" class="corpo-wiz-date-input" inputmode="numeric" maxlength="10" placeholder="dd/mm/aaaa" value="' + dateVal + '" onkeydown="if(event.key===\'Enter\')corpoWizardNext()" />' +
+            '<div class="corpo-wiz-date-picker-btn" onclick="corpoWizDatePickHandler()">' +
+              '<svg class="corpo-wiz-date-picker-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
       '</div>' +
     '</div>';
 
@@ -3669,55 +3766,111 @@ function renderCorpoWizardDateStep() {
   }
 }
 
+function corpoWizDatePickHandler() {
+  var picker = document.createElement('input');
+  picker.type = 'date';
+  var btn = document.querySelector('.corpo-wiz-date-picker-btn');
+  var rect = btn ? btn.getBoundingClientRect() : { left: 0, top: 0, width: 40, height: 40 };
+  picker.style.cssText = 'position:fixed;left:' + Math.round(rect.left) + 'px;top:' + Math.round(rect.top) + 'px;width:' + Math.round(rect.width) + 'px;height:' + Math.round(rect.height) + 'px;opacity:0.001;z-index:99999;';
+  picker.addEventListener('change', function() {
+    if (!this.value) return;
+    var parts = this.value.split('-');
+    if (parts.length === 3) {
+      var textEl = document.getElementById('corpoWizDateInput');
+      if (textEl) {
+        textEl.value = parts[2] + '/' + parts[1] + '/' + parts[0];
+        textEl.focus();
+      }
+    }
+    if (document.body.contains(this)) {
+      document.body.removeChild(this);
+    }
+  });
+  document.body.appendChild(picker);
+  setTimeout(function() {
+    if (typeof picker.showPicker === 'function') {
+      picker.showPicker();
+    }
+  }, 10);
+}
+
+function getCorpoLastMeasure(group, key, unit) {
+  var hist = getHistoricoParaMedida(group, key);
+  if (!hist.length) return null;
+  return { value: hist[0].value, text: formatCorpoMeasure(hist[0].value, unit, 1) };
+}
+
+function makeCorpoStepperHtml(inputId, stepSize, lastText) {
+  var step = Number.isFinite(stepSize) ? stepSize : 1;
+  return (
+    '<div class="corpo-wiz-stepper">' +
+      '<button type="button" class="corpo-wiz-step-btn corpo-wiz-step-btn--minus" ' +
+        'onpointerdown="corpoStepStart(\'' + inputId + '\',-1,' + step + ')" ' +
+        'onpointerup="corpoStepStop()" onpointerleave="corpoStepStop()" ' +
+        'aria-label="Diminuir">\u2212</button>' +
+      '<input type="number" id="' + inputId + '" class="corpo-wiz-input-field" step="' + step + '" min="0" ' +
+        'placeholder="' + (lastText || '0') + '" value="" ' +
+        'onkeydown="if(event.key===\'Enter\')corpoWizardNext()" inputmode="decimal" />' +
+      '<button type="button" class="corpo-wiz-step-btn corpo-wiz-step-btn--plus" ' +
+        'onpointerdown="corpoStepStart(\'' + inputId + '\',1,' + step + ')" ' +
+        'onpointerup="corpoStepStop()" onpointerleave="corpoStepStop()" ' +
+        'aria-label="Aumentar">+</button>' +
+    '</div>'
+  );
+}
+
 function renderCorpoWizardMeasureStep(stepDef) {
   var body = document.getElementById('corpoWizardBody');
   if (!body) return;
   var group = corpoAvaliacaoDraft[stepDef.group] || {};
-  var currentVal = Number.isFinite(Number(group[stepDef.key])) ? String(group[stepDef.key]) : '';
+  var currentVal = group[stepDef.key] != null ? String(group[stepDef.key]) : '';
   var iconSvg = getCorpoMeasurementIcon(stepDef.icon);
 
-  var subtitle = stepDef.dual ? (stepDef.sideLabel + ' / ' + stepDef.label2) : stepDef.group === 'dobras' ? 'Dobras cutaneas' : 'Circunferencia';
+  var subtitle = stepDef.dual ? (stepDef.sideLabel + ' / ' + stepDef.label2) : stepDef.group === 'dobras' ? 'Dobras cutâneas' : 'Circunferência';
+  var stepSz = stepDef.decimals === 2 ? 0.05 : stepDef.decimals === 1 ? 0.5 : 1;
 
-  var inputHtml;
+  var last1 = getCorpoLastMeasure(stepDef.group, stepDef.key, stepDef.unit);
+  var lastText1 = last1 ? 'Últ: ' + last1.text : '';
+
   if (stepDef.dual) {
-    var currentVal2 = Number.isFinite(Number(group[stepDef.key2])) ? String(group[stepDef.key2]) : '';
-    inputHtml =
-      '<div class="corpo-wiz-dual-inputs">' +
-        '<div class="corpo-wiz-input-group">' +
-          '<label class="corpo-wiz-input-label">' + stepDef.sideLabel + '</label>' +
-          '<input type="number" id="corpoWizInput" class="corpo-wiz-input-field" step="0.1" min="0" placeholder="0" value="' + currentVal + '" />' +
-        '</div>' +
-        '<div class="corpo-wiz-input-group">' +
-          '<label class="corpo-wiz-input-label">' + stepDef.label2 + '</label>' +
-          '<input type="number" id="corpoWizInput2" class="corpo-wiz-input-field" step="0.1" min="0" placeholder="0" value="' + currentVal2 + '" />' +
+    var currentVal2 = group[stepDef.key2] != null ? String(group[stepDef.key2]) : '';
+    var last2 = getCorpoLastMeasure(stepDef.group, stepDef.key2, stepDef.unit);
+    var lastText2 = last2 ? 'Últ: ' + last2.text : '';
+    body.innerHTML =
+      '<div class="corpo-wiz-measure-wrap" ontouchstart="corpoTouchStart(event)" ontouchend="corpoTouchEnd(event)">' +
+        '<div class="corpo-wiz-illustration">' + iconSvg + '</div>' +
+        '<div class="corpo-wiz-measure-title">' + stepDef.label + '</div>' +
+        '<div class="corpo-wiz-measure-subtitle">' + subtitle + ' \u00b7 ' + stepDef.unit + '</div>' +
+        '<div class="corpo-wiz-dual-inputs">' +
+          '<div class="corpo-wiz-input-group">' +
+            '<label class="corpo-wiz-input-label">' + stepDef.sideLabel + '</label>' +
+            makeCorpoStepperHtml('corpoWizInput', stepSz, lastText1) +
+          '</div>' +
+          '<div class="corpo-wiz-input-group">' +
+            '<label class="corpo-wiz-input-label">' + stepDef.label2 + '</label>' +
+            makeCorpoStepperHtml('corpoWizInput2', stepSz, lastText2) +
+          '</div>' +
         '</div>' +
       '</div>';
+    var inp1 = document.getElementById('corpoWizInput');
+    var inp2 = document.getElementById('corpoWizInput2');
+    if (inp1 && currentVal) inp1.value = currentVal;
+    if (inp2 && currentVal2) inp2.value = currentVal2;
+    if (inp1) inp1.focus();
   } else {
-    inputHtml =
-      '<div class="corpo-wiz-input-group">' +
-        '<input type="number" id="corpoWizInput" class="corpo-wiz-input-field" step="0.1" min="0" placeholder="0" value="' + currentVal + '" />' +
+    body.innerHTML =
+      '<div class="corpo-wiz-measure-wrap" ontouchstart="corpoTouchStart(event)" ontouchend="corpoTouchEnd(event)">' +
+        '<div class="corpo-wiz-illustration">' + iconSvg + '</div>' +
+        '<div class="corpo-wiz-measure-title">' + stepDef.label + '</div>' +
+        '<div class="corpo-wiz-measure-subtitle">' + subtitle + ' \u00b7 ' + stepDef.unit + '</div>' +
+        '<div class="corpo-wiz-input-group">' +
+          makeCorpoStepperHtml('corpoWizInput', stepSz, lastText1) +
+        '</div>' +
       '</div>';
+    var inp = document.getElementById('corpoWizInput');
+    if (inp && currentVal) inp.value = currentVal;
+    if (inp) inp.focus();
   }
-
-  var historyHtml = renderCorpoWizardHistoryTable(stepDef.group, stepDef.key, stepDef.unit);
-  if (stepDef.dual) {
-    historyHtml += '<div style="margin-top:12px;">' + renderCorpoWizardHistoryTable(stepDef.group, stepDef.key2, stepDef.unit) + '</div>';
-  }
-
-  body.innerHTML =
-    '<div class="corpo-wiz-measure-wrap">' +
-      '<div class="corpo-wiz-illustration">' + iconSvg + '</div>' +
-      '<div class="corpo-wiz-measure-title">' + stepDef.label + '</div>' +
-      '<div class="corpo-wiz-measure-subtitle">' + subtitle + ' \u00b7 ' + stepDef.unit + '</div>' +
-      inputHtml +
-      '<div class="corpo-wiz-history">' +
-        '<div class="corpo-wiz-history-title">Ultimas medicoes</div>' +
-        historyHtml +
-      '</div>' +
-    '</div>';
-
-  var firstInput = document.getElementById(stepDef.dual ? 'corpoWizInput2' : 'corpoWizInput');
-  if (firstInput) firstInput.focus();
 }
 
 function normalizeCorpoDraftValues() {
@@ -3728,19 +3881,19 @@ function normalizeCorpoDraftValues() {
   var percG = Number(g.percMassaGorda);
   var percM = Number(g.percMassaMagra);
 
-  if (!Number.isFinite(percM) && Number.isFinite(percG)) g.percMassaMagra = Math.max(0, 100 - percG);
-  if (!Number.isFinite(percG) && Number.isFinite(percM)) g.percMassaGorda = Math.max(0, 100 - percM);
+  if (Number.isFinite(percG)) g.percMassaMagra = Math.max(0, 100 - percG);
+  else if (Number.isFinite(percM)) g.percMassaGorda = Math.max(0, 100 - percM);
 
-  if (Number.isFinite(peso) && Number.isFinite(altura) && altura > 0 && !Number.isFinite(Number(g.imc))) {
+  if (Number.isFinite(peso) && Number.isFinite(altura) && altura > 0) {
     var alturaM = altura > 3 ? (altura / 100) : altura;
     g.imc = Math.round((peso / (alturaM * alturaM)) * 10) / 10;
   }
 
-  if (Number.isFinite(peso) && Number.isFinite(Number(g.percMassaGorda)) && !Number.isFinite(Number(g.massaGordaKg))) {
+  if (Number.isFinite(peso) && Number.isFinite(Number(g.percMassaGorda))) {
     g.massaGordaKg = Math.round((peso * (Number(g.percMassaGorda) / 100)) * 10) / 10;
   }
 
-  if (Number.isFinite(peso) && Number.isFinite(Number(g.percMassaMagra)) && !Number.isFinite(Number(g.massaMagraKg))) {
+  if (Number.isFinite(peso) && Number.isFinite(Number(g.percMassaMagra))) {
     g.massaMagraKg = Math.round((peso * (Number(g.percMassaMagra) / 100)) * 10) / 10;
   }
 }
@@ -3753,24 +3906,56 @@ function renderCorpoWizardReview() {
   var c = corpoAvaliacaoDraft.circunferencias || {};
   var d = corpoAvaliacaoDraft.dobras || {};
 
+  function reviewRow(f) {
+    var step = getStepIndexForField(f.group || f._group, f.key);
+    var grp = f.group || f._group;
+    var val = (grp === 'circunferencias' ? c : grp === 'dobras' ? d : g)[f.key];
+    var fmt = formatCorpoMeasure(val, f.unit, f.decimals || 1);
+    var clickAttr = step > 0 ? ' data-step="' + step + '" onclick="corpoWizardGoToStep(' + step + ')" style="cursor:pointer;"' : '';
+    return '<div class="corpo-wiz-review-row"' + clickAttr + '><span class="corpo-wiz-review-label">' + f.label + '</span><span class="corpo-wiz-review-value">' + fmt + '</span></div>';
+  }
+
   var geralRows = CORPO_GERAL_FIELDS.map(function(f) {
-    return '<div class="corpo-wiz-review-row"><span class="corpo-wiz-review-label">' + f.label + '</span><span class="corpo-wiz-review-value">' + formatCorpoMeasure(g[f.key], f.unit, f.decimals || 1) + '</span></div>';
+    f._group = 'geral';
+    return reviewRow(f);
   }).join('');
 
   var circRows = CORPO_CIRC_FIELDS.map(function(f) {
-    return '<div class="corpo-wiz-review-row"><span class="corpo-wiz-review-label">' + f.label + '</span><span class="corpo-wiz-review-value">' + formatCorpoMeasure(c[f.key], f.unit, 1) + '</span></div>';
+    f._group = 'circunferencias';
+    return reviewRow(f);
   }).join('');
 
   var dobraRows = CORPO_DOBRAS_FIELDS.map(function(f) {
-    return '<div class="corpo-wiz-review-row"><span class="corpo-wiz-review-label">' + f.label + '</span><span class="corpo-wiz-review-value">' + formatCorpoMeasure(d[f.key], f.unit, 1) + '</span></div>';
+    f._group = 'dobras';
+    return reviewRow(f);
   }).join('');
 
   body.innerHTML =
-    '<div class="corpo-wiz-review">' +
+    '<div class="corpo-wiz-review" ontouchstart="corpoTouchStart(event)" ontouchend="corpoTouchEnd(event)">' +
       '<div class="corpo-wiz-review-section"><div class="corpo-wiz-review-section-title">Dados gerais</div>' + geralRows + '</div>' +
-      '<div class="corpo-wiz-review-section"><div class="corpo-wiz-review-section-title">Circunferencias</div>' + circRows + '</div>' +
-      '<div class="corpo-wiz-review-section"><div class="corpo-wiz-review-section-title">Dobras cutaneas</div>' + dobraRows + '</div>' +
+      '<div class="corpo-wiz-review-section"><div class="corpo-wiz-review-section-title">Circunferências</div>' + circRows + '</div>' +
+      '<div class="corpo-wiz-review-section"><div class="corpo-wiz-review-section-title">Dobras cutâneas</div>' + dobraRows + '</div>' +
     '</div>';
+}
+
+function getCorpoProgressColor(stepDef) {
+  if (!stepDef) return '#2563eb';
+  if (stepDef.type === 'date') return '#3b82f6';
+  if (stepDef.type === 'review') return '#16a34a';
+  if (stepDef.group === 'geral') return '#3b82f6';
+  if (stepDef.group === 'circunferencias') return '#14b8a6';
+  if (stepDef.group === 'dobras') return '#a855f7';
+  return '#2563eb';
+}
+
+function getCorpoSectionLabel(stepDef) {
+  if (!stepDef) return '';
+  if (stepDef.type === 'date') return 'Data';
+  if (stepDef.type === 'review') return 'Revisar';
+  if (stepDef.group === 'geral') return 'Geral';
+  if (stepDef.group === 'circunferencias') return 'Circunferências';
+  if (stepDef.group === 'dobras') return 'Dobras';
+  return '';
 }
 
 function renderCorpoAvaliacaoWizardStep() {
@@ -3787,23 +3972,29 @@ function renderCorpoAvaliacaoWizardStep() {
   var saveBtn = document.getElementById('corpoWizardSaveBtn');
 
   var progress = Math.round((corpoAvaliacaoWizardStep / CORPO_WIZARD_TOTAL_STEPS) * 100);
-  if (progressFill) progressFill.style.width = progress + '%';
+  if (progressFill) {
+    progressFill.style.width = progress + '%';
+    progressFill.style.background = getCorpoProgressColor(stepDef);
+  }
+
+  var bodyEl = document.getElementById('corpoWizardBody');
+  if (bodyEl) {
+    bodyEl.className = 'corpo-wizard-body is-' + (corpoWizardAnimDir || 'stationary');
+    corpoWizardAnimDir = 'stationary';
+  }
 
   if (stepDef.type === 'date') {
-    if (titleEl) titleEl.textContent = 'Nova avaliacao';
-    if (subtitleEl) subtitleEl.textContent = 'Etapa 1 de ' + CORPO_WIZARD_TOTAL_STEPS;
-    syncCorpoWizardDraftFromInputs();
+    if (titleEl) titleEl.textContent = 'Nova avaliação';
+    if (subtitleEl) subtitleEl.textContent = 'Data · 1 de ' + CORPO_WIZARD_TOTAL_STEPS;
     renderCorpoWizardDateStep();
   } else if (stepDef.type === 'measure') {
-    syncCorpoWizardDraftFromInputs();
     if (titleEl) titleEl.textContent = stepDef.label;
-    if (subtitleEl) subtitleEl.textContent = 'Etapa ' + corpoAvaliacaoWizardStep + ' de ' + CORPO_WIZARD_TOTAL_STEPS;
+    if (subtitleEl) subtitleEl.textContent = getCorpoSectionLabel(stepDef) + ' · ' + corpoAvaliacaoWizardStep + ' de ' + CORPO_WIZARD_TOTAL_STEPS;
     renderCorpoWizardMeasureStep(stepDef);
   } else if (stepDef.type === 'review') {
-    syncCorpoWizardDraftFromInputs();
     normalizeCorpoDraftValues();
-    if (titleEl) titleEl.textContent = 'Revisar avaliacao';
-    if (subtitleEl) subtitleEl.textContent = 'Etapa ' + corpoAvaliacaoWizardStep + ' de ' + CORPO_WIZARD_TOTAL_STEPS;
+    if (titleEl) titleEl.textContent = 'Revisar avaliação';
+    if (subtitleEl) subtitleEl.textContent = 'Revisar · ' + corpoAvaliacaoWizardStep + ' de ' + CORPO_WIZARD_TOTAL_STEPS;
     renderCorpoWizardReview();
   }
 
@@ -3815,12 +4006,38 @@ function corpoWizardNext() {
   syncCorpoWizardDraftFromInputs();
   var stepDef = CORPO_WIZARD_STEPS[corpoAvaliacaoWizardStep - 1];
   if (stepDef && stepDef.type === 'date' && !corpoAvaliacaoDraft.data) {
-    showFeedbackModal('Informe a data da avaliacao no formato dd/mm/aaaa.', 'warning');
+    showFeedbackModal('Informe a data da avaliação no formato dd/mm/aaaa.', 'warning');
     return;
+  }
+  if (stepDef && stepDef.type === 'measure') {
+    var group = corpoAvaliacaoDraft[stepDef.group] || {};
+    var v = group[stepDef.key];
+    if (v == null || !Number.isFinite(Number(v))) {
+      showFeedbackModal('Informe o valor de ' + stepDef.label + '.', 'warning');
+      return;
+    }
+    var rule = CORPO_VALIDATION[stepDef.key];
+    if (rule && (Number(v) < rule.min || Number(v) > rule.max)) {
+      showFeedbackModal(rule.msg, 'warning');
+      return;
+    }
+    if (stepDef.dual) {
+      var v2 = group[stepDef.key2];
+      if (v2 == null || !Number.isFinite(Number(v2))) {
+        showFeedbackModal('Informe o valor de ' + stepDef.label2 + '.', 'warning');
+        return;
+      }
+      var rule2 = CORPO_VALIDATION[stepDef.key2];
+      if (rule2 && (Number(v2) < rule2.min || Number(v2) > rule2.max)) {
+        showFeedbackModal(rule2.msg, 'warning');
+        return;
+      }
+    }
   }
   normalizeCorpoDraftValues();
   if (corpoAvaliacaoWizardStep < CORPO_WIZARD_TOTAL_STEPS) {
     corpoAvaliacaoWizardStep++;
+    corpoWizardAnimDir = 'forward';
     renderCorpoAvaliacaoWizardStep();
   }
 }
@@ -3829,6 +4046,7 @@ function corpoWizardBack() {
   syncCorpoWizardDraftFromInputs();
   if (corpoAvaliacaoWizardStep > 1) {
     corpoAvaliacaoWizardStep--;
+    corpoWizardAnimDir = 'back';
     renderCorpoAvaliacaoWizardStep();
   }
 }
