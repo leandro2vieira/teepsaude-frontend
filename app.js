@@ -3250,19 +3250,19 @@ var CORPO_GERAL_FIELDS = [
   { key: 'percMassaMagra', label: '% massa magra', unit: '%', decimals: 1 },
   { key: 'massaGordaKg', label: 'Massa gorda', unit: 'kg', decimals: 1 },
   { key: 'massaMagraKg', label: 'Massa magra', unit: 'kg', decimals: 1 },
-  { key: 'rcq', label: 'Razao cintura/quadril', unit: '', decimals: 2 }
+  { key: 'rcq', label: 'Razão cintura/quadril', unit: '', decimals: 2 }
 ];
 
 var CORPO_CIRC_FIELDS = [
   { key: 'ombro', label: 'Ombro', unit: 'cm' },
   { key: 'peitoral', label: 'Peitoral', unit: 'cm' },
   { key: 'cintura', label: 'Cintura', unit: 'cm' },
-  { key: 'abdomen', label: 'Abdomen', unit: 'cm' },
+  { key: 'abdomen', label: 'Abdômen', unit: 'cm' },
   { key: 'quadril', label: 'Quadril', unit: 'cm' },
-  { key: 'bracoEsqRelaxado', label: 'Braco esquerdo relaxado', unit: 'cm' },
-  { key: 'bracoDirRelaxado', label: 'Braco direito relaxado', unit: 'cm' },
-  { key: 'bracoEsqContraido', label: 'Braco esquerdo contraido', unit: 'cm' },
-  { key: 'bracoDirContraido', label: 'Braco direito contraido', unit: 'cm' },
+  { key: 'bracoEsqRelaxado', label: 'Braço esquerdo relaxado', unit: 'cm' },
+  { key: 'bracoDirRelaxado', label: 'Braço direito relaxado', unit: 'cm' },
+  { key: 'bracoEsqContraido', label: 'Braço esquerdo contraído', unit: 'cm' },
+  { key: 'bracoDirContraido', label: 'Braço direito contraído', unit: 'cm' },
   { key: 'panturrilhaEsq', label: 'Panturrilha esquerda', unit: 'cm' },
   { key: 'panturrilhaDir', label: 'Panturrilha direita', unit: 'cm' },
   { key: 'coxaEsq', label: 'Coxa esquerda', unit: 'cm' },
@@ -3271,11 +3271,11 @@ var CORPO_CIRC_FIELDS = [
 
 var CORPO_DOBRAS_FIELDS = [
   { key: 'abdominal', label: 'Abdominal', unit: 'mm' },
-  { key: 'triceps', label: 'Triceps', unit: 'mm' },
-  { key: 'suprailiaca', label: 'Suprailiaca', unit: 'mm' },
-  { key: 'axilarMedia', label: 'Axilar media', unit: 'mm' },
+  { key: 'triceps', label: 'Tríceps', unit: 'mm' },
+  { key: 'suprailiaca', label: 'Suprailíaca', unit: 'mm' },
+  { key: 'axilarMedia', label: 'Axilar média', unit: 'mm' },
   { key: 'subescapular', label: 'Subescapular', unit: 'mm' },
-  { key: 'torax', label: 'Torax', unit: 'mm' },
+  { key: 'torax', label: 'Tórax', unit: 'mm' },
   { key: 'coxa', label: 'Coxa', unit: 'mm' }
 ];
 
@@ -3618,7 +3618,7 @@ function renderCorpoAvaliacaoDetail() {
 
   if (Number.isFinite(percGorda)) {
     if (percGorda <= 20) setKpiState(kpiGordaCard, kpiGordaStatus, 'is-good', 'Bom');
-    else if (percGorda <= 25) setKpiState(kpiGordaCard, kpiGordaStatus, 'is-attention', 'Atencao');
+    else if (percGorda <= 25) setKpiState(kpiGordaCard, kpiGordaStatus, 'is-attention', 'Atenção');
     else setKpiState(kpiGordaCard, kpiGordaStatus, 'is-high', 'Alto');
   } else {
     setKpiState(kpiGordaCard, kpiGordaStatus, '', 'Sem dado');
@@ -3626,7 +3626,7 @@ function renderCorpoAvaliacaoDetail() {
 
   if (Number.isFinite(percMagra)) {
     if (percMagra >= 80) setKpiState(kpiMagraCard, kpiMagraStatus, 'is-good', 'Bom');
-    else if (percMagra >= 70) setKpiState(kpiMagraCard, kpiMagraStatus, 'is-attention', 'Atencao');
+    else if (percMagra >= 70) setKpiState(kpiMagraCard, kpiMagraStatus, 'is-attention', 'Atenção');
     else setKpiState(kpiMagraCard, kpiMagraStatus, 'is-low', 'Baixo');
   } else {
     setKpiState(kpiMagraCard, kpiMagraStatus, '', 'Sem dado');
@@ -3712,7 +3712,7 @@ function getHistoricoParaMedida(group, key) {
 function renderCorpoWizardHistoryTable(group, key, unit) {
   var historico = getHistoricoParaMedida(group, key);
   if (!historico.length) {
-    return '<div class="corpo-wiz-history-empty">Sem medicoes anteriores</div>';
+    return '<div class="corpo-wiz-history-empty">Sem medições anteriores</div>';
   }
   var rows = historico.map(function(h, idx) {
     var formatted = formatCorpoMeasure(h.value, unit, 1);
@@ -3726,7 +3726,7 @@ function renderCorpoWizardHistoryTable(group, key, unit) {
     var dateTxt = h.data ? formatDateForUI(h.data) : '-';
     return '<tr><td>' + dateTxt + '</td><td>' + formatted + '</td><td>' + variation + '</td></tr>';
   }).join('');
-  return '<table class="corpo-wiz-history-table"><thead><tr><th>Data</th><th>' + unit + '</th><th>Variacao</th></tr></thead><tbody>' + rows + '</tbody></table>';
+  return '<table class="corpo-wiz-history-table"><thead><tr><th>Data</th><th>' + unit + '</th><th>Variação</th></tr></thead><tbody>' + rows + '</tbody></table>';
 }
 
 function renderCorpoWizardDateStep() {
@@ -4043,18 +4043,20 @@ function corpoWizardNext() {
 }
 
 function corpoWizardBack() {
-  syncCorpoWizardDraftFromInputs();
-  if (corpoAvaliacaoWizardStep > 1) {
-    corpoAvaliacaoWizardStep--;
-    corpoWizardAnimDir = 'back';
-    renderCorpoAvaliacaoWizardStep();
+  if (corpoAvaliacaoWizardStep <= 1) {
+    closeCorpoNovaAvaliacaoWizard();
+    return;
   }
+  syncCorpoWizardDraftFromInputs();
+  corpoAvaliacaoWizardStep--;
+  corpoWizardAnimDir = 'back';
+  renderCorpoAvaliacaoWizardStep();
 }
 
 function corpoWizardSave() {
   syncCorpoWizardDraftFromInputs();
   if (!corpoAvaliacaoDraft.data) {
-    showFeedbackModal('Informe a data da avaliacao.', 'warning');
+    showFeedbackModal('Informe a data da avaliação.', 'warning');
     return;
   }
   normalizeCorpoDraftValues();
@@ -4078,7 +4080,7 @@ function corpoWizardSave() {
   corpoAvaliacaoViewMode = 'detail';
   corpoAvaliacaoDraft = null;
   corpoAvaliacaoWizardStep = 1;
-  showFeedbackModal('Avaliacao salva com sucesso.', 'success');
+  showFeedbackModal('Avaliação salva com sucesso.', 'success');
   renderComposicao();
 }
 
