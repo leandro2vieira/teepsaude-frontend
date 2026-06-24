@@ -71,6 +71,12 @@
                             <div class="corpo-av-sticky-cta">
                                 <button type="button" class="corpo-av-new-btn corpo-av-new-btn--sticky" onclick="openCorpoNovaAvaliacaoWizard()">+ Nova avaliação</button>
                             </div>
+                            <div class="corpo-av-list-footer">
+                                <button type="button" class="corpo-cfm-trigger" onclick="openCorpoCustomFieldManager()">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                                    Campos personalizados
+                                </button>
+                            </div>
                         </div>
 
                         <div id="corpoAvaliacaoDetailView" class="corpo-av-detail-view" style="display:none;">
@@ -125,6 +131,33 @@
                                     <div class="corpo-av-section-title">Dobras</div>
                                 </div>
                                 <div id="corpoAvaliacaoDobrasRows" class="corpo-av-rows"></div>
+                            </div>
+
+                            <div class="corpo-av-section corpo-av-section--custom" id="corpoCustomSection" style="display:none;">
+                                <div class="corpo-av-section-head">
+                                    <div class="corpo-av-section-icon">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                                    </div>
+                                    <div class="corpo-av-section-title">Personalizados</div>
+                                </div>
+                                <div id="corpoAvaliacaoCustomRows" class="corpo-av-rows"></div>
+                            </div>
+                        </div>
+
+                        <div id="corpoCustomFieldManager" class="corpo-cfm-overlay" style="display:none;">
+                            <div class="corpo-cfm-head">
+                                <button type="button" class="corpo-wizard-back-btn" onclick="closeCorpoCustomFieldManager()" aria-label="Voltar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                                </button>
+                                <div class="corpo-cfm-head-copy">
+                                    <div class="corpo-cfm-title">Campos Personalizados</div>
+                                    <div class="corpo-cfm-subtitle">Adicione medições que você acompanha</div>
+                                </div>
+                            </div>
+                            <div class="corpo-cfm-body" id="corpoCustomFieldList"></div>
+                            <div id="corpoCustomFieldFormContainer" class="corpo-cfm-form-container" style="display:none;"></div>
+                            <div class="corpo-cfm-footer">
+                                <button type="button" class="corpo-cfm-add-btn" onclick="showCorpoCustomFieldForm(-1)">+ Adicionar campo</button>
                             </div>
                         </div>
 
@@ -410,6 +443,17 @@
                     <span id="passosDiaDetailLabel" class="pressao-dia-det-label"></span>
                   </div>
                   <div id="passosDiaDetailContent"></div>
+                </div>
+
+                <!-- Detalhe de um dia específico de oxigenação -->
+                <div id="oxigenacaoDiaDetailView" style="display:none;">
+                  <div class="pressao-dia-det-header">
+                    <button type="button" class="pressao-dia-det-back-btn" onclick="closeOxigenacaoDiaDetail()">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <span id="oxigenacaoDiaDetailLabel" class="pressao-dia-det-label"></span>
+                  </div>
+                  <div id="oxigenacaoDiaDetailContent"></div>
                 </div>
 
                 <!-- Wizard passo a passo: inserir glicemia -->
@@ -1664,45 +1708,6 @@
             </div>
             <p class="config-helper-text">Escolha o que aparece em cada tela. Em <strong>Todos</strong> pode desligar ou ligar todos de uma vez e depois ajustar só o que precisa.</p>
             <div id="vitaisConfigContent"></div>
-        </div>
-    </div>
-
-    <div class="modal" id="novoSinalModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span>Novo Indicador</span>
-            </div>
-            <form id="novoSinalForm">
-                <div class="form-group">
-                    <label class="form-label">Nome</label>
-                    <input type="text" class="form-input" id="novoSinalNome" placeholder="Ex: Colesterol Total" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Unidade</label>
-                    <input type="text" class="form-input" id="novoSinalUnidade" placeholder="Ex: mg/dL" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Valor Ideal</label>
-                    <input type="text" class="form-input" id="novoSinalIdeal" placeholder="Ex: 0-200">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Ícone</label>
-                    <input type="text" class="form-input" id="novoSinalIcon" placeholder="Ex: 🧠" maxlength="4">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Fonte Padrão</label>
-                    <select class="form-select" id="novoSinalFonte">
-                        <option value="Manual">Manual</option>
-                        <option value="Pulseira">Pulseira</option>
-                        <option value="Google Fit">Google Fit</option>
-                        <option value="Apple Health">Apple Health</option>
-                    </select>
-                </div>
-                <div class="button-group">
-                    <button type="button" class="button-cancel" id="cancelNovoSinalBtn">Cancelar</button>
-                    <button type="submit" class="button-submit">Adicionar</button>
-                </div>
-            </form>
         </div>
     </div>
 

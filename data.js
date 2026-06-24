@@ -1179,17 +1179,6 @@ function getNumericTrendValue(vitalTipo, historicoItem) {
   return Number.isNaN(n) ? null : n;
 }
 
-function computeTrendDirFromHistoricoSlice(vitalTipo, historicoNewestFirst) {
-  if (!historicoNewestFirst || historicoNewestFirst.length < 2) return 'up';
-  const chrono = historicoNewestFirst.slice(0, 3).reverse();
-  const a = getNumericTrendValue(vitalTipo, chrono[0]);
-  const b = getNumericTrendValue(vitalTipo, chrono[chrono.length - 1]);
-  if (a == null || b == null) return 'up';
-  if (b > a) return 'up';
-  if (b < a) return 'down';
-  return 'up';
-}
-
 /** Remove medições geradas por `injectDemoMedicoesUltimas24h` (para reinjetar com a data de “hoje” correta). */
 function stripDemoMedicoesUltimas24h(data) {
   if (!data || !Array.isArray(data.sinaisVitais)) return;

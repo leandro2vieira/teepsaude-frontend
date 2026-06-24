@@ -988,27 +988,6 @@ var _corpoCardColors = {
   'Gordura Corporal':    { bg: '#fffbeb', fg: '#d97706' },
 };
 
-function _corpoShortDate(dataHora) {
-  if (!dataHora) return '';
-  var meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-  var isoMatch = String(dataHora).match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (isoMatch) return parseInt(isoMatch[3], 10) + ' ' + meses[parseInt(isoMatch[2], 10) - 1];
-  var brMatch = String(dataHora).match(/^(\d{2})\/(\d{2})\/\d{4}/);
-  if (brMatch) return parseInt(brMatch[1], 10) + ' ' + meses[parseInt(brMatch[2], 10) - 1];
-  return String(dataHora).slice(0, 10);
-}
-
-function createComposicaoCard(item) {
-  var colors = _corpoCardColors[item.tipo] || { bg: '#f1f5f9', fg: '#475569' };
-  var iconHtml = (typeof getVitalIconSvg === 'function' ? getVitalIconSvg(item.tipo) : '') || '';
-  var tipoEsc = String(item.tipo).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-  return `<button class="corpo-card" type="button" aria-label="${tipoEsc}" onclick="openCorpoInsertView(${item.id})">
-  <div class="corpo-card-icon" style="background:${colors.bg};color:${colors.fg}">${iconHtml}</div>
-  <div class="corpo-card-name">${tipoEsc}</div>
-  <div class="corpo-card-value">${item.valor}</div>
-</button>`;
-}
-
 // Card ECG (mesma lógica: ícone + números, sem rótulos de texto)
 function createEcgCard(ecg) {
   const dataHora = typeof formatISODateTimeBR === 'function' ? formatISODateTimeBR(ecg.dataHora) : ecg.dataHora;
@@ -1216,42 +1195,6 @@ function createCompartilhamentoCard(compartilhamento) {
       <div class="card-info">Status: ${statusDot}</div>
     </div>
   `;
-}
-
-// Funções auxiliares
-function calcularDiasRestantes(medicacao) {
-  if (!medicacao.dataFim || String(medicacao.dataFim).trim() === '') return null;
-  const dataFim = new Date(medicacao.dataFim);
-  const hoje = new Date();
-  const diferenca = dataFim - hoje;
-  return Math.ceil(diferenca / (1000 * 60 * 60 * 24));
-}
-
-function calcularComprimidosRestantes(medicacao) {
-  const base = medicacao.estoqueAtual != null ? medicacao.estoqueAtual : medicacao.estoque;
-  const est = parseInt(String(base), 10);
-  const tomados = medicacao.historico.filter(h => h.status === 'tomado').length;
-  return (Number.isNaN(est) ? 0 : est) - tomados;
-}
-
-function verificarSeTomadiHoje(medicacao) {
-  const hoje = typeof getTodayISODate === 'function'
-    ? getTodayISODate()
-    : new Date().toISOString().slice(0, 10);
-  return medicacao.historico.some(h => h.data === hoje && h.status === 'tomado');
-}
-
-function getStatusColor(status) {
-  return statusColors[status] || statusColors.normal;
-}
-
-function getStatusIcon(status) {
-  const icons = {
-    'tomado': '✅',
-    'pendente': '⏳',
-    'nao_tomado': '❌'
-  };
-  return icons[status] || '❓';
 }
 
 // Deletar medicação (ex.: a partir do modal Editar)

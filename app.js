@@ -3,23 +3,23 @@ let fotoAtualMedicacao = null;
 let fotoAtualMedicacaoEdit = null;
 let currentVitalType = '';
 let currentVitalDetail = null;
-/** �Índice alinhado à lista renderizada em `renderVitalDetailContent` (respeita filtro de datas). */
+/** Índice alinhado à lista renderizada em `renderVitalDetailContent` (respeita filtro de datas). */
 let currentVitalHistoricoView = [];
-/** Per�odo do gráfico no modal de Batimento Cardíaco: 7d | 15d | 30d | year | livre */
+/** Período do gráfico no modal de Batimento Cardíaco: 7d | 15d | 30d | year | livre */
 let vitalBatimentoPeriod = '7d';
 /** Filtro por toque na barra: null | { kind: 'day', iso } | { kind: 'range', start, end } */
 let vitalBatimentoChartSelection = null;
 /** Contexto exibido no modal de Batimento: all | sono_repouso */
 let vitalBatimentoContextMode = 'all';
-/** Per�odo no modal padr�o (usado em Pressão Arterial): 7d | 15d | 30d | year | livre */
+/** Período no modal padro (usado em Pressão Arterial): 7d | 15d | 30d | year | livre */
 let vitalDefaultPeriod = '7d';
 let lastMedicationAlertKey = null;
 let lastVitalAlertKey = null;
 let currentAlarmMedicationId = null;
 let currentAlarmScheduledTime = '';
-/** Dados validados antes de salvar (modal de confirma��o) */
+/** Dados validados antes de salvar (modal de confirmação) */
 let pendingVitalSavePayload = null;
-/** BPM pendente após informar batimento (mesmo modal de confirma��o) */
+/** BPM pendente após informar batimento (mesmo modal de confirmação) */
 let pendingHeartRateBpm = null;
 let lastRescheduleAlertKey = null;
 let pendingConfirmAction = null;
@@ -27,6 +27,7 @@ let currentDailyScheduleFilter = 'todos';
 let passosSelectedDayIso = null;
 let passosSelectedHour = null;
 let glicemiaSelectedDayIso = null;
+let oxigenacaoSelectedDayIso = null;
 let pressaoSelectedDay = null; // ISO date of selected day in the pressure sparkline
 let pressaoColetaEntries = []; // sorted entries of the currently open day detail
 let pressaoColetaDayIso = null; // ISO date of the currently open day detail
@@ -129,6 +130,44 @@ function aggregateGlicemiaByMonth(entries) {
     .map((m) => ({ ...m, avg: Math.round(m.sum / m.count) }));
 }
 
+function aggregateOxigenacaoByMonth(entries) {
+  const byMonth = new Map();
+  (Array.isArray(entries) ? entries : []).forEach((h) => {
+    const dayIso = (typeof historicoEntryDayISO === 'function') ? historicoEntryDayISO(h) : String(h?.data || '').slice(0, 10);
+    const v = Number(h?.valor);
+    if (!dayIso || !Number.isFinite(v)) return;
+    const monthKey = dayIso.slice(0, 7);
+    if (!byMonth.has(monthKey)) byMonth.set(monthKey, { month: monthKey, sum: 0, count: 0, min: v, max: v });
+    const m = byMonth.get(monthKey);
+    m.sum += v;
+    m.count++;
+    if (v < m.min) m.min = v;
+    if (v > m.max) m.max = v;
+  });
+  return Array.from(byMonth.values())
+    .sort((a, b) => a.month.localeCompare(b.month))
+    .map((m) => ({ ...m, avg: Math.round(m.sum / m.count) }));
+}
+
+function aggregateHidratacaoByMonth(entries) {
+  const byMonth = new Map();
+  (Array.isArray(entries) ? entries : []).forEach((h) => {
+    const dayIso = (typeof historicoEntryDayISO === 'function') ? historicoEntryDayISO(h) : String(h?.data || '').slice(0, 10);
+    const v = Number(h?.valor);
+    if (!dayIso || !Number.isFinite(v) || v < 0) return;
+    const monthKey = dayIso.slice(0, 7);
+    if (!byMonth.has(monthKey)) byMonth.set(monthKey, { month: monthKey, sum: 0, count: 0, min: v, max: v });
+    const m = byMonth.get(monthKey);
+    m.sum += v;
+    m.count++;
+    if (v < m.min) m.min = v;
+    if (v > m.max) m.max = v;
+  });
+  return Array.from(byMonth.values())
+    .sort((a, b) => a.month.localeCompare(b.month))
+    .map((m) => ({ ...m, avg: Math.round(m.sum / m.count) }));
+}
+
 function buildPassosHourlyBucketsForDay(dayEntries) {
   const buckets = Array.from({ length: 24 }, () => 0);
   const list = (Array.isArray(dayEntries) ? dayEntries : [])
@@ -166,7 +205,7 @@ function renderPassosHourlyCanvas(dayIso, dayEntries, goal) {
   const subtitle = document.getElementById('passosHourlySubtitle');
   if (!canvas) return;
   const hhTxt = Number.isInteger(passosSelectedHour)
-    ? ` à ${String(passosSelectedHour).padStart(2, '0')}:00�${String(passosSelectedHour).padStart(2, '0')}:59`
+    ? ` à ${String(passosSelectedHour).padStart(2, '0')}:00 à ${String(passosSelectedHour).padStart(2, '0')}:59`
     : '';
   if (subtitle) subtitle.textContent = dayIso ? `${formatDateForUI(dayIso)}${hhTxt}` : '';
   const ctx = canvas.getContext('2d');
@@ -276,6 +315,134 @@ function clearGlicemiaDaySelection() {
   renderVitalDetailContent(currentVitalHistoricoView);
 }
 
+function selectOxigenacaoDay(dayIso) {
+  if (!currentVitalDetail || currentVitalDetail.tipo !== 'Oxigenação') return;
+  openOxigenacaoDiaDetail(dayIso);
+}
+
+function openOxigenacaoDiaDetail(dayIso) {
+  if (!currentVitalDetail || currentVitalDetail.tipo !== 'Oxigenação') return;
+  oxigenacaoSelectedDayIso = dayIso;
+
+  renderSparklineChart(currentVitalHistoricoView);
+
+  var _chartArea = document.getElementById('pressaoHistoricoView');
+  if (_chartArea) _chartArea.style.display = 'none';
+  var _periodCtrls = document.getElementById('vitalDefaultPeriodControls');
+  if (_periodCtrls) _periodCtrls.style.display = 'none';
+  var _contentEl = document.getElementById('vitalDetailContent');
+  if (_contentEl) _contentEl.style.display = 'none';
+  var _addRow = document.querySelector('#vitalDetailModal .vital-detail-add-row');
+  if (_addRow) _addRow.style.display = 'none';
+
+  var _view = document.getElementById('oxigenacaoDiaDetailView');
+  if (_view) _view.style.display = 'block';
+  window._oxigenacaoDiaActive = true;
+
+  var _p = dayIso.split('-').map(Number);
+  var _dateObj = new Date(_p[0], _p[1] - 1, _p[2]);
+  var _dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  var _meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  var _dateLabel = _dias[_dateObj.getDay()] + ', ' + String(_p[2]).padStart(2, '0') + ' ' + _meses[_p[1] - 1];
+  var _lblEl = document.getElementById('oxigenacaoDiaDetailLabel');
+  if (_lblEl) _lblEl.textContent = _dateLabel;
+
+  var _titleEl = document.getElementById('vitalDetailTitle');
+  if (_titleEl) _titleEl.textContent = 'Oxigenação';
+  var _subEl = document.getElementById('vitalDetailSubtitle');
+  if (_subEl) _subEl.textContent = _dateLabel;
+
+  var _entries = currentVitalHistoricoView.filter(function(h) {
+    var d = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data || '').slice(0, 10);
+    return d === dayIso;
+  }).sort(function(a, b) {
+    var ta = typeof historicoEntryToMs === 'function' ? historicoEntryToMs(a) : 0;
+    var tb = typeof historicoEntryToMs === 'function' ? historicoEntryToMs(b) : 0;
+    return tb - ta;
+  });
+
+  var _detContent = document.getElementById('oxigenacaoDiaDetailContent');
+  if (_detContent) {
+    var _idealLow = 95;
+    var _unit = '%';
+    var _vals = _entries.map(function(h) { return parseFloat(h.valor); }).filter(function(v) { return Number.isFinite(v); });
+    var _min = _vals.length ? Math.min.apply(null, _vals) : null;
+    var _max = _vals.length ? Math.max.apply(null, _vals) : null;
+    var _avg = _vals.length ? Math.round(_vals.reduce(function(s, v) { return s + v; }, 0) / _vals.length) : null;
+    var _last = _vals.length ? _vals[0] : null;
+    var _statusColor = _last != null && _last >= _idealLow ? '#16a34a' : (_last != null && _last >= 90 ? '#f59e0b' : '#dc2626');
+
+    var _scaleMin = 85, _scaleMax = 100, _scaleRange = _scaleMax - _scaleMin;
+    var _currentPct = _last != null ? Math.max(0, Math.min(100, ((_last - _scaleMin) / _scaleRange) * 100)) : 0;
+    var _idealStartPct = ((_idealLow - _scaleMin) / _scaleRange) * 100;
+    var _idealWidthPct = ((100 - _idealLow) / _scaleRange) * 100;
+
+    var _barHtml =
+      '<div class="oxig-bar-wrap">' +
+        '<div class="oxig-bar-track">' +
+          '<div class="oxig-bar-ideal-zone" style="left:' + _idealStartPct.toFixed(1) + '%;width:' + _idealWidthPct.toFixed(1) + '%"></div>' +
+          '<div class="oxig-bar-fill" style="width:' + _currentPct.toFixed(1) + '%;background:' + _statusColor + '"></div>' +
+          '<div class="oxig-bar-marker" style="left:' + _currentPct.toFixed(1) + '%;background:' + _statusColor + '"></div>' +
+        '</div>' +
+        '<div class="oxig-bar-labels"><span>' + _scaleMin + '%</span><span>Zona ideal</span><span>' + _scaleMax + '%</span></div>' +
+      '</div>';
+
+    var _statsHtml =
+      '<div class="oxig-stats-row">' +
+        (_min != null ? '<div class="oxig-stat-item"><span class="oxig-stat-lbl">Mín</span><span class="oxig-stat-val">' + _min + _unit + '</span></div>' : '') +
+        (_avg != null ? '<div class="oxig-stat-item"><span class="oxig-stat-lbl">Média</span><span class="oxig-stat-val">' + _avg + _unit + '</span></div>' : '') +
+        (_max != null ? '<div class="oxig-stat-item"><span class="oxig-stat-lbl">Máx</span><span class="oxig-stat-val">' + _max + _unit + '</span></div>' : '') +
+        '<div class="oxig-stat-item"><span class="oxig-stat-lbl">Ideal</span><span class="oxig-stat-val">' + _idealLow + '–100' + _unit + '</span></div>' +
+      '</div>';
+
+    var _entriesHtml = _entries.map(function(h) {
+      var v = parseFloat(h.valor);
+      var fv = Number.isFinite(v) ? v + '%' : '–';
+      var hora = h.hora ? String(h.hora).slice(0, 5) : '--:--';
+      var color = Number.isFinite(v) && v >= _idealLow ? '#16a34a' : (Number.isFinite(v) && v >= 90 ? '#f59e0b' : '#ef4444');
+      return '<div class="vital-list-item vital-list-item--hour-bucket">' +
+        '<div class="vital-list-main vital-list-main--hour-detail">' +
+          '<div class="vital-list-measure-line">' +
+            '<span style="color:' + color + ';font-weight:700;">' + fv + '</span>' +
+          '</div>' +
+          '<div class="vital-list-time-line">' + hora + '</div>' +
+        '</div>' +
+        '<div class="vital-list-status">' + (Number.isFinite(v) && v >= _idealLow ? 'OK' : 'AL') + '</div>' +
+      '</div>';
+    }).join('');
+
+    _detContent.innerHTML =
+      '<div class="vital-detail-summary-panel vital-detail-summary-panel--oxig">' + _barHtml + _statsHtml + '</div>' +
+      '<div class="pressao-dia-det-list-card">' +
+        (_entries.length > 0 ? _entriesHtml : '<div class="empty-state"><div class="empty-text">Nenhum registro encontrado</div></div>') +
+      '</div>';
+  }
+}
+
+function closeOxigenacaoDiaDetail() {
+  window._oxigenacaoDiaActive = false;
+
+  var _view = document.getElementById('oxigenacaoDiaDetailView');
+  if (_view) _view.style.display = 'none';
+
+  var _chartArea = document.getElementById('pressaoHistoricoView');
+  if (_chartArea) _chartArea.style.display = 'block';
+  var _periodCtrls = document.getElementById('vitalDefaultPeriodControls');
+  if (_periodCtrls) _periodCtrls.style.display = 'block';
+  var _contentEl = document.getElementById('vitalDetailContent');
+  if (_contentEl) _contentEl.style.display = '';
+  var _addRow = document.querySelector('#vitalDetailModal .vital-detail-add-row');
+  if (_addRow) _addRow.style.display = 'none';
+
+  var _subEl = document.getElementById('vitalDetailSubtitle');
+  if (_subEl) _subEl.textContent = '';
+  var _titleEl = document.getElementById('vitalDetailTitle');
+  if (_titleEl) _titleEl.textContent = 'Histórico de Oxigenação';
+
+  // keep oxigenacaoSelectedDayIso so chart highlights the day
+  renderSparklineChart(currentVitalHistoricoView);
+}
+
 // -- Wizard inline Glicemia ---------------------------------
 let _addGlicStep = 1;
 let _glicNumpadValue = '';
@@ -314,7 +481,7 @@ function openAddGlicemiaWizard() {
   if (dat) dat.value = String(now.getDate()).padStart(2,'0') + '/' + String(now.getMonth()+1).padStart(2,'0') + '/' + now.getFullYear();
   if (hor) hor.value = now.toTimeString().slice(0, 5);
 
-  // Reset step-3: mostrar op��es, ocultar painel de data/hora
+  // Reset step-3: mostrar opções, ocultar painel de data/hora
   var glicOpts = document.getElementById('glicS3Options');
   if (glicOpts) glicOpts.style.display = '';
   var etp = document.getElementById('glicEditTimePanel');
@@ -399,24 +566,14 @@ function glicemiaWizardGoStep(step) {
   }
 }
 
-// Teclado numérico customizado
-function glicNumpadPress(key) {
-  if (key === 'back') {
-    _glicNumpadValue = _glicNumpadValue.slice(0, -1);
-  } else {
-    if (_glicNumpadValue.length >= 3) return; // max 3 dígitos
-    _glicNumpadValue += key;
-  }
-  _glicemiaUpdateDisplay();
-  _glicemiaUpdateValorNextBtn();
-}
+
 
 function _glicemiaUpdateDisplay() {
   var disp = document.getElementById('glicDisplay');
   var badge = document.getElementById('glicRangeBadge');
   if (!disp) return;
   if (!_glicNumpadValue) {
-    disp.textContent = '�';
+    disp.textContent = '—';
     disp.className = 'glic-display';
     if (badge) { badge.textContent = ''; badge.className = 'glic-range-badge'; }
     return;
@@ -575,9 +732,9 @@ function _glicRenderResumo() {
   var container = document.getElementById('glicStep7Content');
   if (!container) return;
   var val = glicemiaInsertData.glicemia || 0;
-  var ctx = (document.getElementById('glicemiaContextoInput') || {}).value || '�';
+  var ctx = (document.getElementById('glicemiaContextoInput') || {}).value || '—';
   var useNow = glicemiaInsertData._useNow !== false;
-  var timeStr = '�';
+  var timeStr = '—';
   if (useNow) {
     var now = new Date();
     var _dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
@@ -590,7 +747,7 @@ function _glicRenderResumo() {
   }
   var valColor = val > 125 ? '#ef4444' : val > 99 ? '#f59e0b' : '#22c55e';
   var medMap = { 'tomados': 'Tomei meus remédios', 'nao_tomados': 'Não tomei hoje', 'nenhum': 'Não tomo remédios' };
-  var medStr = medMap[glicemiaInsertData.medicamentos] || '�';
+  var medStr = medMap[glicemiaInsertData.medicamentos] || '—';
   var insulinaVal = glicemiaInsertData.insulina;
   var insulinaStr = (!insulinaVal || insulinaVal === 0) ? 'Não registrado' : insulinaVal + ' unidades';
   var notaStr = (glicemiaInsertData.nota || '').trim() || 'Sem observação';
@@ -635,10 +792,6 @@ function glicHideOutroHorario() {
   document.querySelectorAll('.glic-s3-opt-btn').forEach(function(b) { b.classList.remove('glic-s3-selected'); });
   var cfm = document.getElementById('glicS3ConfirmBtn');
   if (cfm) cfm.style.display = 'none';
-}
-
-function glicToggleEditTime(btnEl) {
-  glicShowOutroHorario();
 }
 
 function saveGlicemiaEntry(ev, useNow) {
@@ -695,12 +848,6 @@ function saveGlicemiaEntry(ev, useNow) {
     currentVitalDetail = vital;
     applyVitalDefaultPeriodView();
   }
-}
-
-function setPassosDayFromList(dayIso) {
-  if (!dayIso) return;
-  if (!currentVitalDetail || currentVitalDetail.tipo !== 'Passos') return;
-  openPassosDiaDetail(dayIso);
 }
 
 function openPassosDiaDetail(dayIso) {
@@ -763,7 +910,7 @@ function openPassosDiaDetail(dayIso) {
         '<div class="passos-resumo-meta">' +
           '<span>' + _dayDist2 + ' km</span>' +
           '<span>' + _dayKcal2 + ' kcal</span>' +
-          '<span>' + _dayElev2 + ' m eleva��o</span>' +
+          '<span>' + _dayElev2 + ' m elevação</span>' +
         '</div>' +
       '</div>' +
       '<div class="passos-hourly-card">' +
@@ -772,7 +919,7 @@ function openPassosDiaDetail(dayIso) {
         '<canvas id="passosHourlyCanvas" class="passos-hourly-canvas" width="720" height="180"></canvas>' +
       '</div>' +
       '<div id="passosFooterNote" class="passos-footer-note">' +
-        '<div class="passos-footer-empty">Toque em uma barra para ver distância, calorias e eleva��o.</div>' +
+        '<div class="passos-footer-empty">Toque em uma barra para ver distância, calorias e elevação.</div>' +
       '</div>';
     renderPassosHourlyCanvas(dayIso, _selRow2.entries || [], _goal2);
   }
@@ -809,7 +956,7 @@ function _updatePassosHourFooter(dayEntries, goal) {
   if (!_footerEl) return;
   var _hValid = Number.isInteger(passosSelectedHour) && passosSelectedHour >= 0 && passosSelectedHour <= 23;
   if (!_hValid) {
-    _footerEl.innerHTML = '<div class="passos-footer-empty">Toque em uma barra para ver distância, calorias e eleva��o.</div>';
+    _footerEl.innerHTML = '<div class="passos-footer-empty">Toque em uma barra para ver distância, calorias e elevação.</div>';
     return;
   }
   var _buckets = buildPassosHourlyBucketsForDay(dayEntries);
@@ -822,7 +969,7 @@ function _updatePassosHourFooter(dayEntries, goal) {
     '<div class="passos-footer-meta">' +
       '<span>' + _hDist + ' km</span>' +
       '<span>' + _hKcal + ' kcal</span>' +
-      '<span>' + _hElev + ' m eleva��o</span>' +
+      '<span>' + _hElev + ' m elevação</span>' +
     '</div>';
 }
 
@@ -864,16 +1011,13 @@ function getVitalDefaultPeriodRange() {
 }
 
 function applyVitalDefaultPeriodView() {
-  if (!currentVitalDetail || (currentVitalDetail.tipo !== 'Pressão Arterial' && currentVitalDetail.tipo !== 'Passos' && currentVitalDetail.tipo !== 'Glicemia' && currentVitalDetail.tipo !== 'Sono' && currentVitalDetail.tipo !== 'Oxigena��o' && currentVitalDetail.tipo !== 'Hidrata��o')) return;
+  if (!currentVitalDetail || (currentVitalDetail.tipo !== 'Pressão Arterial' && currentVitalDetail.tipo !== 'Passos' && currentVitalDetail.tipo !== 'Glicemia' && currentVitalDetail.tipo !== 'Sono' && currentVitalDetail.tipo !== 'Oxigenação' && currentVitalDetail.tipo !== 'Hidratação')) return;
   if (currentVitalDetail.tipo === 'Glicemia') glicemiaSelectedDayIso = null;
+  if (currentVitalDetail.tipo === 'Oxigenação') oxigenacaoSelectedDayIso = null;
   const { start, end } = getVitalDefaultPeriodRange();
   const filtrado = filterHistoricoByInclusiveDate(currentVitalDetail.historico, start, end);
   renderVitalDetailContent(filtrado);
   renderSparklineChart(filtrado);
-}
-
-function onVitalDefaultLivreRangeChange() {
-  applyVitalDefaultPeriodView();
 }
 
 function setVitalDefaultPeriod(period) {
@@ -997,12 +1141,6 @@ function setVitalBatimentoContextMode(mode) {
     requestAnimationFrame(() => openBatimentoMinutoDetalhe(reopenHour, null));
   }
 }
-
-function toggleVitalBatimentoContextMode() {
-  const next = vitalBatimentoContextMode === 'sono_repouso' ? 'all' : 'sono_repouso';
-  setVitalBatimentoContextMode(next);
-}
-
 
 function getIdealLabel(value) {
   return typeof formatIdealLabel === 'function' ? formatIdealLabel(value) : value;
@@ -1257,16 +1395,6 @@ function toggleBottomNavItem(screenId, toggleEl) {
   applyBottomNavVisibility();
 }
 
-// Framework7 initialization (UI shell only – no router)
-var f7app = new Framework7({
-  el: '#app',
-  name: 'Teep SaA?de',
-  theme: 'ios',
-  autoDarkTheme: false,
-  // Disable router – we handle navigation manually
-  routes: [],
-});
-
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
   ensureBottomNavConfig();
@@ -1300,7 +1428,7 @@ function getGreeting() {
 }
 
 function getTodayLongDate() {
-  var DIAS = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','SA?bado'];
+  var DIAS = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
   var MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
   var d = new Date();
   return DIAS[d.getDay()] + ', ' + d.getDate() + ' de ' + MESES[d.getMonth()];
@@ -1379,7 +1507,7 @@ function refreshHeaderUser() {
   applyHeaderAvatar();
 }
 
-// ===== RENDERIZAA?A?O DE TELAS =====
+// ===== RENDERIZAÇÃO DE TELAS =====
 
 function renderHome() {
   const hoje = getTodayISODate();
@@ -1544,7 +1672,7 @@ function _oxigUpdateBadge(v) {
     badge.textContent = 'Atenção';
   } else {
     badge.className = 'oxi-badge oxi-badge--critico';
-    badge.textContent = 'CrA-tico';
+    badge.textContent = 'Crítico';
   }
 }
 
@@ -1624,17 +1752,6 @@ function stepHidra(delta) {
 
 function hidraQuickAdd(ml) {
   addHidratação(ml);
-  closeHidraInsertView();
-}
-
-function hidraQuickAddManual() {
-  var inp = document.getElementById('hidraManualInput');
-  var val = inp ? parseInt(inp.value, 10) : 0;
-  if (!val || val <= 0 || val > 5000) {
-    if (inp) inp.focus();
-    return;
-  }
-  addHidratação(val);
   closeHidraInsertView();
 }
 
@@ -1799,18 +1916,6 @@ function renderAgenda() {
   }
 
   document.getElementById('agendaContent').innerHTML = html;
-}
-
-function renderCompartilhamento() {
-  let html = '';
-
-  if (mockData.compartilhamentos.length > 0) {
-    html = mockData.compartilhamentos.map(createCompartilhamentoCard).join('');
-  } else {
-    html = '<div class="empty-state"><div class="empty-text">Nenhum compartilhamento ativo</div></div>';
-  }
-
-  document.getElementById('compartilhamentoContent').innerHTML = html;
 }
 
 function renderCompartilhamentoInPerfil() {
@@ -2205,7 +2310,7 @@ function registrarVitalFromAlert(tipo) {
   }, 310);
 }
 
-// ===== NAVEGAA?A?O =====
+// ===== NAVEGAÇÃO =====
 
 function setupNavigation() {
   document.querySelectorAll('.tab-link').forEach(item => {
@@ -2257,7 +2362,7 @@ function switchScreen(screenId) {
   else if (screenId === 'perfilScreen') renderPerfil();
 }
 
-// ===== MODAL DE MEDICAA?A?O =====
+// ===== MODAL DE MEDICAÇÃO =====
 
 function setSemDataFimMedicacaoUI(mode, semFimOn) {
   const btn = document.getElementById(mode === 'add' ? 'toggleSemDataFimMed' : 'toggleSemDataFimMedEdit');
@@ -2793,29 +2898,7 @@ function setupCompartilhamentoModal() {
   });
 }
 
-// ===== AA?AES DE MEDICAA?A?O =====
-
-function markAsTaken(medicacaoId) {
-  const medicacao = mockData.medicacoes.find(m => m.id === medicacaoId);
-  if (medicacao) {
-    const now = new Date();
-    const hora = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-    medicacao.ultimo = hora;
-    medicacao.historico.push({
-      data: now.toISOString().slice(0, 10),
-      hora: hora,
-      status: 'tomado'
-    });
-    renderMedicacoes();
-    showFeedbackModal(`${medicacao.nome} marcado como tomado as ${hora}.`, 'success');
-  }
-}
-
-function editMedicacao(medicacaoId) {
-  showFeedbackModal('Funcionalidade de edição em desenvolvimento.', 'info');
-}
-
-// ===== FUNA?AES AUXILIARES =====
+// ===== FUNÇÕES AUXILIARES =====
 
 function calcularIdade(dataNascimento) {
   const hoje = new Date();
@@ -2828,13 +2911,7 @@ function calcularIdade(dataNascimento) {
   return idade;
 }
 
-function testAlarm() {
-  if (mockData.medicacoes.length > 0) {
-    showMedicationAlarm(mockData.medicacoes[0].id, mockData.medicacoes[0].horarios?.[0]);
-  }
-}
-
-// ===== EDITAR MEDICAA?A?O =====
+// ===== EDITAR MEDICAÇÃO =====
 
 let currentEditMedId = null;
 
@@ -3215,7 +3292,7 @@ function setupAgendaModal() {
 }
 
 
-// ===== RENDERIZAA?A?O DE COMPOSIA?A?O CORPORAL =====
+// ===== RENDERIZAÇÃO DE COMPOSIÇÃO CORPORAL =====
 
 function renderComposicao() {
   ensureCorpoAvaliacoesData();
@@ -3281,7 +3358,7 @@ var CORPO_DOBRAS_FIELDS = [
 
 // --- Wizard 1-measurement-per-screen ---
 
-var CORPO_WIZARD_STEPS = [
+var CORPO_WIZARD_STEPS_BUILTIN = [
   { type: 'date', title: 'Data da avaliação' },
   { type: 'measure', group: 'geral', key: 'peso', label: 'Peso', unit: 'kg', decimals: 1, icon: 'weight' },
   { type: 'measure', group: 'geral', key: 'altura', label: 'Altura', unit: 'm', decimals: 2, icon: 'height' },
@@ -3304,10 +3381,32 @@ var CORPO_WIZARD_STEPS = [
   { type: 'measure', group: 'dobras', key: 'subescapular', label: 'Dobra Subescapular', unit: 'mm', icon: 'fold' },
   { type: 'measure', group: 'dobras', key: 'torax', label: 'Dobra Tórax', unit: 'mm', icon: 'fold' },
   { type: 'measure', group: 'dobras', key: 'coxa', label: 'Dobra Coxa', unit: 'mm', icon: 'fold' },
-  { type: 'review' }
 ];
 
-var CORPO_WIZARD_TOTAL_STEPS = CORPO_WIZARD_STEPS.length;
+var CORPO_WIZARD_STEPS = [];
+var CORPO_WIZARD_TOTAL_STEPS = 0;
+
+function rebuildCorpoWizardSteps() {
+  CORPO_WIZARD_STEPS.length = 0;
+  for (var _bi = 0; _bi < CORPO_WIZARD_STEPS_BUILTIN.length; _bi++) {
+    CORPO_WIZARD_STEPS.push(CORPO_WIZARD_STEPS_BUILTIN[_bi]);
+  }
+  var _customFields = getCorpoCustomFields();
+  _customFields.forEach(function(_cf) {
+    CORPO_WIZARD_STEPS.push({
+      type: 'measure', group: 'custom', key: _cf.key, label: _cf.label,
+      unit: _cf.unit, decimals: _cf.decimals, icon: 'custom',
+      _customMin: _cf.min, _customMax: _cf.max
+    });
+    if (_cf.min != null && _cf.max != null) {
+      CORPO_VALIDATION[_cf.key] = { min: _cf.min, max: _cf.max, msg: _cf.msg || (_cf.label + ' deve estar entre ' + _cf.min + ' e ' + _cf.max) };
+    }
+  });
+  CORPO_WIZARD_STEPS.push({ type: 'review' });
+  CORPO_WIZARD_TOTAL_STEPS = CORPO_WIZARD_STEPS.length;
+}
+
+rebuildCorpoWizardSteps();
 var CORPO_VALIDATION = {
   peso:                    { min: 20,  max: 350, msg: 'Peso deve estar entre 20 e 350 kg' },
   altura:                  { min: 0.5, max: 2.5, msg: 'Altura deve estar entre 0,50 e 2,50 m' },
@@ -3354,6 +3453,9 @@ function getCorpoMeasurementIcon(iconName) {
     thigh: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 8 Q18 28 20 48 Q22 56 28 56 Q34 56 36 48 Q38 28 34 8"/><line x1="20" y1="30" x2="36" y2="30" stroke-dasharray="4,3"/></svg>',
     fold: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 16 Q32 8 44 16 Q48 32 44 48 Q32 56 20 48 Q16 32 20 16Z"/><path d="M28 28 Q32 24 36 28 Q38 34 36 38 Q32 42 28 38 Q26 34 28 28Z"/></svg>'
   };
+  if (iconName === 'custom') {
+    return '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="32" r="24"/><line x1="32" y1="16" x2="32" y2="48"/><line x1="16" y1="32" x2="48" y2="32"/></svg>';
+  }
   return icons[iconName] || icons.waist;
 }
 
@@ -3515,17 +3617,6 @@ function closeCorpoAvaliacaoDetail() {
   renderComposicao();
 }
 
-function renderCorpoRows(targetId, fields, source) {
-  var el = document.getElementById(targetId);
-  if (!el) return;
-  var rows = fields.map(function(field) {
-    var val = source ? source[field.key] : null;
-    var formatted = formatCorpoMeasure(val, field.unit, Number.isFinite(field.decimals) ? field.decimals : 1);
-    return '<div class="corpo-av-data-row"><span>' + field.label + '</span><strong>' + formatted + '</strong></div>';
-  });
-  el.innerHTML = rows.join('');
-}
-
 function renderCorpoRowsWithVariation(targetId, fields, source, prevSource, defaultUnit) {
   var el = document.getElementById(targetId);
   if (!el) return;
@@ -3635,6 +3726,16 @@ function renderCorpoAvaliacaoDetail() {
   renderCorpoRowsWithVariation('corpoAvaliacaoGeralRows', CORPO_GERAL_FIELDS, item.geral || {}, prev ? (prev.geral || {}) : {}, '');
   renderCorpoRowsWithVariation('corpoAvaliacaoCircRows', CORPO_CIRC_FIELDS, item.circunferencias || {}, prev ? (prev.circunferencias || {}) : {}, 'cm');
   renderCorpoRowsWithVariation('corpoAvaliacaoDobrasRows', CORPO_DOBRAS_FIELDS, item.dobras || {}, prev ? (prev.dobras || {}) : {}, 'mm');
+
+  var customFields = getCorpoCustomFields();
+  var customSection = document.getElementById('corpoCustomSection');
+  var customRows = document.getElementById('corpoAvaliacaoCustomRows');
+  if (customFields.length && customSection && customRows) {
+    customSection.style.display = '';
+    renderCorpoRowsWithVariation('corpoAvaliacaoCustomRows', customFields, item.custom || {}, prev ? (prev.custom || {}) : {}, '');
+  } else {
+    if (customSection) customSection.style.display = 'none';
+  }
 }
 
 function buildEmptyCorpoAvaliacaoDraft() {
@@ -3643,7 +3744,8 @@ function buildEmptyCorpoAvaliacaoDraft() {
     data: getTodayISODate(),
     geral: {},
     circunferencias: {},
-    dobras: {}
+    dobras: {},
+    custom: {}
   };
 }
 
@@ -3707,26 +3809,6 @@ function getHistoricoParaMedida(group, key) {
     }
   }
   return results;
-}
-
-function renderCorpoWizardHistoryTable(group, key, unit) {
-  var historico = getHistoricoParaMedida(group, key);
-  if (!historico.length) {
-    return '<div class="corpo-wiz-history-empty">Sem medições anteriores</div>';
-  }
-  var rows = historico.map(function(h, idx) {
-    var formatted = formatCorpoMeasure(h.value, unit, 1);
-    var variation = '';
-    if (idx < historico.length - 1) {
-      var diff = h.value - historico[idx + 1].value;
-      if (diff > 0) variation = '<span class="corpo-wiz-var-up">\u2191 +' + Math.abs(diff).toFixed(1) + '</span>';
-      else if (diff < 0) variation = '<span class="corpo-wiz-var-down">\u2193 ' + diff.toFixed(1) + '</span>';
-      else variation = '<span class="corpo-wiz-var-same">\u2014</span>';
-    }
-    var dateTxt = h.data ? formatDateForUI(h.data) : '-';
-    return '<tr><td>' + dateTxt + '</td><td>' + formatted + '</td><td>' + variation + '</td></tr>';
-  }).join('');
-  return '<table class="corpo-wiz-history-table"><thead><tr><th>Data</th><th>' + unit + '</th><th>Variação</th></tr></thead><tbody>' + rows + '</tbody></table>';
 }
 
 function renderCorpoWizardDateStep() {
@@ -3826,7 +3908,7 @@ function renderCorpoWizardMeasureStep(stepDef) {
   var currentVal = group[stepDef.key] != null ? String(group[stepDef.key]) : '';
   var iconSvg = getCorpoMeasurementIcon(stepDef.icon);
 
-  var subtitle = stepDef.dual ? (stepDef.sideLabel + ' / ' + stepDef.label2) : stepDef.group === 'dobras' ? 'Dobras cutâneas' : 'Circunferência';
+  var subtitle = stepDef.dual ? (stepDef.sideLabel + ' / ' + stepDef.label2) : stepDef.group === 'dobras' ? 'Dobras cutâneas' : stepDef.group === 'custom' ? 'Personalizados' : 'Circunferência';
   var stepSz = stepDef.decimals === 2 ? 0.05 : stepDef.decimals === 1 ? 0.5 : 1;
 
   var last1 = getCorpoLastMeasure(stepDef.group, stepDef.key, stepDef.unit);
@@ -3905,36 +3987,39 @@ function renderCorpoWizardReview() {
   var g = corpoAvaliacaoDraft.geral || {};
   var c = corpoAvaliacaoDraft.circunferencias || {};
   var d = corpoAvaliacaoDraft.dobras || {};
+  var cust = corpoAvaliacaoDraft.custom || {};
 
-  function reviewRow(f) {
-    var step = getStepIndexForField(f.group || f._group, f.key);
-    var grp = f.group || f._group;
-    var val = (grp === 'circunferencias' ? c : grp === 'dobras' ? d : g)[f.key];
+  function reviewRow(f, grp) {
+    var step = getStepIndexForField(grp, f.key);
+    var val = (grp === 'circunferencias' ? c : grp === 'dobras' ? d : grp === 'custom' ? cust : g)[f.key];
     var fmt = formatCorpoMeasure(val, f.unit, f.decimals || 1);
     var clickAttr = step > 0 ? ' data-step="' + step + '" onclick="corpoWizardGoToStep(' + step + ')" style="cursor:pointer;"' : '';
     return '<div class="corpo-wiz-review-row"' + clickAttr + '><span class="corpo-wiz-review-label">' + f.label + '</span><span class="corpo-wiz-review-value">' + fmt + '</span></div>';
   }
 
   var geralRows = CORPO_GERAL_FIELDS.map(function(f) {
-    f._group = 'geral';
-    return reviewRow(f);
+    return reviewRow(f, 'geral');
   }).join('');
 
   var circRows = CORPO_CIRC_FIELDS.map(function(f) {
-    f._group = 'circunferencias';
-    return reviewRow(f);
+    return reviewRow(f, 'circunferencias');
   }).join('');
 
   var dobraRows = CORPO_DOBRAS_FIELDS.map(function(f) {
-    f._group = 'dobras';
-    return reviewRow(f);
+    return reviewRow(f, 'dobras');
   }).join('');
+
+  var customFields = getCorpoCustomFields();
+  var customRows = customFields.length ? customFields.map(function(f) {
+    return reviewRow(f, 'custom');
+  }).join('') : '';
 
   body.innerHTML =
     '<div class="corpo-wiz-review" ontouchstart="corpoTouchStart(event)" ontouchend="corpoTouchEnd(event)">' +
       '<div class="corpo-wiz-review-section"><div class="corpo-wiz-review-section-title">Dados gerais</div>' + geralRows + '</div>' +
-      '<div class="corpo-wiz-review-section"><div class="corpo-wiz-review-section-title">Circunferências</div>' + circRows + '</div>' +
-      '<div class="corpo-wiz-review-section"><div class="corpo-wiz-review-section-title">Dobras cutâneas</div>' + dobraRows + '</div>' +
+      '<div class="corpo-wiz-review-section"><div class="corpo-wiz-review-section-title">Circunfer\u00eancias</div>' + circRows + '</div>' +
+      '<div class="corpo-wiz-review-section"><div class="corpo-wiz-review-section-title">Dobras cut\u00e2neas</div>' + dobraRows + '</div>' +
+      (customRows ? '<div class="corpo-wiz-review-section"><div class="corpo-wiz-review-section-title">Personalizados</div>' + customRows + '</div>' : '') +
     '</div>';
 }
 
@@ -3945,6 +4030,7 @@ function getCorpoProgressColor(stepDef) {
   if (stepDef.group === 'geral') return '#3b82f6';
   if (stepDef.group === 'circunferencias') return '#14b8a6';
   if (stepDef.group === 'dobras') return '#a855f7';
+  if (stepDef.group === 'custom') return '#f97316';
   return '#2563eb';
 }
 
@@ -3955,6 +4041,7 @@ function getCorpoSectionLabel(stepDef) {
   if (stepDef.group === 'geral') return 'Geral';
   if (stepDef.group === 'circunferencias') return 'Circunferências';
   if (stepDef.group === 'dobras') return 'Dobras';
+  if (stepDef.group === 'custom') return 'Personalizados';
   return '';
 }
 
@@ -4072,7 +4159,8 @@ function corpoWizardSave() {
     data: corpoAvaliacaoDraft.data,
     geral: Object.assign({}, corpoAvaliacaoDraft.geral),
     circunferencias: Object.assign({}, corpoAvaliacaoDraft.circunferencias),
-    dobras: Object.assign({}, corpoAvaliacaoDraft.dobras)
+    dobras: Object.assign({}, corpoAvaliacaoDraft.dobras),
+    custom: Object.assign({}, corpoAvaliacaoDraft.custom)
   };
 
   mockData.avaliacoesAntropometricas.push(payload);
@@ -4082,6 +4170,190 @@ function corpoWizardSave() {
   corpoAvaliacaoWizardStep = 1;
   showFeedbackModal('Avaliação salva com sucesso.', 'success');
   renderComposicao();
+}
+
+// ===== CAMPOS PERSONALIZADOS (CORPO) =====
+
+function escHtml(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function getCorpoCustomFields() {
+  try {
+    var raw = localStorage.getItem('corpoCustomFields');
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+
+function saveCorpoCustomFields(fields) {
+  localStorage.setItem('corpoCustomFields', JSON.stringify(fields));
+  rebuildCorpoWizardSteps();
+  renderCorpoCustomFieldList();
+}
+
+function generateCorpoCustomKey(label) {
+  var base = 'cf_' + label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').substring(0, 28);
+  if (!base || base === 'cf_') base = 'cf_' + Date.now();
+  var existing = getCorpoCustomFields();
+  var key = base;
+  var n = 1;
+  while (existing.some(function(f) { return f.key === key; })) {
+    key = base + '_' + (n++);
+  }
+  return key;
+}
+
+function openCorpoCustomFieldManager() {
+  var el = document.getElementById('corpoCustomFieldManager');
+  if (el) el.style.display = '';
+  renderCorpoCustomFieldList();
+}
+
+function closeCorpoCustomFieldManager() {
+  var el = document.getElementById('corpoCustomFieldManager');
+  if (el) el.style.display = 'none';
+}
+
+function renderCorpoCustomFieldList() {
+  var el = document.getElementById('corpoCustomFieldList');
+  if (!el) return;
+  var fields = getCorpoCustomFields();
+  if (!fields.length) {
+    el.innerHTML = '<div class="corpo-cfm-empty">Nenhum campo personalizado ainda.<br>Adicione campos para medições que voc\u00ea acompanha.</div>';
+    return;
+  }
+  el.innerHTML = fields.map(function(f, i) {
+    var decTxt = f.decimals === 0 ? 'inteiro' : f.decimals === 1 ? '1 decimal' : f.decimals + ' decimais';
+    var rangeTxt = (f.min != null || f.max != null) ? (' ' + (f.min != null ? f.min : '?') + '\u2013' + (f.max != null ? f.max : '?')) : '';
+    return '<div class="corpo-cfm-item">' +
+      '<div class="corpo-cfm-item-info">' +
+        '<div class="corpo-cfm-item-label">' + f.label + '</div>' +
+        '<div class="corpo-cfm-item-desc">' + f.unit + ' \u00b7 ' + decTxt + (rangeTxt ? ' \u00b7 ' + rangeTxt : '') + '</div>' +
+      '</div>' +
+      '<div class="corpo-cfm-item-actions">' +
+        '<button type="button" class="corpo-cfm-item-btn" onclick="editCorpoCustomField(' + i + ')" aria-label="Editar">' +
+          '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
+        '</button>' +
+        '<button type="button" class="corpo-cfm-item-btn corpo-cfm-item-btn--del" onclick="deleteCorpoCustomField(' + i + ')" aria-label="Excluir">' +
+          '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function showCorpoCustomFieldForm(editIndex) {
+  var formContainer = document.getElementById('corpoCustomFieldFormContainer');
+  if (!formContainer) return;
+  var fields = getCorpoCustomFields();
+  var f = editIndex != null && editIndex >= 0 ? fields[editIndex] : null;
+
+  formContainer.innerHTML =
+    '<div class="corpo-cfm-form" id="corpoCustomFieldForm">' +
+      '<div class="corpo-cfm-form-title">' + (f ? 'Editar campo' : 'Novo campo personalizado') + '</div>' +
+      '<label class="corpo-cfm-field">' +
+        '<span class="corpo-cfm-field-label">Nome do campo</span>' +
+        '<input type="text" id="cfmLabel" class="corpo-cfm-input-text" placeholder="Ex: Tamanho Nariz" value="' + (f ? escHtml(f.label) : '') + '" />' +
+      '</label>' +
+      '<div class="corpo-cfm-row">' +
+        '<label class="corpo-cfm-field corpo-cfm-field--half">' +
+          '<span class="corpo-cfm-field-label">Unidade</span>' +
+          '<input type="text" id="cfmUnit" class="corpo-cfm-input-text" placeholder="Ex: cm" value="' + (f ? escHtml(f.unit) : '') + '" />' +
+        '</label>' +
+        '<label class="corpo-cfm-field corpo-cfm-field--half">' +
+          '<span class="corpo-cfm-field-label">Decimais</span>' +
+          '<select id="cfmDecimals" class="corpo-cfm-select">' +
+            '<option value="0"' + (f && f.decimals === 0 ? ' selected' : '') + '>0 (inteiro)</option>' +
+            '<option value="1"' + ((!f || f.decimals === 1) ? ' selected' : '') + '>1</option>' +
+            '<option value="2"' + (f && f.decimals === 2 ? ' selected' : '') + '>2</option>' +
+          '</select>' +
+        '</label>' +
+      '</div>' +
+      '<div class="corpo-cfm-row">' +
+        '<label class="corpo-cfm-field corpo-cfm-field--half">' +
+          '<span class="corpo-cfm-field-label">M\u00ednimo (opcional)</span>' +
+          '<input type="number" id="cfmMin" class="corpo-cfm-input-text" placeholder="0" value="' + (f && f.min != null ? f.min : '') + '" />' +
+        '</label>' +
+        '<label class="corpo-cfm-field corpo-cfm-field--half">' +
+          '<span class="corpo-cfm-field-label">M\u00e1ximo (opcional)</span>' +
+          '<input type="number" id="cfmMax" class="corpo-cfm-input-text" placeholder="100" value="' + (f && f.max != null ? f.max : '') + '" />' +
+        '</label>' +
+      '</div>' +
+      '<div class="corpo-cfm-form-actions">' +
+        '<button type="button" class="corpo-cfm-btn corpo-cfm-btn--outline" onclick="hideCorpoCustomFieldForm()">Cancelar</button>' +
+        '<button type="button" class="corpo-cfm-btn corpo-cfm-btn--solid" onclick="saveCorpoCustomFieldForm(' + (editIndex != null && editIndex >= 0 ? editIndex : -1) + ')">Salvar</button>' +
+      '</div>' +
+    '</div>';
+  formContainer.style.display = '';
+}
+
+function hideCorpoCustomFieldForm() {
+  var formContainer = document.getElementById('corpoCustomFieldFormContainer');
+  if (formContainer) formContainer.style.display = 'none';
+}
+
+function saveCorpoCustomFieldForm(editIndex) {
+  var labelEl = document.getElementById('cfmLabel');
+  var unitEl = document.getElementById('cfmUnit');
+  var decimalsEl = document.getElementById('cfmDecimals');
+  var minEl = document.getElementById('cfmMin');
+  var maxEl = document.getElementById('cfmMax');
+  if (!labelEl || !unitEl || !decimalsEl) return;
+
+  var label = (labelEl.value || '').trim();
+  var unit = (unitEl.value || '').trim();
+  if (!label || !unit) {
+    showFeedbackModal('Preencha o nome e a unidade do campo.', 'warning');
+    return;
+  }
+
+  var decimals = parseInt(decimalsEl.value, 10);
+  if (!Number.isFinite(decimals)) decimals = 1;
+
+  var minRaw = (minEl.value || '').trim();
+  var maxRaw = (maxEl.value || '').trim();
+  var min = minRaw ? Number(minRaw) : null;
+  var max = maxRaw ? Number(maxRaw) : null;
+  if ((min != null && !Number.isFinite(min)) || (max != null && !Number.isFinite(max))) {
+    showFeedbackModal('Valores m\u00ednimo e m\u00e1ximo devem ser n\u00fameros.', 'warning');
+    return;
+  }
+  if (min != null && max != null && min >= max) {
+    showFeedbackModal('O valor m\u00ednimo deve ser menor que o m\u00e1ximo.', 'warning');
+    return;
+  }
+
+  var fields = getCorpoCustomFields();
+
+  if (editIndex >= 0 && editIndex < fields.length) {
+    fields[editIndex].label = label;
+    fields[editIndex].unit = unit;
+    fields[editIndex].decimals = decimals;
+    fields[editIndex].min = min;
+    fields[editIndex].max = max;
+    fields[editIndex].msg = label + ' deve estar entre ' + (min != null ? min : '?') + ' e ' + (max != null ? max : '?');
+  } else {
+    var key = generateCorpoCustomKey(label);
+    fields.push({ key: key, label: label, unit: unit, decimals: decimals, min: min, max: max, msg: label + ' deve estar entre ' + (min != null ? min : '?') + ' e ' + (max != null ? max : '?') });
+  }
+
+  saveCorpoCustomFields(fields);
+  hideCorpoCustomFieldForm();
+  showFeedbackModal(editIndex >= 0 ? 'Campo atualizado.' : 'Campo adicionado!', 'success');
+}
+
+function deleteCorpoCustomField(index) {
+  var fields = getCorpoCustomFields();
+  if (index < 0 || index >= fields.length) return;
+  var label = fields[index].label;
+  if (!confirm('Excluir o campo "' + label + '" permanentemente?')) return;
+  fields.splice(index, 1);
+  saveCorpoCustomFields(fields);
+  showFeedbackModal('Campo "' + label + '" exclu\u00eddo.', 'info');
+}
+
+function editCorpoCustomField(index) {
+  showCorpoCustomFieldForm(index);
 }
 
 
@@ -4111,11 +4383,11 @@ function openEcgDetail(ecgId) {
     html += '<div class="section-title" style="margin-top: 16px; margin-bottom: 12px;">Histórico</div>';
     html += ecg.historico.map(h => {
       const dataFormatada = h.data;
-      const hora = h.hora ? ` A?s ${h.hora}` : '';
+      const hora = h.hora ? ` ·s ${h.hora}` : '';
       return `
         <div class="card card-saude" style="margin-bottom: 8px;">
           <div class="card-info"><strong>${dataFormatada}${hora}</strong></div>
-          <div class="card-info">${h.frequencia} bpm A? ${h.ritmo}</div>
+          <div class="card-info">${h.frequencia} bpm · ${h.ritmo}</div>
           <div class="card-info">Interpretação: ${h.interpretacao}</div>
         </div>
       `;
@@ -4158,6 +4430,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (window._glicemiaInsertActive) { closeAddGlicemiaWizard(); return; }
       if (window._pressaoColetaActive) { closePressaoColetaDetail(); return; }
       if (window._passaosDiaActive) { closePassosDiaDetail(); return; }
+      if (window._oxigenacaoDiaActive) { closeOxigenacaoDiaDetail(); return; }
       document.getElementById('vitalDetailModal').classList.remove('active');
       setGlobalHeaderVisible(true);
     });
@@ -4381,12 +4654,6 @@ function openOverdueMedicationsModal() {
   openDailyScheduleModal('atrasado');
 }
 
-function markMedicationAsTaken(nome, dosagem, horario) {
-  const med = mockData.medicacoes.find(m => m.nome === nome && m.dosagem === dosagem);
-  if (!med) return;
-  markMedicationByIdAndTime(med.id, horario, getTodayISODate());
-}
-
 function markMedicationByIdAndTime(medId, horario, dateISO = getTodayISODate(), shouldAlert = true) {
   const med = mockData.medicacoes.find(m => m.id === medId);
   if (!med) return false;
@@ -4441,7 +4708,7 @@ function undoMedicationTaken(medId, dateISO, horario) {
 function handleMedicationScheduleClick(medId, horario, status, nome, dosagem, dateISO = getTodayISODate()) {
   if (status === 'tomado') {
     openConfirmModal(
-      `Desfazer "${nome} ${dosagem}" marcado como tomado A?s ${horario}?`,
+      `Desfazer "${nome} ${dosagem}" marcado como tomado ·s ${horario}?`,
       () => {
         const undone = undoMedicationTaken(medId, dateISO, horario);
         if (!undone) {
@@ -4469,7 +4736,7 @@ function renderEditMedicacaoTomadasList(med) {
 
   if (tomados.length === 0) {
     container.innerHTML =
-      '<p class="form-hint" style="margin:0;">Nenhuma dose marcada como tomada nos A?ltimos 14 dias.</p>';
+      '<p class="form-hint" style="margin:0;">Nenhuma dose marcada como tomada nos Últimos 14 dias.</p>';
     return;
   }
 
@@ -4478,7 +4745,7 @@ function renderEditMedicacaoTomadasList(med) {
     <p class="form-hint" style="margin:0 0 8px 0;">Toque em <strong>Desfazer</strong> para cancelar um registro errado.</p>
     ${tomados
     .map((h) => {
-      const label = `${fmt(h.data)} A? ${h.hora}`;
+      const label = `${fmt(h.data)} · ${h.hora}`;
       const d = String(h.data || '').replace(/"/g, '');
       const hh = String(h.hora || '').replace(/"/g, '');
       return `
@@ -5174,22 +5441,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== ALERTAS =====
 
-function toggleAlertaVitalFields() {
-  const ativo = document.getElementById('toggleAlertaVital').classList.contains('active');
-  document.getElementById('alertaVitalFields').classList.toggle('is-hidden', !ativo);
-}
-
-function openAlertasModal() {
-  renderAlertasVitais();
-  renderAlertasMeds();
-  renderAlertasAgenda();
-  // Reset abas
-  const modal = document.getElementById('alertasModal');
-  modal.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
-  modal.querySelectorAll('.tab-content').forEach((c, i) => c.classList.toggle('active', i === 0));
-  modal.classList.add('active');
-}
-
 function renderAlertasVitais() {
   const comAlerta = mockData.sinaisVitais.filter(v => v.alerta && v.alerta.ativo);
   if (!comAlerta.length) {
@@ -5302,12 +5553,6 @@ function switchTab(modalPrefix, aba, btn) {
 }
 
 // ----- VALORES IDEAIS -----
-
-function openValoresIdeaisModal() {
-  renderValoresIdeaisVitais();
-  renderValoresIdeaisCorpo();
-  document.getElementById('valoresIdeaisModal').classList.add('active');
-}
 
 function renderValoresIdeaisVitais() {
   const html = mockData.sinaisVitais.map(v => `
@@ -5622,8 +5867,6 @@ function removeDispositivo(id) {
   renderDispositivos();
 }
 
-let currentTipoDispositivo = null;
-
 function openAddDispositivoModal() {
   document.getElementById('dispositivoNomeInput').value = '';
   document.getElementById('dispositivoTipoSelect').value = '';
@@ -5685,7 +5928,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ===== CONFIGURAA?A?O DE SINAIS VITAIS =====
+// ===== CONFIGURAÇÃO DE SINAIS VITAIS =====
 
 function openVitaisConfigModal() {
   renderVitaisConfig();
@@ -5876,8 +6119,8 @@ function setAutoCaptureHint(fonte) {
   if (!hint) return;
   const copy = {
     Pulseira: 'Depois do preparo, sincronize a leitura enviada pela pulseira.',
-    'Google Fit': 'Simula buscar a A?ltima medição sincronizada no Google Fit.',
-    'Apple Health': 'Simula importar o A?ltimo registro do Apple Health.'
+    'Google Fit': 'Simula buscar a ·ltima medição sincronizada no Google Fit.',
+    'Apple Health': 'Simula importar o Último registro do Apple Health.'
   };
   hint.textContent = copy[fonte] || copy.Pulseira;
 }
@@ -5920,7 +6163,7 @@ function openExercicioDetalheModal(sessao) {
   if (periodoEl) {
     const ini = sessao.inicioISO ? formatDateTimeForUI(sessao.inicioISO) : '';
     const fim = sessao.fimISO ? formatDateTimeForUI(sessao.fimISO) : '';
-    periodoEl.textContent = ini && fim ? `InA-cio ${ini} A? Fim ${fim}` : '';
+    periodoEl.textContent = ini && fim ? `InA-cio ${ini} · Fim ${fim}` : '';
   }
 
   const cal = sessao.caloriasKcal != null ? `${sessao.caloriasKcal} kcal` : '–';
@@ -5960,32 +6203,6 @@ function closeExercicioDetalheModal() {
   if (m) m.classList.remove('active');
 }
 
-function openSonoDetalheFromRow(index) {
-  const h = currentVitalHistoricoView[index];
-  if (!h || h.contextoColeta !== 'sono' || !h.sonoSessao) return;
-  openSonoDetalheModal(h.sonoSessao);
-}
-
-function openExercicioDetalheFromBatimentoHour(hour) {
-  const sel = vitalBatimentoChartSelection;
-  if (!sel || sel.kind !== 'day' || !currentVitalDetail || currentVitalDetail.tipo !== 'Batimento Cardíaco') return;
-  const inMode = filterBatimentoByContext(currentVitalDetail.historico);
-  const buckets = aggregateHeartRateByHourForDay(inMode, sel.iso);
-  const b = buckets[hour];
-  const r = b && b.readings && b.readings.find((x) => x.contextoColeta === 'exercicio' && x.exercicioSessao);
-  if (r && r.exercicioSessao) openExercicioDetalheModal(r.exercicioSessao);
-}
-
-function openSonoDetalheFromBatimentoHour(hour) {
-  const sel = vitalBatimentoChartSelection;
-  if (!sel || sel.kind !== 'day' || !currentVitalDetail || currentVitalDetail.tipo !== 'Batimento Cardíaco') return;
-  const inMode = filterBatimentoByContext(currentVitalDetail.historico);
-  const buckets = aggregateHeartRateByHourForDay(inMode, sel.iso);
-  const b = buckets[hour];
-  const r = b && b.readings && b.readings.find((x) => x.contextoColeta === 'sono' && x.sonoSessao);
-  if (r && r.sonoSessao) openSonoDetalheModal(r.sonoSessao);
-}
-
 /** RA3tulos de contexto (ExercA-cio / Sono / ???) agregados num bucket horário. */
 function batimentoBucketContextBadgeHtml(bucket) {
   if (!bucket || !bucket.readings || bucket.readings.length === 0) return '';
@@ -5996,7 +6213,7 @@ function batimentoBucketContextBadgeHtml(bucket) {
   });
   const labs = Array.from(set);
   if (labs.length === 0) return '';
-  const text = labs.length === 1 ? labs[0] : labs.join(' A? ');
+  const text = labs.length === 1 ? labs[0] : labs.join(' · ');
   return `<span class="vital-context-badge">${text}</span>`;
 }
 
@@ -6010,7 +6227,7 @@ function openSonoDetalheModal(sessao) {
   titulo.textContent = 'Sono';
   const ini = sessao.inicioISO ? formatDateTimeForUI(sessao.inicioISO) : '';
   const fim = sessao.fimISO ? formatDateTimeForUI(sessao.fimISO) : '';
-  periodo.textContent = ini && fim ? `InA-cio ${ini} A? Fim ${fim}` : '';
+  periodo.textContent = ini && fim ? `InA-cio ${ini} · Fim ${fim}` : '';
 
   const dm = sessao.duracaoMinutos;
   const durLabel =
@@ -6089,7 +6306,7 @@ function buildBatimentoMinutoHistoricoRowHtml(r) {
     badgeHtml,
     hourDetail: {
       measureLine,
-      timeLine: `${dateTxt} A? ${hora}`,
+      timeLine: `${dateTxt} · ${hora}`,
       trailHtml
     }
   });
@@ -6146,7 +6363,7 @@ function openBatimentoMinutoDetalhe(hour, contexto) {
   if (!modal) return;
 
   document.getElementById('batimentoMinutoTitulo').textContent = 'Detalhado por minuto';
-  document.getElementById('batimentoMinutoSubtitulo').textContent = formatDateForUI(dayIso) + ' A? ' + labelHora;
+  document.getElementById('batimentoMinutoSubtitulo').textContent = formatDateForUI(dayIso) + ' · ' + labelHora;
 
   // EstatA-sticas da hora
   const hasRange = bucket.min != null && bucket.max != null;
@@ -6177,13 +6394,13 @@ function openBatimentoMinutoDetalhe(hour, contexto) {
   // GrA?fico de barras por leitura
   renderBatimentoMinutoCanvas(readings);
 
-  // Sub-modal exercA-cio/sono se aplicA?vel
+  // Sub-modal exercício/sono se aplicA?vel
   const ex = bucket.readings && bucket.readings.find((r) => r.contextoColeta === 'exercicio' && r.exercicioSessao);
   const sn = bucket.readings && bucket.readings.find((r) => r.contextoColeta === 'sono' && r.sonoSessao);
   const subBtn = document.getElementById('batimentoMinutoSubBtn');
   if (ex) {
     subBtn.style.display = 'block';
-    subBtn.textContent = 'Ver detalhe do exercA-cio';
+    subBtn.textContent = 'Ver detalhe do exercício';
     subBtn.onclick = () => { closeBatimentoMinutoModal(); openExercicioDetalheModal(ex.exercicioSessao); };
   } else if (sn) {
     subBtn.style.display = 'block';
@@ -6401,19 +6618,7 @@ function buildDailyRowsForRange(historico, startISO, endISO) {
   });
 }
 
-function isBatimentoHistoricoExercicio(h) {
-  return !!(h && h.contextoColeta === 'exercicio' && h.exercicioSessao);
-}
-
-function isBatimentoHistoricoRepouso(h) {
-  return !!(h && h.contextoColeta === 'repouso');
-}
-
-function isBatimentoHistoricoSono(h) {
-  return !!(h && h.contextoColeta === 'sono');
-}
-
-/** Cor de fundo: Sono / ExercA-cio / Repouso / outras condiÇA?es (histA3rico detalhado por medição). */
+/** Cor de fundo: Sono / ExercA-cio / Repouso / outras condições (histA3rico detalhado por medição). */
 function batimentoHistoricoRowBgClassForEntry(h) {
   if (!h || !currentVitalDetail || currentVitalDetail.tipo !== 'Batimento Cardíaco') return '';
   if (h.contextoColeta === 'sono' && h.sonoSessao) return 'vital-list-item--bc-sono';
@@ -6468,7 +6673,7 @@ function batimentoHourlyBucketRowBgClass(bucket) {
 }
 
 /**
- * Uma linha por dia civil: mA-n. e mA?x. do dia (alinhado A?s barras do gráfico).
+ * Uma linha por dia civil: mA-n. e mA?x. do dia (alinhado ·s barras do gráfico).
  */
 function buildBatimentoHistoricoDailyRows(entries) {
   const map = new Map();
@@ -6515,7 +6720,7 @@ function buildBatimentoHistoricoDailyRows(entries) {
     .sort((a, b) => a[0].localeCompare(b[0]))
     .map(([day, g]) => {
       const labs = ctxLabels(g.readings);
-      const ctxBadge = labs.length === 0 ? '' : (labs.length === 1 ? labs[0] : labs.join(' A? '));
+      const ctxBadge = labs.length === 0 ? '' : (labs.length === 1 ? labs[0] : labs.join(' · '));
       return {
         day,
         min: g.min,
@@ -6937,7 +7142,7 @@ function openBatHourlyDetail(slotKey, dMin, dMax, historico) {
   const _selISO = batimentoSelectedDayISO || getTodayISODate();
   const [_y, _m, _d] = _selISO.split('-').map(Number);
   const _dateObj = new Date(_y, _m - 1, _d);
-  const _diasSem = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'SA?b'];
+  const _diasSem = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
   const _meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
   const _dateLabel = `${_diasSem[_dateObj.getDay()]}, ${String(_d).padStart(2,'0')} ${_meses[_m - 1]}`;
   document.getElementById('batHdSlotLabel').innerHTML =
@@ -7460,7 +7665,7 @@ function _brdGetStatus(avg) {
   if (avg <= 72) return { cls: 'brd-status-green',  label: 'Excelente',  text: 'Frequência cardíaca em repouso em nível excelente.',                                         tip: 'Continue dormindo bem e mantendo a atividade física regular.' };
   if (avg <= 80) return { cls: 'brd-status-green',  label: 'Normal',     text: 'Frequência cardíaca em repouso dentro da faixa saudável para adultos.',                     tip: 'Sono de qualidade e caminhadas diárias ajudam a manter esse resultado.' };
   if (avg <= 90) return { cls: 'brd-status-yellow', label: 'Atenção',    text: 'Frequência cardíaca em repouso levemente acima do ideal.',                                   tip: 'Tente reduzir o estresse e priorize pelo menos 7h de sono por noite.' };
-  return              { cls: 'brd-status-red',      label: 'Elevado',    text: 'Frequência cardíaca em repouso elevada.',                                                  tip: 'Considere consultar um profissional de saúde e evite cafeína A? noite.' };
+  return              { cls: 'brd-status-red',      label: 'Elevado',    text: 'Frequência cardíaca em repouso elevada.',                                                  tip: 'Considere consultar um profissional de saúde e evite cafeína · noite.' };
 }
 
 function _brdBuildPoints(period) {
@@ -7567,7 +7772,7 @@ function _brdRenderContent(period) {
 
   // Range label
   var rangeEl = document.getElementById('brdChartRange');
-  var rangeMap = { '7d': 'A?ltimos 7 dias', '30d': 'A?ltimos 30 dias', '3m': 'A?ltimos 3 meses', '1y': 'A?ltimo ano' };
+  var rangeMap = { '7d': 'Últimos 7 dias', '30d': 'Últimos 30 dias', '3m': 'Últimos 3 meses', '1y': 'Último ano' };
   if (rangeEl) rangeEl.textContent = rangeMap[period] || '';
 
   // X-axis labels
@@ -7871,7 +8076,7 @@ async function shareBatimentoCard() {
 
     ctx.fillStyle = '#64748b';
     ctx.font = `400 ${12 * dpr}px Inter, system-ui, sans-serif`;
-    ctx.fillText(nome ? `${dateLabel} A? ${nome}` : dateLabel, 20 * dpr, 55 * dpr);
+    ctx.fillText(nome ? `${dateLabel} · ${nome}` : dateLabel, 20 * dpr, 55 * dpr);
 
     ctx.fillStyle = '#f1f5f9';
     ctx.fillRect(0, (headerH - 1) * dpr, W, dpr); // divisor
@@ -7888,7 +8093,7 @@ async function shareBatimentoCard() {
     ctx.font = `400 ${11 * dpr}px Inter, system-ui, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('Gerado por Teep SaA?de A? teepsaude.com.br', W / 2, footerY + (footerH / 2) * dpr);
+    ctx.fillText('Gerado por Teep SaA?de · teepsaude.com.br', W / 2, footerY + (footerH / 2) * dpr);
 
     if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
 
@@ -7897,7 +8102,7 @@ async function shareBatimentoCard() {
       const file = new File([blob], `batimento-${selISO}.png`, { type: 'image/png' });
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
-          await navigator.share({ files: [file], title: 'Batimento Cardíaco', text: `${dateLabel}${nome ? ' A? ' + nome : ''}` });
+          await navigator.share({ files: [file], title: 'Batimento Cardíaco', text: `${dateLabel}${nome ? ' · ' + nome : ''}` });
           return;
         } catch (e) { /* cancelado pelo usuA?rio */ }
       }
@@ -7938,7 +8143,7 @@ function renderBatimentoDayPicker(historico) {
     }
   });
 
-  // Construir lista de dias: A?ltimos 90 dias, do mais antigo ao mais recente
+  // Construir lista de dias: Últimos 90 dias, do mais antigo ao mais recente
   const days = [];
   for (let i = 89; i >= 0; i--) {
     const d = new Date();
@@ -7986,7 +8191,7 @@ function renderBatimentoDayPicker(historico) {
 
   el.innerHTML = `<div class="bat-picker-scroll" id="batPickerScroll">${cols}</div>`;
 
-  // Scroll para mostrar o dia selecionado visA-vel A? direita
+  // Scroll para mostrar o dia selecionado visA-vel · direita
   requestAnimationFrame(() => {
     const scroll = document.getElementById('batPickerScroll');
     if (!scroll) return;
@@ -8139,7 +8344,7 @@ function getBatimentoPeriodRange() {
   return { start: dateToLocalISODate(startD), end: endToday };
 }
 
-/** Resumo curto do período (batimento): evita a frase longa ??odia(s) com registro A? leitura(s) A? ?????. */
+/** Resumo curto do período (batimento): evita a frase longa ??odia(s) com registro · leitura(s) · ?????. */
 function updateBatimentoPeriodSummary(filtrado, startISO, endISO) {
   const el = document.getElementById('vitalDetailPeriodSummary');
   if (!el) return;
@@ -8156,10 +8361,10 @@ function updateBatimentoPeriodSummary(filtrado, startISO, endISO) {
       ? getBatimentoIdealRangeForChart(currentVitalDetail)
       : null;
   const idealHint = fromIndicador
-    ? ` A? Ideal ${band.min}–${band.max} bpm`
-    : ` A? Ref. ${band.min}–${band.max} bpm (padrA?o)`;
-  const modeHint = ` A? Dados: ${getBatimentoContextModeLabel()}`;
-  el.textContent = `${nLeit} leit. A? ${nDias}d A? ${p0}–${p1}${idealHint}${modeHint}`;
+    ? ` · Ideal ${band.min}–${band.max} bpm`
+    : ` · Ref. ${band.min}–${band.max} bpm (padrA?o)`;
+  const modeHint = ` · Dados: ${getBatimentoContextModeLabel()}`;
+  el.textContent = `${nLeit} leit. · ${nDias}d · ${p0}–${p1}${idealHint}${modeHint}`;
   el.removeAttribute('title');
   el.style.cursor = '';
   el.onclick = null;
@@ -8174,32 +8379,6 @@ function updateBatimentoChipActive() {
 
 function applyVitalBatimentoView() {
   updateVitalBatimentoModalView();
-}
-
-/** Ao mudar inA-cio/fim no modo Livre, a seleção de coluna deixa de ser vA?lida. */
-function onBatimentoLivreRangeChange() {
-  vitalBatimentoChartSelection = null;
-  applyVitalBatimentoView();
-}
-
-function setVitalBatimentoPeriod(period) {
-  vitalBatimentoChartSelection = null;
-  vitalBatimentoPeriod = period;
-  const livreRow = document.getElementById('vitalBatimentoLivreRow');
-  if (livreRow) livreRow.style.display = period === 'livre' ? 'block' : 'none';
-  if (period === 'livre') {
-    const di = document.getElementById('filterBatimentoLivreInicio');
-    const df = document.getElementById('filterBatimentoLivreFim');
-    const end = getTodayISODate();
-    if (di && df && !di.value && !df.value) {
-      const s = localNoonFromISODate(end);
-      s.setDate(s.getDate() - 6);
-      di.value = dateToLocalISODate(s);
-      df.value = end;
-    }
-  }
-  updateBatimentoChipActive();
-  applyVitalBatimentoView();
 }
 
 /** Evita barra invisA-vel quando min?%^max (mesma regra no gráfico por dia e por hora). */
@@ -8377,7 +8556,7 @@ function batimentoGradientForIdealSegment(ctx, x0, x1, yTop, yBot, kind) {
 /**
  * Barra min–max segmentada pelo ideal: baixo / normal / alto (cores distintas da lista por contexto).
  */
-/** Barra A?nica por hora na vista Detalhado: cor = situação da medição (não Baixo/Normal/Alto). */
+/** Barra ·nica por hora na vista Detalhado: cor = situação da medição (não Baixo/Normal/Alto). */
 function batimentoGradientForHourlyContext(ctx, x0, x1, yTop, yBot, group) {
   const g = ctx.createLinearGradient(x0, yTop, x0, yBot);
   switch (group) {
@@ -8397,7 +8576,7 @@ function batimentoGradientForHourlyContext(ctx, x0, x1, yTop, yBot, group) {
       g.addColorStop(1, '#ca8a04');
       break;
     default:
-      /* Demais: fora de sono / exercA-cio / repouso – laranja */
+      /* Demais: fora de sono / exercício / repouso – laranja */
       g.addColorStop(0, '#ffedd5');
       g.addColorStop(0.55, '#fb923c');
       g.addColorStop(1, '#c2410c');
@@ -8766,7 +8945,7 @@ function renderBatimentoDayDrilldown(dayIso) {
   if (lastEl) {
     if (stats.lastVal != null && Number.isFinite(stats.lastVal)) {
       lastEl.style.display = 'block';
-      lastEl.textContent = `Asltima leitura: ${Math.round(stats.lastVal)} bpm${stats.lastTime ? ` A? ${stats.lastTime}` : ''}`;
+      lastEl.textContent = `Asltima leitura: ${Math.round(stats.lastVal)} bpm${stats.lastTime ? ` · ${stats.lastTime}` : ''}`;
     } else {
       lastEl.style.display = 'none';
       lastEl.textContent = '';
@@ -8834,11 +9013,6 @@ function syncBatimentoChromePanels() {
     hideBatimentoHourlyTooltip();
   }
   updateVitalBatimentoModalTitle();
-}
-
-function clearVitalBatimentoDaySelection() {
-  vitalBatimentoChartSelection = null;
-  updateVitalBatimentoModalView();
 }
 
 function renderBatimentoDailyBarChart(historico, rangeOpts) {
@@ -8911,7 +9085,7 @@ function renderBatimentoDailyBarChart(historico, rangeOpts) {
     ctx.fillStyle = 'rgba(0,0,0,0.45)';
     ctx.font = '13px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Sem dados numAcricos no período', w / 2, h / 2);
+    ctx.fillText('Sem dados numéricos no período', w / 2, h / 2);
     return;
   }
 
@@ -9024,7 +9198,7 @@ function renderBatimentoDailyBarChart(historico, rangeOpts) {
   canvas.onclick = (e) => onVitalBatimentoCanvasClick(e);
 }
 
-/** Janela de agregação do gráfico de FC no detalhe de exercA-cio (2 min). */
+/** Janela de agregação do gráfico de FC no detalhe de exercício (2 min). */
 const EXERCICIO_HR_BUCKET_SEC = 120;
 
 function interpBpmFromAmostras(sorted, tSec) {
@@ -9182,10 +9356,13 @@ function openVitalDetailModal(tipoVital, vitalId) {
   if (_hiv) _hiv.style.display = 'none';
   var _oiv = document.getElementById('oxigInsertView');
   if (_oiv) _oiv.style.display = 'none';
+  var _odv = document.getElementById('oxigenacaoDiaDetailView');
+  if (_odv) _odv.style.display = 'none';
   window._pressaoDiaActive = false;
   window._pressaoColetaActive = false;
   window._passaosDiaActive = false;
   window._glicemiaInsertActive = false;
+  window._oxigenacaoDiaActive = false;
   if (vitalDetailContentEl) vitalDetailContentEl.style.display = bc ? 'none' : '';
   if (vitalDetailAddRowEl) vitalDetailAddRowEl.style.display = (bc || isPassos) ? 'none' : '';
 
@@ -9277,7 +9454,7 @@ function openPressaoDiaDetail(dayIso, entries) {
   // Date label
   const [_y, _m, _d] = dayIso.split('-').map(Number);
   const _dateObj = new Date(_y, _m - 1, _d);
-  const _dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'SA?b'];
+  const _dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
   const _meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
   const dateLabel = `${_dias[_dateObj.getDay()]}, ${String(_d).padStart(2, '0')} ${_meses[_m - 1]}`;
   const labelEl = document.getElementById('pressaoDiaDetailLabel');
@@ -9328,13 +9505,6 @@ function openPressaoDiaDetail(dayIso, entries) {
     pressaoDiaShowAll = false;
     _renderPressaoDiaColetaList();
   }
-}
-
-function _pressaoClassificar(sis, dia) {
-  if (!Number.isFinite(sis) || !Number.isFinite(dia)) return 'normal';
-  if (sis >= 140 || dia >= 90) return 'alta';
-  if (sis >= 130 || dia >= 80) return 'limítrofe';
-  return 'normal';
 }
 
 function _renderPressaoDiaColetaList() {
@@ -9439,7 +9609,7 @@ function openPressaoColetaDetail(idx) {
   if (labelEl && pressaoColetaDayIso) {
     const [_y, _m, _d] = pressaoColetaDayIso.split('-').map(Number);
     const _dateObj = new Date(_y, _m - 1, _d);
-    const _dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'SA?b'];
+    const _dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
     const _meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
     const _dateLabel = `${_dias[_dateObj.getDay()]}, ${String(_d).padStart(2, '0')} ${_meses[_m - 1]}`;
     labelEl.textContent = _dateLabel;
@@ -9601,10 +9771,6 @@ function piSumEdit(step) {
   stopStepPA();
   pressaoInsertStep = step;
   _pressaoInsRender();
-}
-
-function pressaoInsConfirmStep() {
-  pressaoInsGo(pressaoInsertStep + 1);
 }
 
 function _pressaoInsRender() {
@@ -9796,20 +9962,6 @@ function piDrumTouchEnd(e, wrap) {
     var _snapTrack = document.getElementById('piDrumTrack-' + field);
     if (_snapTrack) { _snapTrack.style.transition = 'transform 0.18s ease'; _snapTrack.style.transform = 'translateY(0)'; }
   }
-}
-
-function startStepPA(field, delta) {
-  stopStepPA();
-  _piDrumStep(field, delta);
-  _piDrumAnimate(field, -delta * PI_DRUM_IH);
-  var count = 0;
-  function repeat() {
-    _piDrumStep(field, delta);
-    _piDrumAnimate(field, -delta * PI_DRUM_IH);
-    count++;
-    _piStepTimer = setTimeout(repeat, count > 10 ? 80 : 140);
-  }
-  _piStepTimer = setTimeout(repeat, 400);
 }
 
 function stopStepPA() {
@@ -10143,7 +10295,7 @@ function renderSparklineChart(historico) {
             const unitW = ctx.measureText(' mmHg').width;
             const totalTxtW = sisW + sepW + diaW + unitW;
             // Date label
-            const _ptBrWP = ['Dom','Seg','Ter','Qua','Qui','Sex','SA?b'];
+            const _ptBrWP = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
             let dateLbl = '';
             if (!_isYearView && selRow.dayIso) {
               const _dp = new Date(selRow.dayIso + 'T12:00:00');
@@ -10295,7 +10447,7 @@ function renderSparklineChart(historico) {
         } else {
           const [_y, _m, _d] = row.dayIso.split('-').map(Number);
           const _dateObj = new Date(_y, _m - 1, _d);
-          const _dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'SA?b'];
+          const _dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
           dateLabel = `${_dias[_dateObj.getDay()]}, ${String(_d).padStart(2, '0')} ${_mAbr[_m - 1]}`;
         }
 
@@ -10408,7 +10560,7 @@ function renderSparklineChart(historico) {
         const _selRow = rows[_selIdx];
         const _cx = padL + slot * _selIdx + slot / 2;
         const _numStr = _selRow.v.toLocaleString('pt-BR');
-        const _ptBrWS = ['Dom','Seg','Ter','Qua','Qui','Sex','SA?b'];
+        const _ptBrWS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
         const _mAbrS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
         const [_sy, _smo, _sdd] = _selRow.day.split('-').map(Number);
         const _sDateLbl = _isYearView ? '' : `${_ptBrWS[new Date(_sy, _smo - 1, _sdd).getDay()]}, ${_sdd} ${_mAbrS[_smo - 1]}`;
@@ -10544,7 +10696,7 @@ function renderSparklineChart(historico) {
           const _sr = rows[_si];
           const _cx = padL + slot * _si + slot / 2;
           const _numStr = _sr.v.toLocaleString('pt-BR');
-          const _ptBrWD = ['Dom','Seg','Ter','Qua','Qui','Sex','SA?b'];
+          const _ptBrWD = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
           const _mAbrD = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
           const [_dy, _dmo, _ddd] = _sr.day.split('-').map(Number);
           const _sdDateLbl = _isYearView ? '' : `${_ptBrWD[new Date(_dy, _dmo - 1, _ddd).getDay()]}, ${_ddd} ${_mAbrD[_dmo - 1]}`;
@@ -10593,7 +10745,7 @@ function renderSparklineChart(historico) {
         ctx.setLineDash([]);
         ctx.restore();
         const _hNum = _hRow.v.toLocaleString('pt-BR');
-        const _ptBrWH = ['Dom','Seg','Ter','Qua','Qui','Sex','SA?b'];
+        const _ptBrWH = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
         const _mAbrH = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
         const [_hy, _hmo, _hdd] = _hRow.day.split('-').map(Number);
         const _hDateLbl = _isYearView ? '' : `${_ptBrWH[new Date(_hy, _hmo - 1, _hdd).getDay()]}, ${_hdd} ${_mAbrH[_hmo - 1]}`;
@@ -10801,7 +10953,7 @@ function renderSparklineChart(historico) {
 
       // X labels
       const _ptBrMonths = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-      const _ptBrWeekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'SA?b'];
+      const _ptBrWeekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
       const labelEvery = _isYearView ? 1 : Math.max(1, Math.ceil(n / 8));
       _gCtx.fillStyle = '#666';
       _gCtx.font = '8px sans-serif';
@@ -10873,7 +11025,7 @@ function renderSparklineChart(historico) {
         _gCtx.fillText('99', padL - 4, toY(99));
         // X labels
         const _ptBrMonths2 = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-        const _ptBrWeekdays2 = ['Dom','Seg','Ter','Qua','Qui','Sex','SA?b'];
+        const _ptBrWeekdays2 = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
         const _labelEvery2 = _isYearView ? 1 : Math.max(1, Math.ceil(n / 8));
         _gCtx.fillStyle = '#666'; _gCtx.font = '8px sans-serif'; _gCtx.textAlign = 'center'; _gCtx.textBaseline = 'alphabetic';
         glicDayRows.forEach((row, i) => {
@@ -10933,7 +11085,7 @@ function renderSparklineChart(historico) {
           // Tooltip bubble
           const _hAs = String(_hRow.avg);
           const _ptBrMH = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
-          const _ptBrWH = ['Dom','Seg','Ter','Qua','Qui','Sex','SA?b'];
+          const _ptBrWH = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
           let _hDateLbl = '';
           if (!_isYearView && _hRow.day) {
             const _hd = new Date(_hRow.day + 'T12:00:00');
@@ -11054,7 +11206,7 @@ function renderSparklineChart(historico) {
       var barR = Math.min(5, barW / 2 - 0.5);
 
       var _sonoHitBoxes = [];
-      var _ptBrDS = ['Dom','Seg','Ter','Qua','Qui','Sex','SA?b'];
+      var _ptBrDS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
       var _mAbrDS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 
       function _fmtSonoV(v) {
@@ -11218,17 +11370,23 @@ function renderSparklineChart(historico) {
   }
 
   if (currentVitalDetail && currentVitalDetail.tipo === 'Oxigenação') {
-    var _oxigByDay = new Map();
-    historico.forEach(function(h) {
-      var dayIso = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data || '').slice(0, 10);
-      if (!dayIso) return;
-      var v = parseFloat(h.valor);
-      if (!Number.isFinite(v)) return;
-      if (!_oxigByDay.has(dayIso) || v < _oxigByDay.get(dayIso).v) {
-        _oxigByDay.set(dayIso, { day: dayIso, v: v, status: h.status });
-      }
-    });
-    var _oxigRows = Array.from(_oxigByDay.values()).sort(function(a, b) { return a.day.localeCompare(b.day); });
+    var _oxigIsYearView = vitalDefaultPeriod === 'year';
+    var _oxigRows;
+    if (_oxigIsYearView) {
+      _oxigRows = aggregateOxigenacaoByMonth(historico).map(function(m) { return { day: m.month, v: m.avg, status: '' }; });
+    } else {
+      var _oxigByDay = new Map();
+      historico.forEach(function(h) {
+        var dayIso = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data || '').slice(0, 10);
+        if (!dayIso) return;
+        var v = parseFloat(h.valor);
+        if (!Number.isFinite(v)) return;
+        if (!_oxigByDay.has(dayIso) || v < _oxigByDay.get(dayIso).v) {
+          _oxigByDay.set(dayIso, { day: dayIso, v: v, status: h.status });
+        }
+      });
+      _oxigRows = Array.from(_oxigByDay.values()).sort(function(a, b) { return a.day.localeCompare(b.day); });
+    }
     if (_oxigRows.length === 0) return;
 
     var _oxigIdealLow = 95, _oxigIdealHigh = 100;
@@ -11270,7 +11428,7 @@ function renderSparklineChart(historico) {
       var barW = Math.min(18, Math.max(7, slot * 0.58));
       var barR = Math.min(5, barW / 2 - 0.5);
       var _oxigHitBoxes = [];
-      var _ptBrDO = ['Dom','Seg','Ter','Qua','Qui','Sex','SA?b'];
+      var _ptBrDO = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
       var _mAbrDO = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 
       function _drawOxigBase(hovIdx) {
@@ -11300,7 +11458,9 @@ function renderSparklineChart(historico) {
           var hBar = Math.max(1, yBot - yTop);
           var barColor = row.v >= _oxigIdealLow ? '#16a34a' : (row.v >= 90 ? '#f59e0b' : '#ef4444');
           var barColorDim = row.v >= _oxigIdealLow ? 'rgba(22,163,74,0.22)' : (row.v >= 90 ? 'rgba(245,158,11,0.25)' : 'rgba(239,68,68,0.25)');
-          if (hovIdx !== -1 && !isHov) {
+          var _selDay = oxigenacaoSelectedDayIso;
+          var isSelected = _selDay && row.day === _selDay;
+          if ((hovIdx !== -1 && !isHov) || (!_oxigIsYearView && _selDay && !isSelected)) {
             ctx.fillStyle = barColorDim;
           } else {
             var grad = ctx.createLinearGradient(0, yTop, 0, yBot);
@@ -11311,9 +11471,14 @@ function renderSparklineChart(historico) {
           if (typeof ctx.roundRect === 'function') {
             ctx.beginPath(); ctx.roundRect(x0, yTop, barW, hBar, [barR, barR, 0, 0]); ctx.fill();
           } else { ctx.fillRect(x0, yTop, barW, hBar); }
-          var pp = row.day.split('-').map(Number);
           ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-          ctx.fillText(String(pp[2]), cx, H - padB + 3);
+          if (_oxigIsYearView) {
+            var _mP = row.day.split('-');
+            ctx.fillText(_mAbrDO[parseInt(_mP[1], 10) - 1], cx, H - padB + 3);
+          } else {
+            var pp = row.day.split('-').map(Number);
+            ctx.fillText(String(pp[2]), cx, H - padB + 3);
+          }
         });
         // Hover tooltip
         if (hovIdx >= 0 && hovIdx < _oxigRows.length) {
@@ -11323,9 +11488,14 @@ function renderSparklineChart(historico) {
           var _hUnitStr = '%';
           var _hDL = '';
           if (hRow.day) {
-            var _hp = hRow.day.split('-').map(Number);
-            var _hd = new Date(_hp[0], _hp[1] - 1, _hp[2]);
-            _hDL = _ptBrDO[_hd.getDay()] + ', ' + _hp[2] + ' ' + _mAbrDO[_hp[1] - 1];
+            if (_oxigIsYearView) {
+              var _hmP = hRow.day.split('-');
+              _hDL = _mAbrDO[parseInt(_hmP[1], 10) - 1] + '/' + _hmP[0];
+            } else {
+              var _hp = hRow.day.split('-').map(Number);
+              var _hd = new Date(_hp[0], _hp[1] - 1, _hp[2]);
+              _hDL = _ptBrDO[_hd.getDay()] + ', ' + _hp[2] + ' ' + _mAbrDO[_hp[1] - 1];
+            }
           }
           ctx.font = 'bold 10px Inter, sans-serif'; var _hnw = ctx.measureText(_hValStr).width;
           ctx.font = '9px Inter, sans-serif'; var _husw = ctx.measureText(_hUnitStr).width;
@@ -11364,7 +11534,7 @@ function renderSparklineChart(historico) {
       }
 
       _oxigRows.forEach(function(row, i) {
-        _oxigHitBoxes.push({ x0: padL + slot * i, x1: padL + slot * (i + 1), idx: i });
+        _oxigHitBoxes.push({ x0: padL + slot * i, x1: padL + slot * (i + 1), idx: i, day: row.day });
       });
       _drawOxigBase(-1);
       canvas.style.cursor = 'pointer';
@@ -11379,6 +11549,17 @@ function renderSparklineChart(historico) {
       };
       canvas.onmouseleave = function() {
         if (canvas._oxigHovIdx !== -1) { canvas._oxigHovIdx = -1; _drawOxigBase(-1); }
+      };
+      canvas.onclick = function(ev) {
+        if (_oxigIsYearView) return;
+        var rect = canvas.getBoundingClientRect();
+        var sx = W / Math.max(1, rect.width);
+        var x = (ev.clientX - rect.left) * sx;
+        var hitIdx = -1;
+        _oxigHitBoxes.forEach(function(b) { if (x >= b.x0 && x <= b.x1) hitIdx = b.idx; });
+        if (hitIdx >= 0 && typeof selectOxigenacaoDay === 'function') {
+          selectOxigenacaoDay(_oxigRows[hitIdx].day);
+        }
       };
       if (_oxigChartView) _oxigChartView.scrollLeft = Math.max(0, W - containerW);
     });
@@ -11398,6 +11579,11 @@ function renderSparklineChart(historico) {
     });
     var _hidRows = Array.from(_hidByDay.values()).sort(function(a, b) { return a.day.localeCompare(b.day); });
     if (_hidRows.length === 0) return;
+
+    var _hidIsYearView = vitalDefaultPeriod === 'year';
+    if (_hidIsYearView) {
+      _hidRows = aggregateHidratacaoByMonth(historico).map(function(m) { return { day: m.month, v: m.avg, status: '' }; });
+    }
 
     var _hidGoal = 2000;
     if (currentVitalDetail.ideal && typeof currentVitalDetail.ideal === 'string') {
@@ -11439,7 +11625,7 @@ function renderSparklineChart(historico) {
       var barW = Math.min(18, Math.max(7, slot * 0.58));
       var barR = Math.min(5, barW / 2 - 0.5);
       var _hidHitBoxes = [];
-      var _ptBrDH = ['Dom','Seg','Ter','Qua','Qui','Sex','SA?b'];
+      var _ptBrDH = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
       var _mAbrDH = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 
       function _fmtMlH(ml) {
@@ -11485,9 +11671,14 @@ function renderSparklineChart(historico) {
           if (typeof ctx.roundRect === 'function') {
             ctx.beginPath(); ctx.roundRect(x0, yTop, barW, hBar, [barR, barR, 0, 0]); ctx.fill();
           } else { ctx.fillRect(x0, yTop, barW, hBar); }
-          var pp = row.day.split('-').map(Number);
           ctx.font = '9px Inter, sans-serif'; ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-          ctx.fillText(String(pp[2]), cx, H - padB + 3);
+          if (_hidIsYearView) {
+            var _mP = row.day.split('-');
+            ctx.fillText(_mAbrDH[parseInt(_mP[1], 10) - 1], cx, H - padB + 3);
+          } else {
+            var pp = row.day.split('-').map(Number);
+            ctx.fillText(String(pp[2]), cx, H - padB + 3);
+          }
         });
         // Hover tooltip
         if (hovIdx >= 0 && hovIdx < _hidRows.length) {
@@ -11496,9 +11687,14 @@ function renderSparklineChart(historico) {
           var _hValStr = _fmtMlH(hRow.v);
           var _hDL = '';
           if (hRow.day) {
-            var _hp = hRow.day.split('-').map(Number);
-            var _hd = new Date(_hp[0], _hp[1] - 1, _hp[2]);
-            _hDL = _ptBrDH[_hd.getDay()] + ', ' + _hp[2] + ' ' + _mAbrDH[_hp[1] - 1];
+            if (_hidIsYearView) {
+              var _hpY = hRow.day.split('-').map(Number);
+              _hDL = _mAbrDH[_hpY[1] - 1] + ' ' + _hpY[0];
+            } else {
+              var _hp = hRow.day.split('-').map(Number);
+              var _hd = new Date(_hp[0], _hp[1] - 1, _hp[2]);
+              _hDL = _ptBrDH[_hd.getDay()] + ', ' + _hp[2] + ' ' + _mAbrDH[_hp[1] - 1];
+            }
           }
           ctx.font = 'bold 10px Inter, sans-serif'; var _hnw = ctx.measureText(_hValStr).width;
           ctx.font = '9px Inter, sans-serif'; var _hdlw = _hDL ? ctx.measureText(_hDL).width : 0;
@@ -11755,7 +11951,7 @@ function renderVitalDetailContent(historico) {
           badgeHtml,
           hourDetail: {
             measureLine,
-            timeLine: dateTxt ? `${dateTxt} A? ${labelHora}` : labelHora,
+            timeLine: dateTxt ? `${dateTxt} · ${labelHora}` : labelHora,
             trailHtml
           }
         });
@@ -11783,7 +11979,7 @@ function renderVitalDetailContent(historico) {
     const dailyRows = buildBatimentoHistoricoDailyRows(currentVitalHistoricoView);
     if (dailyRows.length === 0) {
       document.getElementById('vitalDetailContent').innerHTML =
-        '<div class="empty-state"><div class="empty-text">Nenhum valor numAcrico no período</div></div>';
+        '<div class="empty-state"><div class="empty-text">Nenhum valor numérico no período</div></div>';
       return;
     }
     const buildRow = (row) => {
@@ -11791,7 +11987,7 @@ function renderVitalDetailContent(historico) {
       const badgeHtml = row.ctxBadge ? `<span class="vital-context-badge">${row.ctxBadge}</span>` : '';
       const rowClass = `vital-list-item vital-list-item--day-nav vital-list-item--hour-bucket${row.rowBgClass ? ` ${row.rowBgClass}` : ''}`;
       const clickAttr = ` role="button" tabindex="0" onclick="selectBatimentoDayFromList('${row.day}')"`;
-      const trailHtml = '<span class="vital-list-chevron" aria-hidden="true">???</span>';
+      const trailHtml = '<span class="vital-list-chevron" aria-hidden="true">&#8250;</span>';
       const dateTxt = formatDateForUI(row.day);
       return htmlVitalBatimentoListRow({
         rowClass,
@@ -11860,8 +12056,8 @@ function renderVitalDetailContent(historico) {
               : '';
           const hr = getHeartRateForPressureEntry(h);
           const hrLabel = Number.isFinite(hr) ? `FC ${Math.round(hr)} bpm` : '';
-          const extra = [ctxLabel, medLabel].filter(Boolean).join(' A? ');
-          const coletaTimeLine = `${dateTxt} A? ${hora}`;
+          const extra = [ctxLabel, medLabel].filter(Boolean).join(' · ');
+          const coletaTimeLine = `${dateTxt} · ${hora}`;
           return `
             <div class="pressao-coleta-item">
               <div class="pressao-coleta-valor">${valorFormatado} mmHg</div>
@@ -11879,7 +12075,7 @@ function renderVitalDetailContent(historico) {
               <div class="pressao-dia-medida">${resumo} <span class="pressao-dia-unit">mmHg</span></div>
               <div class="pressao-dia-data">${dateTxt}</div>
             </div>
-            <span class="pressao-dia-chevron" aria-hidden="true">???</span>
+            <span class="pressao-dia-chevron" aria-hidden="true">&#8250;</span>
           </button>
           <div class="pressao-dia-coletas" id="pressaoColetas-${dayKey}" style="display:${openByDefault ? 'block' : 'none'};">${coletasHtml}</div>
         </div>`;
@@ -11897,7 +12093,7 @@ function renderVitalDetailContent(historico) {
       return;
     }
     // Flat list of days – filtered by chart selection if any
-    const _dias3 = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'SA?b'];
+    const _dias3 = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
     const _meses3 = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
     const _filteredRows = passosSelectedDayIso
       ? dayRows.filter(function(r) { return r.day === passosSelectedDayIso; })
@@ -11915,9 +12111,9 @@ function renderVitalDetailContent(historico) {
       return '<div class="vital-list-item vital-list-item--day-nav vital-list-item--hour-bucket" role="button" tabindex="0" onclick="openPassosDiaDetail(\'' + row.day + '\')">' +
         '<div class="vital-list-main vital-list-main--hour-detail">' +
           '<div class="vital-list-measure-line">' + _steps.toLocaleString('pt-BR') + ' <span style="font-size:13px;font-weight:500;color:#64748b;">passos</span></div>' +
-          '<div class="vital-list-time-line">' + _dl + ' A? ' + _pct + '% da meta</div>' +
+          '<div class="vital-list-time-line">' + _dl + ' · ' + _pct + '% da meta</div>' +
         '</div>' +
-        '<div class="vital-list-trail"><span class="vital-list-chevron" aria-hidden="true">???</span></div>' +
+        '<div class="vital-list-trail"><span class="vital-list-chevron" aria-hidden="true">&#8250;</span></div>' +
       '</div>';
     }).join('');
     document.getElementById('vitalDetailContent').innerHTML = _clearFilterBtn + _dayListHtml;
@@ -11931,7 +12127,7 @@ function renderVitalDetailContent(historico) {
         '<div class="empty-state"><div class="empty-text">Nenhum registro encontrado</div></div>';
       return;
     }
-    const _dias3g = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'SA?b'];
+    const _dias3g = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
     const _meses3g = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
     const _selIsoG = glicemiaSelectedDayIso;
     const _glicFiltered = _selIsoG
@@ -11960,9 +12156,9 @@ function renderVitalDetailContent(historico) {
             ' <span style="font-size:13px;font-weight:500;color:#64748b;">mg/dL</span>' +
             _rangeHtml +
           '</div>' +
-          '<div class="vital-list-time-line">' + _dl + ' A? ' + _sLabel + '</div>' +
+          '<div class="vital-list-time-line">' + _dl + ' · ' + _sLabel + '</div>' +
         '</div>' +
-        '<div class="vital-list-trail"><span class="vital-list-chevron" aria-hidden="true">???</span></div>' +
+        '<div class="vital-list-trail"><span class="vital-list-chevron" aria-hidden="true">&#8250;</span></div>' +
       '</div>';
     }).join('');
     document.getElementById('vitalDetailContent').innerHTML = _glicClearBtn + _glicRowsHtml;
@@ -11971,7 +12167,7 @@ function renderVitalDetailContent(historico) {
 
   if (currentVitalDetail?.tipo === 'Sono') {
     const _sonoIdealL = 7, _sonoIdealH = 9;
-    const _diasSono = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'SA?b'];
+    const _diasSono = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
     const _mesesSono = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
     // Aggregate by day: most recent entry per day
     const _sonoByDayMap = new Map();
@@ -12021,7 +12217,7 @@ function renderVitalDetailContent(historico) {
           '</div>' +
           '<div class="vital-list-time-line">' + _dl + (_sl ? ' <span class="sono-status-chip sono-status-chip--' + _slClass + '">' + _sl + '</span>' : '') + '</div>' +
         '</div>' +
-        '<div class="vital-list-trail"><span class="vital-list-chevron" aria-hidden="true">???</span></div>' +
+        '<div class="vital-list-trail"><span class="vital-list-chevron" aria-hidden="true">&#8250;</span></div>' +
       '</div>';
     }).join('');
 
@@ -12035,7 +12231,7 @@ function renderVitalDetailContent(historico) {
 
   if (currentVitalDetail?.tipo === 'Oxigenação') {
     const _oxigIdealL = 95;
-    const _diasOxig = ['Dom','Seg','Ter','Qua','Qui','Sex','SA?b'];
+    const _diasOxig = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
     const _mesesOxig = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
     const _oxigByDayMap = new Map();
     currentVitalHistoricoView.forEach(function(h) {
@@ -12055,15 +12251,14 @@ function renderVitalDetailContent(historico) {
       if (!Number.isFinite(v)) return '';
       if (v >= _oxigIdealL) return 'Normal';
       if (v >= 90) return 'Atenção';
-      return 'CrA-tico';
+      return 'Crítico';
     }
     function _oxigDayLabel(dayIso) {
       const pp = dayIso.split('-').map(Number);
       const d = new Date(pp[0], pp[1] - 1, pp[2]);
       return _diasOxig[d.getDay()] + ', ' + String(pp[2]).padStart(2, '0') + ' ' + _mesesOxig[pp[1] - 1];
     }
-
-    const _oxigListHtml = _oxigDayEntries.map(function(h) {
+    function _oxigBuildRow(h) {
       const dayIso = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data || '').slice(0, 10);
       const v = parseFloat(h.valor);
       const _fv = Number.isFinite(v) ? v + '%' : '–';
@@ -12071,16 +12266,27 @@ function renderVitalDetailContent(historico) {
       const _dl = dayIso ? _oxigDayLabel(dayIso) : (h.data || '');
       const _col = Number.isFinite(v) && v >= _oxigIdealL ? '#16a34a' : (Number.isFinite(v) && v >= 90 ? '#f59e0b' : '#ef4444');
       const _slClass = _sl === 'Normal' ? 'normal' : (_sl === 'Atenção' ? 'atencao' : 'critico');
-      return '<div class="vital-list-item vital-list-item--day-nav vital-list-item--hour-bucket">' +
+      return '<div class="vital-list-item vital-list-item--day-nav vital-list-item--hour-bucket" role="button" tabindex="0" onclick="selectOxigenacaoDay(\'' + dayIso.replace(/'/g, "\\'") + '\')">' +
         '<div class="vital-list-main vital-list-main--hour-detail">' +
           '<div class="vital-list-measure-line">' +
             '<span style="color:' + _col + ';font-weight:700;">' + _fv + '</span>' +
           '</div>' +
           '<div class="vital-list-time-line">' + _dl + (_sl ? ' <span class="oxig-status-chip oxig-status-chip--' + _slClass + '">' + _sl + '</span>' : '') + '</div>' +
         '</div>' +
-        '<div class="vital-list-trail"><span class="vital-list-chevron" aria-hidden="true">???</span></div>' +
+        '<div class="vital-list-trail"><span class="vital-list-chevron" aria-hidden="true">&#8250;</span></div>' +
       '</div>';
-    }).join('');
+    }
+
+    const _previewCount = 5;
+    const visibleRows = _oxigDayEntries.slice(0, _previewCount);
+    const hiddenRows = _oxigDayEntries.slice(_previewCount);
+    let _oxigListHtml = visibleRows.map(_oxigBuildRow).join('');
+    if (hiddenRows.length > 0) {
+      const hiddenHtml = hiddenRows.map(_oxigBuildRow).join('');
+      _oxigListHtml +=
+        '<div id="oxigenacaoHistoricoExtra" style="display:none;">' + hiddenHtml + '</div>' +
+        '<button type="button" class="vital-ver-mais-btn" onclick="var el=document.getElementById(\'oxigenacaoHistoricoExtra\');var open=el.style.display!==\'none\';el.style.display=open?\'none\':\'block\';this.textContent=open?\'Ver mais (' + hiddenRows.length + ')\':\'Ver menos\';">Ver mais (' + hiddenRows.length + ')</button>';
+    }
 
     const _oxigSummary = typeof buildOxigDetailPanel === 'function' ? buildOxigDetailPanel(currentVitalDetail) : '';
     const _emptyOxig = _oxigDayEntries.length === 0
@@ -12097,7 +12303,7 @@ function renderVitalDetailContent(historico) {
       if (_hidGoalM) _hidGoalL = Number(_hidGoalM[1]);
     }
     var _hidLowThr = _hidGoalL * 0.6;
-    const _diasHid = ['Dom','Seg','Ter','Qua','Qui','Sex','SA?b'];
+    const _diasHid = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
     const _mesesHid = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
 
     const _hidByDayMap = new Map();
@@ -12144,7 +12350,7 @@ function renderVitalDetailContent(historico) {
           '</div>' +
           '<div class="vital-list-time-line">' + _dl + (_sl ? ' <span class="hidra-chip hidra-chip--' + _slClass + '">' + _sl + '</span>' : '') + '</div>' +
         '</div>' +
-        '<div class="vital-list-trail"><span class="vital-list-chevron" aria-hidden="true">???</span></div>' +
+        '<div class="vital-list-trail"><span class="vital-list-chevron" aria-hidden="true">&#8250;</span></div>' +
       '</div>';
     }).join('');
 
@@ -12210,7 +12416,7 @@ function renderVitalDetailContent(historico) {
           <div class="vital-list-date${dateRowClass}"${dateRowTitle}>${primaryDateTimeLine}</div>
           ${badgeHtml}
         </div>
-        <div class="vital-list-value">${valorFormatado}${pmed}${isExercicio ? ' <span class="vital-list-chevron" aria-hidden="true">???</span>' : ''}</div>
+        <div class="vital-list-value">${valorFormatado}${pmed}${isExercicio ? ' <span class="vital-list-chevron" aria-hidden="true">&#8250;</span>' : ''}</div>
         <div class="vital-list-status">${statusIcon}</div>
       </div>
     `;
@@ -12513,7 +12719,7 @@ function executePendingHeartRateSave() {
     checkVitalAlert(vital);
   }
 
-  // Se a pressão foi registrada imediatamente antes, vincula o BPM A?quela leitura.
+  // Se a pressão foi registrada imediatamente antes, vincula o BPM ·quela leitura.
   const pressureVital = mockData.sinaisVitais.find((v) => v.tipo === 'Pressão Arterial');
   if (pressureVital && Array.isArray(pressureVital.historico) && lastManualMeasurementMeta) {
     const dateISO = lastManualMeasurementMeta.dateISO;
