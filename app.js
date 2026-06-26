@@ -3302,15 +3302,18 @@ function renderComposicao() {
   var listView = document.getElementById('corpoAvaliacoesListView');
   var detailView = document.getElementById('corpoAvaliacaoDetailView');
   var wizardView = document.getElementById('corpoAvaliacaoWizardView');
+  var compareView = document.getElementById('corpoComparacaoView');
   if (!listView || !detailView || !wizardView) return;
 
   var isList = corpoAvaliacaoViewMode === 'list';
   var isDetail = corpoAvaliacaoViewMode === 'detail';
   var isWizard = corpoAvaliacaoViewMode === 'wizard';
+  var isCompare = corpoAvaliacaoViewMode === 'comparacao';
 
   listView.style.display = isList ? '' : 'none';
   detailView.style.display = isDetail ? '' : 'none';
   wizardView.style.display = isWizard ? '' : 'none';
+  if (compareView) compareView.style.display = isCompare ? '' : 'none';
 
   renderCorpoAvaliacoesList();
   if (isDetail) renderCorpoAvaliacaoDetail();
@@ -3388,25 +3391,39 @@ var CORPO_WIZARD_TOTAL_STEPS = 0;
 
 function rebuildCorpoWizardSteps() {
   CORPO_WIZARD_STEPS.length = 0;
-  for (var _bi = 0; _bi < CORPO_WIZARD_STEPS_BUILTIN.length; _bi++) {
-    CORPO_WIZARD_STEPS.push(CORPO_WIZARD_STEPS_BUILTIN[_bi]);
-  }
-  var _customFields = getCorpoCustomFields();
-  _customFields.forEach(function(_cf) {
-    CORPO_WIZARD_STEPS.push({
-      type: 'measure', group: 'custom', key: _cf.key, label: _cf.label,
-      unit: _cf.unit, decimals: _cf.decimals, icon: 'custom',
-      _customMin: _cf.min, _customMax: _cf.max
-    });
-    if (_cf.min != null && _cf.max != null) {
-      CORPO_VALIDATION[_cf.key] = { min: _cf.min, max: _cf.max, msg: _cf.msg || (_cf.label + ' deve estar entre ' + _cf.min + ' e ' + _cf.max) };
+  var allFields = getCorpoAllFields();
+  allFields.forEach(function(f) {
+    if (!f.visible) return;
+    if (f.type === 'date') {
+      CORPO_WIZARD_STEPS.push({ type: 'date', title: f.label });
+    } else {
+      var step = {
+        type: 'measure', group: f.group, key: f.key, label: f.label,
+        unit: f.unit || '', decimals: f.decimals || 0, icon: f.icon || ''
+      };
+      if (f.dual) {
+        step.dual = true;
+        step.key2 = f.key2;
+        step.label2 = f.label2;
+        step.sideLabel = f.sideLabel;
+      }
+      if (f.group === 'custom') {
+        step._customMin = f.customMin;
+        step._customMax = f.customMax;
+        if (f.customMin != null && f.customMax != null) {
+          CORPO_VALIDATION[f.key] = {
+            min: f.customMin, max: f.customMax,
+            msg: f.customMsg || (f.label + ' deve estar entre ' + f.customMin + ' e ' + f.customMax)
+          };
+        }
+      }
+      CORPO_WIZARD_STEPS.push(step);
     }
   });
   CORPO_WIZARD_STEPS.push({ type: 'review' });
   CORPO_WIZARD_TOTAL_STEPS = CORPO_WIZARD_STEPS.length;
 }
 
-rebuildCorpoWizardSteps();
 var CORPO_VALIDATION = {
   peso:                    { min: 20,  max: 350, msg: 'Peso deve estar entre 20 e 350 kg' },
   altura:                  { min: 0.5, max: 2.5, msg: 'Altura deve estar entre 0,50 e 2,50 m' },
@@ -3434,6 +3451,8 @@ var CORPO_VALIDATION = {
   torax:                   { min: 2,   max: 60,  msg: 'Dobra tórax deve estar entre 2 e 60 mm' },
   coxa:                    { min: 2,   max: 80,  msg: 'Dobra coxa deve estar entre 2 e 80 mm' },
 };
+
+rebuildCorpoWizardSteps();
 
 function getCorpoMeasurementIcon(iconName) {
   var icons = {
@@ -3473,7 +3492,7 @@ function getCorpoAvaliacoesSorted() {
 }
 
 function getCorpoAvaliacaoOrdinalLabel(index) {
-  return (index + 1) + '\u00aa Avalia\u00e7\u00e3o F\u00edsica';
+  return 'Avaliação Física';
 }
 
 function getNextCorpoAvaliacaoOrdinalLabel() {
@@ -3594,12 +3613,16 @@ function renderCorpoAvaliacoesList() {
     var title = (item.nome && String(item.nome).trim()) ? String(item.nome).trim() : getCorpoAvaliacaoOrdinalLabel(idx);
     var dateTxt = item.data ? formatDateForUI(item.data) : 'Sem data';
     return (
-      '<div class="corpo-av-row">' +
+      '<div class="corpo-av-row" onclick="openCorpoAvaliacaoDetail(' + item.id + ')" style="cursor:pointer;">' +
         '<div class="corpo-av-row-main">' +
           '<div class="corpo-av-row-title">' + title + '</div>' +
           '<div class="corpo-av-row-date">' + dateTxt + '</div>' +
         '</div>' +
-        '<button type="button" class="corpo-av-view-btn" onclick="openCorpoAvaliacaoDetail(' + item.id + ')">Ver</button>' +
+        '<div class="corpo-av-row-actions">' +
+          '<button type="button" class="corpo-av-del-btn" onclick="event.stopPropagation();deleteCorpoAvaliacao(' + item.id + ')" aria-label="Excluir avaliação">' +
+            '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
+          '</button>' +
+        '</div>' +
       '</div>'
     );
   }).join('');
@@ -3615,6 +3638,118 @@ function closeCorpoAvaliacaoDetail() {
   corpoAvaliacaoViewMode = 'list';
   corpoAvaliacaoSelectedId = null;
   renderComposicao();
+}
+
+function deleteCorpoAvaliacao(id) {
+  if (!confirm('Excluir esta avaliação?')) return;
+  mockData.avaliacoesAntropometricas = mockData.avaliacoesAntropometricas.filter(function(a) { return a.id !== id; });
+  if (corpoAvaliacaoSelectedId === id) {
+    corpoAvaliacaoViewMode = 'list';
+    corpoAvaliacaoSelectedId = null;
+  }
+  renderComposicao();
+}
+
+function openCorpoComparacao() {
+  corpoAvaliacaoViewMode = 'comparacao';
+  renderComposicao();
+  var today = new Date();
+  var from = new Date(today);
+  from.setMonth(from.getMonth() - 6);
+  from.setDate(1);
+  var fromEl = document.getElementById('corpoCompareDateFrom');
+  var toEl = document.getElementById('corpoCompareDateTo');
+  if (fromEl) fromEl.value = from.toISOString().slice(0, 10);
+  if (toEl) toEl.value = today.toISOString().slice(0, 10);
+}
+
+function closeCorpoComparacao() {
+  corpoAvaliacaoViewMode = 'list';
+  renderComposicao();
+}
+
+function getCorpoAvaliacoesByDateRange(fromDate, toDate) {
+  var list = getCorpoAvaliacoesSorted();
+  return list.filter(function(item) {
+    if (!item.data) return false;
+    return item.data >= fromDate && item.data <= toDate;
+  });
+}
+
+function renderCorpoComparacaoTable() {
+  var wrap = document.getElementById('corpoComparacaoTableWrap');
+  if (!wrap) return;
+  var fromEl = document.getElementById('corpoCompareDateFrom');
+  var toEl = document.getElementById('corpoCompareDateTo');
+  var fromDate = fromEl ? fromEl.value : '';
+  var toDate = toEl ? toEl.value : '';
+  if (!fromDate || !toDate) { wrap.innerHTML = '<div class="corpo-compare-empty">Selecione um período válido.</div>'; return; }
+
+  var items = getCorpoAvaliacoesByDateRange(fromDate, toDate);
+  if (items.length < 2) { wrap.innerHTML = '<div class="corpo-compare-empty">É necessário pelo menos 2 avaliações no período selecionado.</div>'; return; }
+
+  var groups = [
+    { label: 'Geral', fields: CORPO_GERAL_FIELDS, group: 'geral' },
+    { label: 'Circunferências', fields: CORPO_CIRC_FIELDS, group: 'circunferencias' },
+    { label: 'Dobras', fields: CORPO_DOBRAS_FIELDS, group: 'dobras' }
+  ];
+  var customFields = getCorpoActiveCustomFields();
+  if (customFields.length) {
+    groups.push({ label: 'Personalizados', fields: customFields.map(function(cf) { return { key: cf.key, label: cf.label, unit: cf.unit, decimals: cf.decimals }; }), group: 'custom' });
+  }
+
+  var html = '<div class="corpo-compare-scroll"><table class="corpo-compare-table"><thead><tr><th class="corpo-compare-th-label">Medida</th>';
+  for (var i = 0; i < items.length; i++) {
+    html += '<th class="corpo-compare-th-date">' + formatDateForUI(items[i].data) + '</th>';
+  }
+  html += '</tr></thead><tbody>';
+
+  for (var g = 0; g < groups.length; g++) {
+    var grp = groups[g];
+    html += '<tr class="corpo-compare-group-row"><td class="corpo-compare-group-label" colspan="' + (items.length + 1) + '">' + grp.label + '</td></tr>';
+    for (var f = 0; f < grp.fields.length; f++) {
+      var field = grp.fields[f];
+      var decimals = Number.isFinite(field.decimals) ? field.decimals : 1;
+      html += '<tr><td class="corpo-compare-row-label">' + field.label + '</td>';
+      for (var a = 0; a < items.length; a++) {
+        var source = items[a][grp.group] || {};
+        var val = source[field.key];
+        var formatted = formatCorpoMeasure(val, field.unit, decimals);
+        var variation = '';
+        if (a > 0) {
+          var prevSource = items[a - 1][grp.group] || {};
+          var prevVal = prevSource[field.key];
+          variation = getVariacaoHtml(val, prevVal, field.unit);
+        }
+        html += '<td class="corpo-compare-cell">' + formatted + variation + '</td>';
+      }
+      html += '</tr>';
+    }
+  }
+
+  html += '</tbody></table></div>';
+  wrap.innerHTML = html;
+
+  var scrollEl = wrap.querySelector('.corpo-compare-scroll');
+  if (scrollEl) setupDragScroll(scrollEl);
+}
+
+function setupDragScroll(el) {
+  var isDragging = false, startX, scrollLeft;
+  el.addEventListener('mousedown', function(e) {
+    isDragging = true;
+    el.style.cursor = 'grabbing';
+    startX = e.pageX - el.offsetLeft;
+    scrollLeft = el.scrollLeft;
+  });
+  el.addEventListener('mouseleave', function() { isDragging = false; el.style.cursor = 'grab'; });
+  el.addEventListener('mouseup', function() { isDragging = false; el.style.cursor = 'grab'; });
+  el.addEventListener('mousemove', function(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    var x = e.pageX - el.offsetLeft;
+    el.scrollLeft = scrollLeft - (x - startX) * 1.5;
+  });
 }
 
 function renderCorpoRowsWithVariation(targetId, fields, source, prevSource, defaultUnit) {
@@ -3727,7 +3862,7 @@ function renderCorpoAvaliacaoDetail() {
   renderCorpoRowsWithVariation('corpoAvaliacaoCircRows', CORPO_CIRC_FIELDS, item.circunferencias || {}, prev ? (prev.circunferencias || {}) : {}, 'cm');
   renderCorpoRowsWithVariation('corpoAvaliacaoDobrasRows', CORPO_DOBRAS_FIELDS, item.dobras || {}, prev ? (prev.dobras || {}) : {}, 'mm');
 
-  var customFields = getCorpoCustomFields();
+  var customFields = getCorpoActiveCustomFields();
   var customSection = document.getElementById('corpoCustomSection');
   var customRows = document.getElementById('corpoAvaliacaoCustomRows');
   if (customFields.length && customSection && customRows) {
@@ -3901,6 +4036,19 @@ function makeCorpoStepperHtml(inputId, stepSize, lastText) {
   );
 }
 
+function makeCorpoHistoryHtml(stepDef) {
+  var hist = getHistoricoParaMedida(stepDef.group, stepDef.key);
+  if (!hist.length) {
+    return '<div class="corpo-wiz-history"><div class="corpo-wiz-history-empty">Sem histórico ainda</div></div>';
+  }
+  var rows = '';
+  for (var i = 0; i < hist.length; i++) {
+    var h = hist[i];
+    rows += '<tr><td>' + formatDateForUI(h.data) + '</td><td>' + formatCorpoMeasure(h.value, stepDef.unit, stepDef.decimals) + '</td></tr>';
+  }
+  return '<div class="corpo-wiz-history"><div class="corpo-wiz-history-title">Últimas medições</div><table class="corpo-wiz-history-table"><thead><tr><th>Data</th><th>Valor</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+}
+
 function renderCorpoWizardMeasureStep(stepDef) {
   var body = document.getElementById('corpoWizardBody');
   if (!body) return;
@@ -3908,7 +4056,7 @@ function renderCorpoWizardMeasureStep(stepDef) {
   var currentVal = group[stepDef.key] != null ? String(group[stepDef.key]) : '';
   var iconSvg = getCorpoMeasurementIcon(stepDef.icon);
 
-  var subtitle = stepDef.dual ? (stepDef.sideLabel + ' / ' + stepDef.label2) : stepDef.group === 'dobras' ? 'Dobras cutâneas' : stepDef.group === 'custom' ? 'Personalizados' : 'Circunferência';
+  var subtitle = stepDef.dual ? (stepDef.sideLabel + ' / ' + stepDef.label2) : getCorpoSectionLabel(stepDef);
   var stepSz = stepDef.decimals === 2 ? 0.05 : stepDef.decimals === 1 ? 0.5 : 1;
 
   var last1 = getCorpoLastMeasure(stepDef.group, stepDef.key, stepDef.unit);
@@ -3922,7 +4070,7 @@ function renderCorpoWizardMeasureStep(stepDef) {
       '<div class="corpo-wiz-measure-wrap" ontouchstart="corpoTouchStart(event)" ontouchend="corpoTouchEnd(event)">' +
         '<div class="corpo-wiz-illustration">' + iconSvg + '</div>' +
         '<div class="corpo-wiz-measure-title">' + stepDef.label + '</div>' +
-        '<div class="corpo-wiz-measure-subtitle">' + subtitle + ' \u00b7 ' + stepDef.unit + '</div>' +
+        '<div class="corpo-wiz-measure-subtitle">' + (subtitle ? subtitle + ' \u00b7 ' : '') + stepDef.unit + '</div>' +
         '<div class="corpo-wiz-dual-inputs">' +
           '<div class="corpo-wiz-input-group">' +
             '<label class="corpo-wiz-input-label">' + stepDef.sideLabel + '</label>' +
@@ -3932,8 +4080,9 @@ function renderCorpoWizardMeasureStep(stepDef) {
             '<label class="corpo-wiz-input-label">' + stepDef.label2 + '</label>' +
             makeCorpoStepperHtml('corpoWizInput2', stepSz, lastText2) +
           '</div>' +
-        '</div>' +
-      '</div>';
+          '</div>' +
+          makeCorpoHistoryHtml(stepDef) +
+        '</div>';
     var inp1 = document.getElementById('corpoWizInput');
     var inp2 = document.getElementById('corpoWizInput2');
     if (inp1 && currentVal) inp1.value = currentVal;
@@ -3944,10 +4093,11 @@ function renderCorpoWizardMeasureStep(stepDef) {
       '<div class="corpo-wiz-measure-wrap" ontouchstart="corpoTouchStart(event)" ontouchend="corpoTouchEnd(event)">' +
         '<div class="corpo-wiz-illustration">' + iconSvg + '</div>' +
         '<div class="corpo-wiz-measure-title">' + stepDef.label + '</div>' +
-        '<div class="corpo-wiz-measure-subtitle">' + subtitle + ' \u00b7 ' + stepDef.unit + '</div>' +
+        '<div class="corpo-wiz-measure-subtitle">' + (subtitle ? subtitle + ' \u00b7 ' : '') + stepDef.unit + '</div>' +
         '<div class="corpo-wiz-input-group">' +
           makeCorpoStepperHtml('corpoWizInput', stepSz, lastText1) +
         '</div>' +
+        makeCorpoHistoryHtml(stepDef) +
       '</div>';
     var inp = document.getElementById('corpoWizInput');
     if (inp && currentVal) inp.value = currentVal;
@@ -4009,7 +4159,7 @@ function renderCorpoWizardReview() {
     return reviewRow(f, 'dobras');
   }).join('');
 
-  var customFields = getCorpoCustomFields();
+  var customFields = getCorpoActiveCustomFields();
   var customRows = customFields.length ? customFields.map(function(f) {
     return reviewRow(f, 'custom');
   }).join('') : '';
@@ -4038,7 +4188,7 @@ function getCorpoSectionLabel(stepDef) {
   if (!stepDef) return '';
   if (stepDef.type === 'date') return 'Data';
   if (stepDef.type === 'review') return 'Revisar';
-  if (stepDef.group === 'geral') return 'Geral';
+  if (stepDef.group === 'geral') return '';
   if (stepDef.group === 'circunferencias') return 'Circunferências';
   if (stepDef.group === 'dobras') return 'Dobras';
   if (stepDef.group === 'custom') return 'Personalizados';
@@ -4178,30 +4328,80 @@ function escHtml(str) {
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-function getCorpoCustomFields() {
+function getCorpoFieldConfig() {
+  try {
+    var raw = localStorage.getItem('corpoFieldConfig');
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+function saveCorpoFieldConfig(cfg) {
+  localStorage.setItem('corpoFieldConfig', JSON.stringify(cfg));
+  rebuildCorpoWizardSteps();
+}
+
+function buildCorpoDefaultConfig() {
+  var fields = [];
+  CORPO_WIZARD_STEPS_BUILTIN.forEach(function(step) {
+    if (step.type === 'date') {
+      fields.push({ key: '_date', label: step.title, type: 'date', group: '_meta', visible: true });
+    } else {
+      fields.push({
+        key: step.key, label: step.label, type: 'measure', group: step.group,
+        unit: step.unit || '', decimals: step.decimals || 0, icon: step.icon || '',
+        dual: step.dual || false, key2: step.key2 || null, label2: step.label2 || null,
+        sideLabel: step.sideLabel || null, visible: true
+      });
+    }
+  });
+  var customFields = getCorpoCustomFieldsLegacy();
+  customFields.forEach(function(cf) {
+    fields.push({
+      key: cf.key, label: cf.label, type: 'measure', group: 'custom',
+      unit: cf.unit || '', decimals: cf.decimals || 0, icon: 'custom',
+      customMin: cf.min, customMax: cf.max, customMsg: cf.msg, visible: true
+    });
+  });
+  return { fields: fields };
+}
+
+function getCorpoAllFields() {
+  var cfg = getCorpoFieldConfig();
+  if (cfg && cfg.fields && cfg.fields.length > 0) return cfg.fields;
+  cfg = buildCorpoDefaultConfig();
+  saveCorpoFieldConfig(cfg);
+  return cfg.fields;
+}
+
+function saveCorpoAllFields(fields) {
+  saveCorpoFieldConfig({ fields: fields });
+  renderCorpoCustomFieldList();
+}
+
+function getCorpoCustomFieldsLegacy() {
   try {
     var raw = localStorage.getItem('corpoCustomFields');
     return raw ? JSON.parse(raw) : [];
   } catch (e) { return []; }
 }
 
-function saveCorpoCustomFields(fields) {
-  localStorage.setItem('corpoCustomFields', JSON.stringify(fields));
-  rebuildCorpoWizardSteps();
-  renderCorpoCustomFieldList();
+function getCorpoActiveCustomFields() {
+  return getCorpoAllFields().filter(function(f) { return f.group === 'custom' && f.visible; });
 }
 
 function generateCorpoCustomKey(label) {
   var base = 'cf_' + label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').substring(0, 28);
   if (!base || base === 'cf_') base = 'cf_' + Date.now();
-  var existing = getCorpoCustomFields();
+  var allFields = getCorpoAllFields();
   var key = base;
   var n = 1;
-  while (existing.some(function(f) { return f.key === key; })) {
+  while (allFields.some(function(f) { return f.key === key; })) {
     key = base + '_' + (n++);
   }
   return key;
 }
+
+var _corpoGroupLabels = { geral: 'Geral', circunferencias: 'Circunferências', dobras: 'Dobras', custom: 'Personalizados', _meta: 'Geral' };
 
 function openCorpoCustomFieldManager() {
   var el = document.getElementById('corpoCustomFieldManager');
@@ -4217,74 +4417,171 @@ function closeCorpoCustomFieldManager() {
 function renderCorpoCustomFieldList() {
   var el = document.getElementById('corpoCustomFieldList');
   if (!el) return;
-  var fields = getCorpoCustomFields();
+  var fields = getCorpoAllFields();
   if (!fields.length) {
-    el.innerHTML = '<div class="corpo-cfm-empty">Nenhum campo personalizado ainda.<br>Adicione campos para medições que voc\u00ea acompanha.</div>';
+    el.innerHTML = '<div class="corpo-cfm-empty">Nenhum campo configurado.</div>';
     return;
   }
-  el.innerHTML = fields.map(function(f, i) {
-    var decTxt = f.decimals === 0 ? 'inteiro' : f.decimals === 1 ? '1 decimal' : f.decimals + ' decimais';
-    var rangeTxt = (f.min != null || f.max != null) ? (' ' + (f.min != null ? f.min : '?') + '\u2013' + (f.max != null ? f.max : '?')) : '';
-    return '<div class="corpo-cfm-item">' +
+  var html = '';
+  var lastGroup = null;
+  fields.forEach(function(f, i) {
+    var grp = f.group || 'custom';
+    if (grp !== lastGroup) {
+      lastGroup = grp;
+      html += '<div class="corpo-cfm-group-title">' + (_corpoGroupLabels[grp] || grp) + '</div>';
+    }
+    var isHidden = !f.visible;
+    var isCustom = f.group === 'custom';
+    var isDate = f.type === 'date';
+    var desc = '';
+    if (isDate) {
+      desc = 'Campo de data';
+    } else {
+      var parts = [];
+      if (f.unit) parts.push(f.unit);
+      if (f.decimals != null) parts.push(f.decimals === 0 ? 'inteiro' : f.decimals + ' dec.');
+      if (f.customMin != null || f.customMax != null) parts.push((f.customMin != null ? f.customMin : '?') + '–' + (f.customMax != null ? f.customMax : '?'));
+      if (f.dual) parts.push('lado esq./dir.');
+      desc = parts.join(' · ');
+    }
+    html += '<div class="corpo-cfm-item' + (isHidden ? ' corpo-cfm-item--hidden' : '') + '">' +
+      '<div class="corpo-cfm-item-drag">' +
+        '<button type="button" class="corpo-cfm-drag-btn" onclick="moveCorpoField(' + i + ',-1)" aria-label="Mover para cima"' + (i === 0 ? ' disabled' : '') + '>' +
+          '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>' +
+        '</button>' +
+        '<button type="button" class="corpo-cfm-drag-btn" onclick="moveCorpoField(' + i + ',1)" aria-label="Mover para baixo"' + (i === fields.length - 1 ? ' disabled' : '') + '>' +
+          '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' +
+        '</button>' +
+      '</div>' +
       '<div class="corpo-cfm-item-info">' +
-        '<div class="corpo-cfm-item-label">' + f.label + '</div>' +
-        '<div class="corpo-cfm-item-desc">' + f.unit + ' \u00b7 ' + decTxt + (rangeTxt ? ' \u00b7 ' + rangeTxt : '') + '</div>' +
+        '<div class="corpo-cfm-item-label">' + escHtml(f.label) + '</div>' +
+        '<div class="corpo-cfm-item-desc">' + escHtml(desc) + '</div>' +
       '</div>' +
       '<div class="corpo-cfm-item-actions">' +
-        '<button type="button" class="corpo-cfm-item-btn" onclick="editCorpoCustomField(' + i + ')" aria-label="Editar">' +
+        '<button type="button" class="corpo-cfm-item-btn" onclick="toggleCorpoFieldVisibility(' + i + ')" aria-label="' + (isHidden ? 'Mostrar' : 'Ocultar') + '" title="' + (isHidden ? 'Mostrar no wizard' : 'Ocultar do wizard') + '">' +
+          (isHidden
+            ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>'
+            : '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>') +
+        '</button>' +
+        '<button type="button" class="corpo-cfm-item-btn" onclick="editCorpoField(' + i + ')" aria-label="Editar" title="Editar nome">' +
           '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
         '</button>' +
-        '<button type="button" class="corpo-cfm-item-btn corpo-cfm-item-btn--del" onclick="deleteCorpoCustomField(' + i + ')" aria-label="Excluir">' +
-          '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
-        '</button>' +
+        (isCustom
+          ? '<button type="button" class="corpo-cfm-item-btn corpo-cfm-item-btn--del" onclick="deleteCorpoField(' + i + ')" aria-label="Excluir" title="Excluir campo">' +
+              '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
+            '</button>'
+          : '') +
       '</div>' +
     '</div>';
-  }).join('');
+  });
+  el.innerHTML = html;
 }
 
-function showCorpoCustomFieldForm(editIndex) {
+function moveCorpoField(index, direction) {
+  var fields = getCorpoAllFields();
+  var target = index + direction;
+  if (target < 0 || target >= fields.length) return;
+  var tmp = fields[index];
+  fields[index] = fields[target];
+  fields[target] = tmp;
+  saveCorpoAllFields(fields);
+}
+
+function toggleCorpoFieldVisibility(index) {
+  var fields = getCorpoAllFields();
+  if (index < 0 || index >= fields.length) return;
+  fields[index].visible = !fields[index].visible;
+  saveCorpoAllFields(fields);
+}
+
+function editCorpoField(index) {
+  var fields = getCorpoAllFields();
+  var f = fields[index];
+  if (!f) return;
   var formContainer = document.getElementById('corpoCustomFieldFormContainer');
   if (!formContainer) return;
-  var fields = getCorpoCustomFields();
-  var f = editIndex != null && editIndex >= 0 ? fields[editIndex] : null;
 
-  formContainer.innerHTML =
-    '<div class="corpo-cfm-form" id="corpoCustomFieldForm">' +
-      '<div class="corpo-cfm-form-title">' + (f ? 'Editar campo' : 'Novo campo personalizado') + '</div>' +
-      '<label class="corpo-cfm-field">' +
-        '<span class="corpo-cfm-field-label">Nome do campo</span>' +
-        '<input type="text" id="cfmLabel" class="corpo-cfm-input-text" placeholder="Ex: Tamanho Nariz" value="' + (f ? escHtml(f.label) : '') + '" />' +
-      '</label>' +
+  var isCustom = f.group === 'custom';
+  var isDate = f.type === 'date';
+
+  var extraFields = '';
+  if (!isDate) {
+    extraFields =
       '<div class="corpo-cfm-row">' +
         '<label class="corpo-cfm-field corpo-cfm-field--half">' +
           '<span class="corpo-cfm-field-label">Unidade</span>' +
-          '<input type="text" id="cfmUnit" class="corpo-cfm-input-text" placeholder="Ex: cm" value="' + (f ? escHtml(f.unit) : '') + '" />' +
+          '<input type="text" id="cfmUnit" class="corpo-cfm-input-text" placeholder="Ex: cm" value="' + escHtml(f.unit || '') + '" />' +
         '</label>' +
         '<label class="corpo-cfm-field corpo-cfm-field--half">' +
           '<span class="corpo-cfm-field-label">Decimais</span>' +
           '<select id="cfmDecimals" class="corpo-cfm-select">' +
-            '<option value="0"' + (f && f.decimals === 0 ? ' selected' : '') + '>0 (inteiro)</option>' +
-            '<option value="1"' + ((!f || f.decimals === 1) ? ' selected' : '') + '>1</option>' +
-            '<option value="2"' + (f && f.decimals === 2 ? ' selected' : '') + '>2</option>' +
+            '<option value="0"' + (f.decimals === 0 ? ' selected' : '') + '>0 (inteiro)</option>' +
+            '<option value="1"' + (f.decimals === 1 ? ' selected' : '') + '>1</option>' +
+            '<option value="2"' + (f.decimals === 2 ? ' selected' : '') + '>2</option>' +
           '</select>' +
         '</label>' +
-      '</div>' +
-      '<div class="corpo-cfm-row">' +
-        '<label class="corpo-cfm-field corpo-cfm-field--half">' +
-          '<span class="corpo-cfm-field-label">M\u00ednimo (opcional)</span>' +
-          '<input type="number" id="cfmMin" class="corpo-cfm-input-text" placeholder="0" value="' + (f && f.min != null ? f.min : '') + '" />' +
-        '</label>' +
-        '<label class="corpo-cfm-field corpo-cfm-field--half">' +
-          '<span class="corpo-cfm-field-label">M\u00e1ximo (opcional)</span>' +
-          '<input type="number" id="cfmMax" class="corpo-cfm-input-text" placeholder="100" value="' + (f && f.max != null ? f.max : '') + '" />' +
-        '</label>' +
-      '</div>' +
+      '</div>';
+    if (isCustom) {
+      extraFields +=
+        '<div class="corpo-cfm-row">' +
+          '<label class="corpo-cfm-field corpo-cfm-field--half">' +
+            '<span class="corpo-cfm-field-label">Mínimo</span>' +
+            '<input type="number" id="cfmMin" class="corpo-cfm-input-text" placeholder="Opcional" value="' + (f.customMin != null ? f.customMin : '') + '" />' +
+          '</label>' +
+          '<label class="corpo-cfm-field corpo-cfm-field--half">' +
+            '<span class="corpo-cfm-field-label">Máximo</span>' +
+            '<input type="number" id="cfmMax" class="corpo-cfm-input-text" placeholder="Opcional" value="' + (f.customMax != null ? f.customMax : '') + '" />' +
+          '</label>' +
+        '</div>';
+    }
+  }
+
+  formContainer.innerHTML =
+    '<div class="corpo-cfm-form" id="corpoCustomFieldForm">' +
+      '<div class="corpo-cfm-form-title">Editar campo</div>' +
+      '<label class="corpo-cfm-field">' +
+        '<span class="corpo-cfm-field-label">' + (isDate ? 'Título' : 'Nome do campo') + '</span>' +
+        '<input type="text" id="cfmLabel" class="corpo-cfm-input-text" placeholder="Ex: Peso" value="' + escHtml(f.label) + '" />' +
+      '</label>' +
+      extraFields +
       '<div class="corpo-cfm-form-actions">' +
         '<button type="button" class="corpo-cfm-btn corpo-cfm-btn--outline" onclick="hideCorpoCustomFieldForm()">Cancelar</button>' +
-        '<button type="button" class="corpo-cfm-btn corpo-cfm-btn--solid" onclick="saveCorpoCustomFieldForm(' + (editIndex != null && editIndex >= 0 ? editIndex : -1) + ')">Salvar</button>' +
+        '<button type="button" class="corpo-cfm-btn corpo-cfm-btn--solid" onclick="saveCorpoFieldEdit(' + index + ')">Salvar</button>' +
       '</div>' +
     '</div>';
   formContainer.style.display = '';
+}
+
+function saveCorpoFieldEdit(index) {
+  var fields = getCorpoAllFields();
+  var f = fields[index];
+  if (!f) return;
+
+  var labelEl = document.getElementById('cfmLabel');
+  var label = (labelEl.value || '').trim();
+  if (!label) {
+    showFeedbackModal('Preencha o nome do campo.', 'warning');
+    return;
+  }
+  f.label = label;
+
+  if (f.type !== 'date') {
+    var unitEl = document.getElementById('cfmUnit');
+    var decimalsEl = document.getElementById('cfmDecimals');
+    if (unitEl) f.unit = (unitEl.value || '').trim();
+    if (decimalsEl) f.decimals = parseInt(decimalsEl.value, 10) || 0;
+
+    if (f.group === 'custom') {
+      var minEl = document.getElementById('cfmMin');
+      var maxEl = document.getElementById('cfmMax');
+      if (minEl) f.customMin = minEl.value ? Number(minEl.value) : null;
+      if (maxEl) f.customMax = maxEl.value ? Number(maxEl.value) : null;
+    }
+  }
+
+  saveCorpoAllFields(fields);
+  hideCorpoCustomFieldForm();
+  showFeedbackModal('Campo atualizado.', 'success');
 }
 
 function hideCorpoCustomFieldForm() {
@@ -4292,13 +4589,65 @@ function hideCorpoCustomFieldForm() {
   if (formContainer) formContainer.style.display = 'none';
 }
 
-function saveCorpoCustomFieldForm(editIndex) {
+function deleteCorpoField(index) {
+  var fields = getCorpoAllFields();
+  var f = fields[index];
+  if (!f || f.group !== 'custom') return;
+  if (!confirm('Excluir o campo "' + f.label + '" permanentemente?')) return;
+  fields.splice(index, 1);
+  saveCorpoAllFields(fields);
+  showFeedbackModal('Campo "' + f.label + '" excluído.', 'info');
+}
+
+function showCorpoNewFieldForm() {
+  var formContainer = document.getElementById('corpoCustomFieldFormContainer');
+  if (!formContainer) return;
+
+  formContainer.innerHTML =
+    '<div class="corpo-cfm-form" id="corpoCustomFieldForm">' +
+      '<div class="corpo-cfm-form-title">Novo campo personalizado</div>' +
+      '<label class="corpo-cfm-field">' +
+        '<span class="corpo-cfm-field-label">Nome do campo</span>' +
+        '<input type="text" id="cfmLabel" class="corpo-cfm-input-text" placeholder="Ex: Flexão de braço" value="" />' +
+      '</label>' +
+      '<div class="corpo-cfm-row">' +
+        '<label class="corpo-cfm-field corpo-cfm-field--half">' +
+          '<span class="corpo-cfm-field-label">Unidade</span>' +
+          '<input type="text" id="cfmUnit" class="corpo-cfm-input-text" placeholder="Ex: cm" value="" />' +
+        '</label>' +
+        '<label class="corpo-cfm-field corpo-cfm-field--half">' +
+          '<span class="corpo-cfm-field-label">Decimais</span>' +
+          '<select id="cfmDecimals" class="corpo-cfm-select">' +
+            '<option value="0">0 (inteiro)</option>' +
+            '<option value="1" selected>1</option>' +
+            '<option value="2">2</option>' +
+          '</select>' +
+        '</label>' +
+      '</div>' +
+      '<div class="corpo-cfm-row">' +
+        '<label class="corpo-cfm-field corpo-cfm-field--half">' +
+          '<span class="corpo-cfm-field-label">Mínimo (opcional)</span>' +
+          '<input type="number" id="cfmMin" class="corpo-cfm-input-text" placeholder="Opcional" value="" />' +
+        '</label>' +
+        '<label class="corpo-cfm-field corpo-cfm-field--half">' +
+          '<span class="corpo-cfm-field-label">Máximo (opcional)</span>' +
+          '<input type="number" id="cfmMax" class="corpo-cfm-input-text" placeholder="Opcional" value="" />' +
+        '</label>' +
+      '</div>' +
+      '<div class="corpo-cfm-form-actions">' +
+        '<button type="button" class="corpo-cfm-btn corpo-cfm-btn--outline" onclick="hideCorpoCustomFieldForm()">Cancelar</button>' +
+        '<button type="button" class="corpo-cfm-btn corpo-cfm-btn--solid" onclick="saveCorpoNewField()">Adicionar</button>' +
+      '</div>' +
+    '</div>';
+  formContainer.style.display = '';
+}
+
+function saveCorpoNewField() {
   var labelEl = document.getElementById('cfmLabel');
   var unitEl = document.getElementById('cfmUnit');
   var decimalsEl = document.getElementById('cfmDecimals');
   var minEl = document.getElementById('cfmMin');
   var maxEl = document.getElementById('cfmMax');
-  if (!labelEl || !unitEl || !decimalsEl) return;
 
   var label = (labelEl.value || '').trim();
   var unit = (unitEl.value || '').trim();
@@ -4309,51 +4658,21 @@ function saveCorpoCustomFieldForm(editIndex) {
 
   var decimals = parseInt(decimalsEl.value, 10);
   if (!Number.isFinite(decimals)) decimals = 1;
+  var min = minEl && minEl.value ? Number(minEl.value) : null;
+  var max = maxEl && maxEl.value ? Number(maxEl.value) : null;
 
-  var minRaw = (minEl.value || '').trim();
-  var maxRaw = (maxEl.value || '').trim();
-  var min = minRaw ? Number(minRaw) : null;
-  var max = maxRaw ? Number(maxRaw) : null;
-  if ((min != null && !Number.isFinite(min)) || (max != null && !Number.isFinite(max))) {
-    showFeedbackModal('Valores m\u00ednimo e m\u00e1ximo devem ser n\u00fameros.', 'warning');
-    return;
-  }
-  if (min != null && max != null && min >= max) {
-    showFeedbackModal('O valor m\u00ednimo deve ser menor que o m\u00e1ximo.', 'warning');
-    return;
-  }
+  var key = generateCorpoCustomKey(label);
+  var newField = {
+    key: key, label: label, type: 'measure', group: 'custom',
+    unit: unit, decimals: decimals, icon: 'custom',
+    customMin: min, customMax: max, visible: true
+  };
 
-  var fields = getCorpoCustomFields();
-
-  if (editIndex >= 0 && editIndex < fields.length) {
-    fields[editIndex].label = label;
-    fields[editIndex].unit = unit;
-    fields[editIndex].decimals = decimals;
-    fields[editIndex].min = min;
-    fields[editIndex].max = max;
-    fields[editIndex].msg = label + ' deve estar entre ' + (min != null ? min : '?') + ' e ' + (max != null ? max : '?');
-  } else {
-    var key = generateCorpoCustomKey(label);
-    fields.push({ key: key, label: label, unit: unit, decimals: decimals, min: min, max: max, msg: label + ' deve estar entre ' + (min != null ? min : '?') + ' e ' + (max != null ? max : '?') });
-  }
-
-  saveCorpoCustomFields(fields);
+  var fields = getCorpoAllFields();
+  fields.push(newField);
+  saveCorpoAllFields(fields);
   hideCorpoCustomFieldForm();
-  showFeedbackModal(editIndex >= 0 ? 'Campo atualizado.' : 'Campo adicionado!', 'success');
-}
-
-function deleteCorpoCustomField(index) {
-  var fields = getCorpoCustomFields();
-  if (index < 0 || index >= fields.length) return;
-  var label = fields[index].label;
-  if (!confirm('Excluir o campo "' + label + '" permanentemente?')) return;
-  fields.splice(index, 1);
-  saveCorpoCustomFields(fields);
-  showFeedbackModal('Campo "' + label + '" exclu\u00eddo.', 'info');
-}
-
-function editCorpoCustomField(index) {
-  showCorpoCustomFieldForm(index);
+  showFeedbackModal('Campo "' + label + '" adicionado!', 'success');
 }
 
 

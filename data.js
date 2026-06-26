@@ -523,7 +523,7 @@ const mockData = {
   avaliacoesAntropometricas: [
     {
       id: 1,
-      nome: '1ª Avaliação Física',
+      nome: 'Avaliação Física',
       data: '2026-06-05',
       geral: {
         peso: 74.8,
@@ -562,7 +562,7 @@ const mockData = {
     },
     {
       id: 2,
-      nome: '2ª Avaliação Física',
+      nome: 'Avaliação Física',
       data: '2026-06-20',
       geral: {
         peso: 73.9,
@@ -597,6 +597,45 @@ const mockData = {
         subescapular: 13,
         torax: 10,
         coxa: 17
+      }
+    },
+    {
+      id: 3,
+      nome: 'Avaliação Física',
+      data: '2026-03-15',
+      geral: {
+        peso: 76.2,
+        altura: 1.78,
+        imc: 24.0,
+        percMassaGorda: 20.8,
+        percMassaMagra: 79.2,
+        massaGordaKg: 15.9,
+        massaMagraKg: 60.3,
+        rcq: 0.89
+      },
+      circunferencias: {
+        ombro: 113.5,
+        peitoral: 100.2,
+        cintura: 87,
+        abdomen: 91.2,
+        quadril: 99.5,
+        bracoEsqRelaxado: 31.8,
+        bracoDirRelaxado: 32.1,
+        bracoEsqContraido: 33.8,
+        bracoDirContraido: 34.2,
+        panturrilhaEsq: 36.9,
+        panturrilhaDir: 37.1,
+        coxaEsq: 55.8,
+        coxaDir: 56.1
+      },
+      dobras: {
+        abdominal: 22,
+        triceps: 14,
+        suprailiaca: 17,
+        axilarMedia: 13,
+        subescapular: 15,
+        torax: 12,
+        coxa: 19
       }
     }
   ],

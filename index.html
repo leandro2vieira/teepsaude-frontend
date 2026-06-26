@@ -70,6 +70,9 @@
                             <div id="corpoAvaliacoesList" class="corpo-av-list"></div>
                             <div class="corpo-av-sticky-cta">
                                 <button type="button" class="corpo-av-new-btn corpo-av-new-btn--sticky" onclick="openCorpoNovaAvaliacaoWizard()">+ Nova avaliação</button>
+                                <button type="button" class="corpo-av-chart-btn" onclick="openCorpoComparacao()" title="Comparar avaliações">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>
+                                </button>
                             </div>
                             <div class="corpo-av-list-footer">
                                 <button type="button" class="corpo-cfm-trigger" onclick="openCorpoCustomFieldManager()">
@@ -146,18 +149,19 @@
 
                         <div id="corpoCustomFieldManager" class="corpo-cfm-overlay" style="display:none;">
                             <div class="corpo-cfm-head">
-                                <button type="button" class="corpo-wizard-back-btn" onclick="closeCorpoCustomFieldManager()" aria-label="Voltar">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                                <button type="button" class="corpo-cfm-back-btn" onclick="closeCorpoCustomFieldManager()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                                    Voltar
                                 </button>
                                 <div class="corpo-cfm-head-copy">
-                                    <div class="corpo-cfm-title">Campos Personalizados</div>
-                                    <div class="corpo-cfm-subtitle">Adicione medições que você acompanha</div>
+                                    <div class="corpo-cfm-title">Gerenciar Campos</div>
+                                    <div class="corpo-cfm-subtitle">Ordene, edite, oculte ou adicione campos</div>
                                 </div>
                             </div>
                             <div class="corpo-cfm-body" id="corpoCustomFieldList"></div>
                             <div id="corpoCustomFieldFormContainer" class="corpo-cfm-form-container" style="display:none;"></div>
                             <div class="corpo-cfm-footer">
-                                <button type="button" class="corpo-cfm-add-btn" onclick="showCorpoCustomFieldForm(-1)">+ Adicionar campo</button>
+                                <button type="button" class="corpo-cfm-add-btn" onclick="showCorpoNewFieldForm()">+ Novo campo personalizado</button>
                             </div>
                         </div>
 
@@ -181,6 +185,37 @@
                                 <button type="button" class="corpo-wizard-next-btn" id="corpoWizardNextBtn" onclick="corpoWizardNext()">Avançar →</button>
                                 <button type="button" class="corpo-wizard-save-btn" id="corpoWizardSaveBtn" style="display:none;" onclick="corpoWizardSave()">Salvar avaliação</button>
                             </div>
+                        </div>
+
+                        <div id="corpoComparacaoView" class="corpo-compare-view" style="display:none;">
+                            <div class="corpo-compare-header">
+                                <button type="button" class="corpo-detail-back-btn" onclick="closeCorpoComparacao()" aria-label="Voltar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                                </button>
+                                <div class="corpo-compare-head-copy">
+                                    <div class="corpo-compare-title">Comparar Avaliações</div>
+                                </div>
+                            </div>
+
+                            <div class="corpo-compare-picker-card">
+                                <div class="corpo-compare-picker-row">
+                                    <div class="corpo-compare-field">
+                                        <label class="corpo-compare-field-label" for="corpoCompareDateFrom">Data inicial</label>
+                                        <input type="date" class="corpo-compare-field-input" id="corpoCompareDateFrom">
+                                    </div>
+                                    <div class="corpo-compare-sep">→</div>
+                                    <div class="corpo-compare-field">
+                                        <label class="corpo-compare-field-label" for="corpoCompareDateTo">Data final</label>
+                                        <input type="date" class="corpo-compare-field-input" id="corpoCompareDateTo">
+                                    </div>
+                                </div>
+                                <button type="button" class="corpo-compare-gen-btn" onclick="renderCorpoComparacaoTable()">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>
+                                    Gerar comparação
+                                </button>
+                            </div>
+
+                            <div id="corpoComparacaoTableWrap" class="corpo-compare-table-wrap"></div>
                         </div>
                     </div>
                 </div>
@@ -257,10 +292,9 @@
                         <i class="icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></i>
                         <span class="tabbar-label">Perfil</span>
                     </a>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Modal de Agenda do Dia -->
     <div class="modal" id="dailyScheduleModal">
