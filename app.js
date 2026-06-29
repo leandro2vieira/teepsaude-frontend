@@ -1,4 +1,4 @@
-let currentScreen = 'homeScreen';
+﻿let currentScreen = 'homeScreen';
 let fotoAtualMedicacao = null;
 let fotoAtualMedicacaoEdit = null;
 let currentVitalType = '';
@@ -1262,7 +1262,7 @@ function closeConfirmModal() {
   pendingConfirmAction = null;
 }
 
-// Fallback global: qualquer alert nativo vira modal padrA?o.
+// Fallback global: qualquer alert nativo vira modal padrão.
 if (typeof window !== 'undefined') {
   window.alert = function(message) {
     showFeedbackModal(String(message || ''), 'info');
@@ -1883,7 +1883,7 @@ function renderAgenda() {
   if (proximos.length > 0) {
     const primeiro = proximos[0];
     html += '<div class="agenda-section">';
-    html += '<div class="subsection-title">PrA3ximo compromisso</div>';
+    html += '<div class="subsection-title">Próximo compromisso</div>';
     html += primeiro.tipo === 'consulta'
       ? createConsultaCard(primeiro.item, 'home')
       : createExameCard(primeiro.item, false);
@@ -1967,7 +1967,7 @@ function renderPerfil() {
     {
       screenId: 'saudeScreen',
       icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
-      title: 'SaA?de',
+      title: 'Saúde',
       subtitle: 'Mostrar no menu inferior',
       personalize: 'vitais'
     },
@@ -1998,7 +1998,7 @@ function renderPerfil() {
     .map((item) => {
       const gear =
         item.personalize === 'vitais'
-          ? `<button type="button" class="config-gear-btn config-gear-btn--nav-row" onclick="event.stopPropagation(); openVitaisConfigModal()" aria-label="Personalizar o que aparece em SaA?de e no Dashboard"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>`
+          ? `<button type="button" class="config-gear-btn config-gear-btn--nav-row" onclick="event.stopPropagation(); openVitaisConfigModal()" aria-label="Personalizar o que aparece em Saúde e no Dashboard"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>`
           : '';
       return `
     <div class="config-item">
@@ -2039,7 +2039,7 @@ function renderPerfil() {
       <div class="perfil-hero-name">${usuario.nome}</div>
       <div class="perfil-hero-meta">${idade} anos | Paciente</div>
 
-      <!-- Dados pessoais com mA?scara -->
+      <!-- Dados pessoais com máscara -->
       <div class="perfil-hero-dados">
         <div class="perfil-dado-row">
           <span class="perfil-dado-lbl">E-mail</span>
@@ -2062,7 +2062,7 @@ function renderPerfil() {
       </div>
     </div>
 
-    <!-- ?"–? CONFIGURAA?AES ?"–? -->
+    <!-- ?"–? CONFIGURAÇÕES->
     <div class="perfil-section-title">Configurações</div>
     <div class="config-item" onclick="openMeusIndicadoresModal()" style="cursor:pointer;">
       <div class="config-item-content">
@@ -2075,7 +2075,7 @@ function renderPerfil() {
       <div>???</div>
     </div>
 
-    <!-- Personalizar menu – colapsA?vel -->
+    <!-- Personalizar menu – colapsável -->
     <div class="config-item config-item--collapsible" onclick="togglePerfilMenuSection()" style="cursor:pointer;" id="perfilMenuToggleRow">
       <div class="config-item-content">
         <div class="config-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div>
@@ -2097,7 +2097,7 @@ function renderPerfil() {
         <div class="config-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="6.5 6.5 3 10 6.5 13.5"/><polyline points="17.5 6.5 21 10 17.5 13.5"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
         <div class="config-text">
           <div class="config-title">Cadastrar Dispositivo</div>
-          <div class="config-subtitle">Conectar relA3gio, balança ou app</div>
+          <div class="config-subtitle">Conectar relógio, balança ou app</div>
         </div>
       </div>
       <div>???</div>
@@ -2387,7 +2387,7 @@ function getDosesPorDiaFromFrequencia(frequencia) {
   if (frequencia === '2x ao dia') return 2;
   if (frequencia === '3x ao dia') return 3;
   if (frequencia === '4x ao dia') return 4;
-  if (frequencia === 'Conforme necessA?rio') return 1;
+  if (frequencia === 'Conforme necessário') return 1;
   return 0;
 }
 
@@ -2412,7 +2412,7 @@ function refreshEstoqueSugeridoAdd() {
     return;
   }
   const sug = d * dosesPorDia;
-  hint.textContent = `SugestA?o de estoque para o período: ${sug} unidades (${d} dia(s) A- ${dosesPorDia} dose(s)/dia).`;
+  hint.textContent = `Sugestão de estoque para o período: ${sug} unidades (${d} dia(s) A- ${dosesPorDia} dose(s)/dia).`;
 }
 
 function refreshEstoqueSugeridoEdit() {
@@ -2436,7 +2436,7 @@ function refreshEstoqueSugeridoEdit() {
     return;
   }
   const sug = d * dosesPorDia;
-  hint.textContent = `SugestA?o de estoque para o período: ${sug} unidades (${d} dia(s) A- ${dosesPorDia} dose(s)/dia).`;
+  hint.textContent = `Sugestão de estoque para o período: ${sug} unidades (${d} dia(s) A- ${dosesPorDia} dose(s)/dia).`;
 }
 
 function toggleSemDataFimMedicacao(mode) {
@@ -2508,12 +2508,12 @@ function validateAddMedStep(step) {
     if (!nome) return 'Selecione um medicamento para continuar.';
     if (!dosagem) return 'Selecione a dosagem.';
     if (!semDataFim && (!dur || dur < 1)) {
-      return 'Informe por quantos dias o medicamento serA? tomado ou ative uso contA-nuo (sem período previsto).';
+      return 'Informe por quantos dias o medicamento será tomado ou ative uso contA-nuo (sem período previsto).';
     }
   }
   if (step === 2) {
     const f = document.getElementById('frequenciaMedInput')?.value;
-    if (!f) return 'Selecione com que frequência vocA? toma este medicamento.';
+    if (!f) return 'Selecione com que frequência você toma este medicamento.';
   }
   if (step === 3) {
     const dataInicio = document.getElementById('dataInicioMedInput')?.value;
@@ -2609,7 +2609,7 @@ function registerCustomMedicamentoFromSearch() {
     <option value="1 comprimido">1 comprimido</option>
     <option value="5 ml">5 ml</option>
     <option value="10 ml">10 ml</option>
-    <option value="VariA?vel / ajuste pelo médico">VariA?vel / ajuste pelo médico</option>
+    <option value="Variável / ajuste pelo médico">Variável / ajuste pelo médico</option>
   `;
   setAddMedicacaoMedPickPhase(false);
   const searchResults = document.getElementById('searchResults');
@@ -2620,7 +2620,7 @@ function registerCustomMedicamentoFromSearch() {
   setTimeout(() => dosagemSelect.focus(), 80);
 }
 
-/** Campos que `form.reset()` não restaura (toggles, select dinA?mico, lista de busca). */
+/** Campos que `form.reset()` não restaura (toggles, select dinâmico, lista de busca). */
 function resetAddMedicacaoModalState() {
   const dosagemSelect = document.getElementById('dosagemMedInput');
   if (dosagemSelect) {
@@ -2717,7 +2717,7 @@ function setupMedicacaoModal() {
       return;
     }
     if (!semDataFim && (!duracaoDias || duracaoDias < 1)) {
-      showFeedbackModal('Informe por quantos dias o medicamento serA? tomado (ex.: 10, 20).', 'warning');
+      showFeedbackModal('Informe por quantos dias o medicamento será tomado (ex.: 10, 20).', 'warning');
       return;
     }
     const dataFim = semDataFim ? '' : (typeof computeDataFimFromInicioDuracao === 'function'
@@ -2757,9 +2757,9 @@ function setupMedicacaoModal() {
       const est = parseInt(estoqueAtual, 10);
       if (!Number.isNaN(est) && est < need) {
         openConfirmModal(
-          `O estoque informado (${est}) Ac menor que o necessA?rio para o período (${need} unidades = ${duracaoDias} dia(s) A- ${horarios.length} dose(s)/dia). Deseja continuar mesmo assim?`,
+          `O estoque informado (${est}) Ac menor que o necessário para o período (${need} unidades = ${duracaoDias} dia(s) A- ${horarios.length} dose(s)/dia). Deseja continuar mesmo assim?`,
           saveMedicacao,
-          'Estoque abaixo do necessA?rio'
+          'Estoque abaixo do necessário'
         );
         return;
       }
@@ -2981,7 +2981,7 @@ function setupEditMedicacaoModal() {
       return;
     }
     if (!semDataFim && (!duracaoDias || duracaoDias < 1)) {
-      showFeedbackModal('Informe por quantos dias o medicamento serA? tomado (ex.: 10, 20).', 'warning');
+      showFeedbackModal('Informe por quantos dias o medicamento será tomado (ex.: 10, 20).', 'warning');
       return;
     }
     const dataFim = semDataFim ? '' : (typeof computeDataFimFromInicioDuracao === 'function'
@@ -3020,9 +3020,9 @@ function setupEditMedicacaoModal() {
       const est = parseInt(estoqueAtual, 10);
       if (!Number.isNaN(est) && est < need) {
         openConfirmModal(
-          `O estoque informado (${est}) Ac menor que o necessA?rio para o período (${need} unidades = ${duracaoDias} dia(s) A- ${horarios.length} dose(s)/dia). Deseja continuar mesmo assim?`,
+          `O estoque informado (${est}) Ac menor que o necessário para o período (${need} unidades = ${duracaoDias} dia(s) A- ${horarios.length} dose(s)/dia). Deseja continuar mesmo assim?`,
           saveEditMedicacao,
-          'Estoque abaixo do necessA?rio'
+          'Estoque abaixo do necessário'
         );
         return;
       }
@@ -3050,7 +3050,7 @@ function openEditMedicacaoModal(medicacaoId) {
     document.getElementById('editEstoqueAtualMedInput').value = med.estoqueAtual || 30;
     document.getElementById('editEstoqueMinMedInput').value = med.estoqueMinimo || 7;
     updateEditHorariosFields();
-    // Preencher horários existentes apA3s renderizar os campos
+    // Preencher horários existentes após renderizar os campos
     setTimeout(() => {
       const inputs = document.querySelectorAll('.edit-horario-input');
       inputs.forEach((input, i) => {
@@ -3087,7 +3087,7 @@ function openMedicationPhotoModalById(medId) {
   modal.classList.add('active');
 }
 
-// ===== ALERTAS DE HORA?RIO =====
+// ===== ALERTAS DE HORÁRIO =====
 
 function checkMedicationAlerts() {
   const agora = new Date();
@@ -5170,8 +5170,8 @@ function searchMedicamentos(termo) {
   if (resultados.length === 0) {
     searchResults.innerHTML = `
       <div class="search-no-result-panel">
-        <p class="search-no-result-text">Nenhum resultado no catA?logo para ??o${termoEsc}???.</p>
-        <p class="search-no-result-hint">Use o botA?o <strong>Cadastrar com este nome</strong> abaixo do campo de busca.</p>
+        <p class="search-no-result-text">Nenhum resultado no catálogo para "${termoEsc}".</p>
+        <p class="search-no-result-hint">Use o botão <strong>Cadastrar com este nome</strong> abaixo do campo de busca.</p>
       </div>`;
     searchResults.style.display = 'block';
     return;
@@ -5180,12 +5180,12 @@ function searchMedicamentos(termo) {
   const labelForForma = (key) => {
     const map = {
       comprimido: 'Comprimidos',
-      capsula: 'CA?psulas',
+      capsula: 'Cápsulas',
       gotas: 'Gotas',
       xarope: 'Xaropes',
       solucao: 'Solução (ml)',
-      colher: 'Colher (chA?/sopa)',
-      injetavel: 'InjetA?veis',
+      colher: 'Colher (chá/sopa)',
+      injetavel: 'Injetáveis',
       spray: 'Spray/Inalador',
       unidade: 'Unidade'
     };
@@ -5224,7 +5224,7 @@ function searchMedicamentos(termo) {
   html += `
     <div class="med-search-custom-footer">
       <button type="button" class="med-search-custom-btn" onclick="registerCustomMedicamentoFromSearch()">
-        Não Ac nenhum destes – cadastrar ??o${termoEsc}??? manualmente
+        Não Ac nenhum destes – cadastrar "${termoEsc}" manualmente
       </button>
     </div>`;
 
@@ -5302,7 +5302,7 @@ function updateHorariosFields() {
   else if (frequencia === '2x ao dia') numHorarios = 2;
   else if (frequencia === '3x ao dia') numHorarios = 3;
   else if (frequencia === '4x ao dia') numHorarios = 4;
-  else if (frequencia === 'Conforme necessA?rio') numHorarios = 1;
+  else if (frequencia === 'Conforme necessário') numHorarios = 1;
   
   for (let i = 0; i < numHorarios; i++) {
     const label = numHorarios === 1 ? 'Horário' : `Horário ${i + 1}`;
@@ -5330,7 +5330,7 @@ function updateEditHorariosFields() {
   else if (frequencia === '2x ao dia') numHorarios = 2;
   else if (frequencia === '3x ao dia') numHorarios = 3;
   else if (frequencia === '4x ao dia') numHorarios = 4;
-  else if (frequencia === 'Conforme necessA?rio') numHorarios = 1;
+  else if (frequencia === 'Conforme necessário') numHorarios = 1;
   
   for (let i = 0; i < numHorarios; i++) {
     const label = numHorarios === 1 ? 'Horário' : `Horário ${i + 1}`;
@@ -6009,7 +6009,7 @@ function editIndicador(categoria, id) {
   document.getElementById('novoIndicadorFonte').value = item.fonte || 'Manual';
   document.getElementById('salvarIndicadorBtn').textContent = 'Salvar';
 
-  // Alertas – sA3 para vitais
+  // Alertas – só para vitais
   const alertaContainer = document.getElementById('alertaVitalContainer');
   if (categoria === 'vitais') {
     alertaContainer.classList.remove('is-hidden');
@@ -6153,7 +6153,7 @@ function renderDispositivos() {
 
   const trashSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
   const getDispositivoIcon = (tipo) => {
-    if (/relA3gio|pulseira|watch/i.test(tipo)) return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><polyline points="12 9 12 12 13.5 13.5"/><path d="M16.51 17.35l-.35 3.83a2 2 0 0 1-2 1.82H9.83a2 2 0 0 1-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 0 1 9.83 1h4.35a2 2 0 0 1 2 1.82l.35 3.83"/></svg>`;
+    if (/relógio|pulseira|watch/i.test(tipo)) return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><polyline points="12 9 12 12 13.5 13.5"/><path d="M16.51 17.35l-.35 3.83a2 2 0 0 1-2 1.82H9.83a2 2 0 0 1-2-1.82l-.35-3.83m.01-10.7l.35-3.83A2 2 0 0 1 9.83 1h4.35a2 2 0 0 1 2 1.82l.35 3.83"/></svg>`;
     if (/balança/i.test(tipo)) return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"/><path d="M5.5 20h13l-2-12H7.5z"/></svg>`;
     return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`;
   };
@@ -6275,7 +6275,7 @@ function renderVitaisConfig() {
         <span class="vital-config-name vital-config-name--todos">Todos</span>
         <div class="vital-config-toggles">
           <div class="toggle-col">
-            <span class="toggle-col-label">SaA?de</span>
+            <span class="toggle-col-label">Saúde</span>
             <button type="button" class="toggle ${allSaude ? 'active' : ''}"
               aria-pressed="${allSaude}"
               onclick="toggleAllVitaisConfig('exibirSaude')"></button>
@@ -6300,7 +6300,7 @@ function renderVitaisConfig() {
         <span class="vital-config-name">${v.tipo}</span>
         <div class="vital-config-toggles">
           <div class="toggle-col">
-            <span class="toggle-col-label">SaA?de</span>
+            <span class="toggle-col-label">Saúde</span>
             <button type="button" class="toggle ${cfg.exibirSaude ? 'active' : ''}"
               onclick="toggleVitalConfig('${v.tipo}', 'exibirSaude', this)"></button>
           </div>
@@ -6317,7 +6317,7 @@ function renderVitaisConfig() {
   document.getElementById('vitaisConfigContent').innerHTML = html;
 }
 
-/** Se todos estA?o ligados nessa coluna, desliga todos; caso contrA?rio liga todos. */
+/** Se todos estão ligados nessa coluna, desliga todos; caso contrário liga todos. */
 function toggleAllVitaisConfig(campo) {
   const turnOn = !allVitaisColumnOn(campo);
   mockData.sinaisVitais.forEach((v) => {
@@ -6371,14 +6371,14 @@ let lastManualMeasurementMeta = { isSporadic: true, dateISO: null, timeHHMM: nul
 let currentMoodValue = 0;
 let capturedPressureFromSource = null;
 
-/** Simula leitura de PA conforme a fonte (mock para protA3tipo). */
+/** Simula leitura de PA conforme a fonte (mock para protótipo). */
 function simulatePressureCaptureForFonte(fonte) {
   const r = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
   const profiles = {
     Pulseira: () => ({
       sistolica: r(108, 126),
       diastolica: r(68, 84),
-      linha: 'Sensor da pulseira – leitura estA?vel'
+      linha: 'Sensor da pulseira – leitura estável'
     }),
     'Google Fit': () => ({
       sistolica: r(114, 132),
@@ -6522,7 +6522,7 @@ function closeExercicioDetalheModal() {
   if (m) m.classList.remove('active');
 }
 
-/** RA3tulos de contexto (ExercA-cio / Sono / ???) agregados num bucket horário. */
+/** Rótulos de contexto (ExercA-cio / Sono / ???) agregados num bucket horário. */
 function batimentoBucketContextBadgeHtml(bucket) {
   if (!bucket || !bucket.readings || bucket.readings.length === 0) return '';
   const set = new Set();
@@ -6554,7 +6554,7 @@ function openSonoDetalheModal(sessao) {
   const cell = (label, val) =>
     `<div class="sono-metric-cell"><span class="sono-metric-label">${label}</span><span class="sono-metric-value">${val}</span></div>`;
 
-  // FC mA-n/mA?x durante o sono: busca leituras do dia com contextoColeta === 'sono'
+  // FC mín/máx durante o sono: busca leituras do dia com contextoColeta === 'sono'
   let fcSonoMin = null;
   let fcSonoMax = null;
   if (currentVitalDetail && Array.isArray(currentVitalDetail.historico) && sessao.inicioISO) {
@@ -6573,7 +6573,7 @@ function openSonoDetalheModal(sessao) {
   grid.innerHTML = [
     cell('Duração registada', durLabel),
     cell('Pontuação', sessao.score != null ? String(sessao.score) : '–'),
-    cell('FC mA-n – mA?x', fcSonoLabel),
+    cell('FC mín – máx', fcSonoLabel),
     cell('Leve', sessao.leveMin != null ? `${sessao.leveMin} min` : '–'),
     cell('REM', sessao.remMin != null ? `${sessao.remMin} min` : '–'),
     cell('Profundo', sessao.profundoMin != null ? `${sessao.profundoMin} min` : '–'),
@@ -6710,10 +6710,10 @@ function openBatimentoMinutoDetalhe(hour, contexto) {
   batimentoMinutoReadingsCache = readings;
   renderBatimentoMinutoListaPreview();
 
-  // GrA?fico de barras por leitura
+  // Gráfico de barras por leitura
   renderBatimentoMinutoCanvas(readings);
 
-  // Sub-modal exercício/sono se aplicA?vel
+  // Sub-modal exercício/sono se aplicável
   const ex = bucket.readings && bucket.readings.find((r) => r.contextoColeta === 'exercicio' && r.exercicioSessao);
   const sn = bucket.readings && bucket.readings.find((r) => r.contextoColeta === 'sono' && r.sonoSessao);
   const subBtn = document.getElementById('batimentoMinutoSubBtn');
@@ -6937,7 +6937,7 @@ function buildDailyRowsForRange(historico, startISO, endISO) {
   });
 }
 
-/** Cor de fundo: Sono / ExercA-cio / Repouso / outras condições (histA3rico detalhado por medição). */
+/** Cor de fundo: Sono / ExercA-cio / Repouso / outras condições (histórico detalhado por medição). */
 function batimentoHistoricoRowBgClassForEntry(h) {
   if (!h || !currentVitalDetail || currentVitalDetail.tipo !== 'Batimento Cardíaco') return '';
   if (h.contextoColeta === 'sono' && h.sonoSessao) return 'vital-list-item--bc-sono';
@@ -6959,7 +6959,7 @@ function batimentoHistoricoDailyRowBgClass(readings) {
 
 /**
  * Contexto da hora (lista + gráfico horário): Sono ?+' ExercA-cio ?+' Repouso ?+' demais.
- * Não confundir com Baixo/Normal/Alto do histA3rico por período.
+ * Não confundir com Baixo/Normal/Alto do histórico por período.
  */
 function batimentoHourlyBucketContextGroup(bucket) {
   if (!bucket || !Array.isArray(bucket.readings) || bucket.readings.length === 0) return 'outros';
@@ -6992,7 +6992,7 @@ function batimentoHourlyBucketRowBgClass(bucket) {
 }
 
 /**
- * Uma linha por dia civil: mA-n. e mA?x. do dia (alinhado ·s barras do gráfico).
+ * Uma linha por dia civil: mín. e máx. do dia (alinhado ·s barras do gráfico).
  */
 function buildBatimentoHistoricoDailyRows(entries) {
   const map = new Map();
@@ -7070,7 +7070,7 @@ function sortHistoricoBatimentoDesc(arr) {
   });
 }
 
-/** Ordem cronolA3gica (mais antiga primeiro) – lista do dia ao tocar numa coluna. */
+/** Ordem cronológica (mais antiga primeiro) – lista do dia ao tocar numa coluna. */
 function sortHistoricoBatimentoAsc(arr) {
   if (!Array.isArray(arr)) return [];
   return [...arr].sort((a, b) => {
@@ -7114,7 +7114,7 @@ function renderBatimentoChromeCharts(filtrado, start, end) {
     syncBatimentoChromePanels();
   } else {
     /* Mostrar o painel de período ANTES do canvas: se o gráfico desenhar com o scope ainda
-       oculto (voltando do detalhe do dia), getBoundingClientRect() dA? largura 0 e o gráfico fica errado. */
+       oculto (voltando do detalhe do dia), getBoundingClientRect() dá largura 0 e o gráfico fica errado. */
     syncBatimentoChromePanels();
     renderBatimentoDailyBarChart(filtrado, { start, end, period: vitalBatimentoPeriod });
   }
@@ -7149,7 +7149,7 @@ function renderBatimentoMinMaxCard(historico) {
 
 let batHourlySelectedHour = null;
 let batHdSelectedSlot = null;
-// ?"––? Batimento: GrA?fico mA-n/mA?x por hora ?"–––––––––––––––––––––––––––––––––?
+// ?"––? Batimento: Gráfico mín/máx por hora ?"–––––––––––––––––––––––––––––––––?
 function renderBatimentoHourlyChart(historico) {
   const el = document.getElementById('batHourlyChart');
   if (!el) return;
@@ -7209,7 +7209,7 @@ function renderBatimentoHourlyChart(historico) {
     const yRange = dataHi - dataLo;
     const toY = (v) => padT + gh - ((v - dataLo) / yRange) * gh;
 
-    // Função de desenho reutilizA?vel – não reconstrA3i o DOM
+    // Função de desenho reutilizável – não reconstrói o DOM
     function drawBatHourly() {
       const ctx = canvas.getContext('2d');
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -7244,7 +7244,7 @@ function renderBatimentoHourlyChart(historico) {
         ctx.fillText(Math.round(v), padL - 3, padT + t * gh);
       });
 
-      // Barras – não selecionadas ficam apagadas quando hA? seleção ativa
+      // Barras – não selecionadas ficam apagadas quando há seleção ativa
       const hasSel = Number.isInteger(batHourlySelectedHour);
       hours.forEach((slot, i) => {
         if (slot.min === null) return;
@@ -7366,7 +7366,7 @@ function renderBatimentoHourlyTable(historico, isoDate) {
     }
   }
 
-  // Guardar referA?ncia global para uso no onclick das linhas
+  // Guardar referência global para uso no onclick das linhas
   window.__batHourlyHistorico = historico;
 
   // Agrupar por slot de hora (hh:00–hh+1:00), ordenado do mais recente
@@ -7465,7 +7465,7 @@ function openBatHourlyDetail(slotKey, dMin, dMax, historico) {
   const _meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
   const _dateLabel = `${_diasSem[_dateObj.getDay()]}, ${String(_d).padStart(2,'0')} ${_meses[_m - 1]}`;
   document.getElementById('batHdSlotLabel').innerHTML =
-    `${slotKey} <span style="font-size:13px;font-weight:400;color:#94a3b8;">A? ${_dateLabel}</span>`;
+    `${slotKey} <span style="font-size:13px;font-weight:400;color:#94a3b8;">· ${_dateLabel}</span>`;
 
   // Atualiza tA-tulo e subtA-tulo do navbar principal
   const _titleEl = document.getElementById('vitalDetailTitle');
@@ -7538,7 +7538,7 @@ function _buildHourlyFiveMinPoints(hNum, dMin, dMax, historico) {
   }
 
   // Gera os 12 slots (0,5,10,...,55) com min/max por slot
-  // Quando hA? apenas um valor real no slot, aplica pequena faixa para manter a leitura visual da barra.
+  // Quando há apenas um valor real no slot, aplica pequena faixa para manter a leitura visual da barra.
   const mid = Math.round((dMin + dMax) / 2);
   const amp = Math.max(Math.round((dMax - dMin) / 2), 2);
   const pts = [];
@@ -7625,7 +7625,7 @@ function renderBatHdChart(points, dMin, dMax, hNum) {
   ctx.rect(PAD_L, PAD_T, chartW, chartH);
   ctx.clip();
 
-  // Usa min/max jA? preparados por slot; fallback mantAcm compatibilidade com formato antigo ({min,bpm})
+  // Usa min/max já preparados por slot; fallback mantém compatibilidade com formato antigo ({min,bpm})
   const slotData = points.map(p => ({
     min: p.min,
     minBpm: p.minBpm !== undefined ? p.minBpm : (p.bpm !== undefined ? p.bpm : dMin),
@@ -7638,7 +7638,7 @@ function renderBatHdChart(points, dMin, dMax, hNum) {
   const n = slotData.length;
   const barSlot = chartW / n;
 
-  // Função de desenho reutilizA?vel (não reconstrA3i o DOM)
+  // Função de desenho reutilizável (não reconstrói o DOM)
   function drawBatHd() {
     const hasSel = Number.isInteger(batHdSelectedSlot);
     ctx.save();
@@ -7748,7 +7748,7 @@ function renderBatHdChart(points, dMin, dMax, hNum) {
   canvas._batHdClick = (e) => {
     const rect = canvas.getBoundingClientRect();
     const cx = e.clientX - rect.left;
-    // Encontra o slot mais prA3ximo no eixo X
+    // Encontra o slot mais próximo no eixo X
     let best = -1;
     let bestDist = Infinity;
     slotData.forEach((p, i) => {
@@ -7772,7 +7772,7 @@ function renderBatHdChart(points, dMin, dMax, hNum) {
   document.addEventListener('click', document._batHdOutsideClick);
 }
 
-// ?"––? Batimento: TendA?ncia de repouso 7 dias ?"–––––––––––––––––––––––––––––––?
+// ?"––? Batimento: Tendáncia de repouso 7 dias ?"–––––––––––––––––––––––––––––––?
 function renderBatimentoRestingTrend(historico) {
   const el = document.getElementById('batRestingTrend');
   if (!el) return;
@@ -7795,13 +7795,13 @@ function renderBatimentoRestingTrend(historico) {
     const v = parseBatimentoHistoricoValor(h);
     if (!Number.isFinite(v)) return;
     const ctx = h.contextoColeta;
-    if (ctx && ctx !== 'repouso' && ctx !== 'sono') return; // sA3 repouso e sono
+    if (ctx && ctx !== 'repouso' && ctx !== 'sono') return; // só repouso e sono
     const dayISO = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data||'').slice(0,10);
     const slot = days.find(d => d.iso === dayISO);
     if (slot) slot.vals.push(v);
   });
 
-  // Se não hA? dados de repouso, usa todos
+  // Se não há dados de repouso, usa todos
   const hasResting = days.some(d => d.vals.length > 0);
   if (!hasResting) {
     historico.forEach(h => {
@@ -7822,7 +7822,7 @@ function renderBatimentoRestingTrend(historico) {
   const allVals = points.filter(p => p.val != null).map(p => p.val);
   const avgVal = allVals.length ? Math.round(allVals.reduce((a,b)=>a+b,0)/allVals.length) : null;
 
-  // Se todos os pontos tA?m o mesmo valor (dados de demo muito uniformes), injeta variação
+  // Se todos os pontos têm o mesmo valor (dados de demo muito uniformes), injeta variação
   const uniqueVals = new Set(allVals);
   let displayPoints = points;
   if (uniqueVals.size <= 2 && allVals.length >= 4) {
@@ -7835,7 +7835,7 @@ function renderBatimentoRestingTrend(historico) {
   }
 
   el.innerHTML = `
-    <div class="bat-resting-header">TendA?ncia em repouso <span class="bat-resting-sub">7 dias</span></div>
+    <div class="bat-resting-header">Tendáncia em repouso <span class="bat-resting-sub">7 dias</span></div>
     ${avgVal != null ? `<div class="bat-resting-avg"><span class="bat-resting-avg-value">${avgVal}</span><span class="bat-resting-avg-unit">bpm mAcdia</span></div>` : ''}
     <canvas id="batRestingCanvas" class="bat-resting-canvas" height="100"></canvas>
     <div class="bat-resting-labels" id="batRestingLabels"></div>`;
@@ -7871,7 +7871,7 @@ function renderBatimentoRestingTrend(historico) {
     const toX = (i) => padL + i * slotW;
     const toY = (v) => padT + gh - ((v - minV) / (maxV - minV)) * gh;
 
-    // Faixa de referA?ncia normal (60–100 bpm)
+    // Faixa de referência normal (60–100 bpm)
     const refLo = band.min, refHi = band.max;
     const refYTop = Math.max(padT, toY(Math.min(refHi, maxV + 5)));
     const refYBot = Math.min(padT + gh, toY(Math.max(refLo, minV - 5)));
@@ -7894,7 +7894,7 @@ function renderBatimentoRestingTrend(historico) {
       ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
     });
 
-    // Y labels – sA3 mA-n e mA?x reais para não poluir
+    // Y labels – só mín e máx reais para não poluir
     ctx.fillStyle = '#94a3b8';
     ctx.font = `600 10px Inter, sans-serif`;
     ctx.textAlign = 'right';
@@ -7940,7 +7940,7 @@ function renderBatimentoRestingTrend(historico) {
   });
 }
 
-// ?"––? Batimento: Detalhe TendA?ncia em Repouso ?"–––––––––––––––––––––––––––––?
+// ?"––? Batimento: Detalhe Tendáncia em Repouso ?"–––––––––––––––––––––––––––––?
 let __batRestingPeriod = '7d';
 
 function openBatRestingDetail() {
@@ -8387,7 +8387,7 @@ async function shareBatimentoCard() {
     ctx.font = `700 ${13 * dpr}px Inter, system-ui, sans-serif`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
-    ctx.fillText('Teep SaA?de', 20 * dpr, 14 * dpr);
+    ctx.fillText('Teep Saúde', 20 * dpr, 14 * dpr);
 
     ctx.fillStyle = '#0f172a';
     ctx.font = `700 ${17 * dpr}px Inter, system-ui, sans-serif`;
@@ -8412,7 +8412,7 @@ async function shareBatimentoCard() {
     ctx.font = `400 ${11 * dpr}px Inter, system-ui, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('Gerado por Teep SaA?de · teepsaude.com.br', W / 2, footerY + (footerH / 2) * dpr);
+    ctx.fillText('Gerado por Teep Saúde · teepsaude.com.br', W / 2, footerY + (footerH / 2) * dpr);
 
     if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
 
@@ -8423,7 +8423,7 @@ async function shareBatimentoCard() {
         try {
           await navigator.share({ files: [file], title: 'Batimento Cardíaco', text: `${dateLabel}${nome ? ' · ' + nome : ''}` });
           return;
-        } catch (e) { /* cancelado pelo usuA?rio */ }
+        } catch (e) { /* cancelado pelo usuário */ }
       }
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -8573,11 +8573,11 @@ function updateVitalBatimentoModalView() {
   renderBatimentoChromeCharts(filtrado, start, end);
   updateBatimentoPeriodSummary(filtrado, start, end);
 
-  // Day picker – usa todo o histA3rico sem filtro de contexto para incluir todos os dias
+  // Day picker – usa todo o histórico sem filtro de contexto para incluir todos os dias
   const allHist = currentVitalDetail.historico;
   renderBatimentoDayPicker(allHist);
 
-  // Cards Min/Max e Tabela HorA?ria filtram pelo dia selecionado
+  // Cards Min/Max e Tabela Horária filtram pelo dia selecionado
   const selISO = batimentoSelectedDayISO || getTodayISODate();
   const dayData = allHist.filter(h => {
     const d = typeof historicoEntryDayISO === 'function' ? historicoEntryDayISO(h) : String(h.data || '').slice(0, 10);
@@ -8681,7 +8681,7 @@ function updateBatimentoPeriodSummary(filtrado, startISO, endISO) {
       : null;
   const idealHint = fromIndicador
     ? ` · Ideal ${band.min}–${band.max} bpm`
-    : ` · Ref. ${band.min}–${band.max} bpm (padrA?o)`;
+    : ` · Ref. ${band.min}–${band.max} bpm (padrão)`;
   const modeHint = ` · Dados: ${getBatimentoContextModeLabel()}`;
   el.textContent = `${nLeit} leit. · ${nDias}d · ${p0}–${p1}${idealHint}${modeHint}`;
   el.removeAttribute('title');
@@ -8717,7 +8717,7 @@ function expandBatimentoBarBpmRange(rawMin, rawMax, axisLo, axisHi) {
 }
 
 /**
- * Barra vertical min–max. `roundTop` / `roundBottom` permitem empilhar segmentos (sA3 cantos externos arredondados).
+ * Barra vertical min–max. `roundTop` / `roundBottom` permitem empilhar segmentos (só cantos externos arredondados).
  */
 function drawBatimentoRoundedRangeBar(ctx, x, top, barW, bottom, radius, fillStyle, cornerOpts) {
   const roundTop = !(cornerOpts && cornerOpts.roundTop === false);
@@ -8806,7 +8806,7 @@ function getBatimentoPlotYBoundsFromDataRange(vDataMin, vDataMax) {
   return { yLow, yHigh };
 }
 
-/** Fundo: apenas a faixa ideal (verde claro) + linhas tracejadas nos limites – como no histA3rico original. */
+/** Fundo: apenas a faixa ideal (verde claro) + linhas tracejadas nos limites – como no histórico original. */
 function drawBatimentoChartIdealBackground(ctx, padL, gw, toY, yAxisLo, yAxisHi, idealMin, idealMax) {
   const imn = Math.min(idealMin, idealMax);
   const imx = Math.max(idealMin, idealMax);
@@ -9273,7 +9273,7 @@ function renderBatimentoDayDrilldown(dayIso) {
 
   renderBatimentoDistCanvas(stats.minV, stats.maxV, stats.lastVal);
 
-  // Painel repouso: mA-n/mA?x das leituras com contextoColeta === 'repouso' no dia
+  // Painel repouso: mín/máx das leituras com contextoColeta === 'repouso' no dia
   const repousoEl = document.getElementById('vitalBatimentoRepousoRange');
   if (repousoEl) {
     const repLeituras = inMode.filter(
@@ -9849,7 +9849,7 @@ function _renderPressaoDiaColetaList() {
     const hasMed = h.medicamentoPressao && h.medicamentoPressao !== 'nenhum';
 
     const icons = [
-      hasMed  ? `<span class="pc-icon" title="RemAcdio tomado">${_svgMed}</span>`   : '',
+      hasMed  ? `<span class="pc-icon" title="Remédio tomado">${_svgMed}</span>`   : '',
       hasNota ? `<span class="pc-icon" title="${String(h.anotacao).trim()}">${_svgNote}</span>` : '',
     ].filter(Boolean).join('');
 
@@ -9859,7 +9859,7 @@ function _renderPressaoDiaColetaList() {
           <div class="pc-valor-row">
             <span class="pc-valor">${valorFormatado}</span>
             <span class="pc-unit">mmHg</span>
-            ${hrLabel ? `<span class="pc-fc">A? ${hrLabel}</span>` : ''}
+            ${hrLabel ? `<span class="pc-fc">♥ ${hrLabel}</span>` : ''}
           </div>
           <div class="pc-hora">${hora}</div>
         </div>
@@ -10301,7 +10301,7 @@ function pressaoInsSelectMed(val) {
       if (v === 'nenhum')      el.classList.add('pi-med-card--active-gray');
     }
   });
-  // Libera o botA?o PrA3ximo
+  // Libera o botão Próximo
   var btn = document.getElementById('piMedNextBtn');
   if (btn) { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; }
 }
@@ -10471,8 +10471,8 @@ function renderSparklineChart(historico) {
     }
     _legend.style.cssText = 'display:flex;gap:14px;justify-content:center;padding:4px 0 2px;font-size:11px;color:#64748b;';
     _legend.innerHTML =
-      '<span style="display:flex;align-items:center;gap:4px;"><span style="width:14px;height:3px;background:#f59e0b;border-radius:2px;display:inline-block;vertical-align:middle;"></span> SistA3lica</span>' +
-      '<span style="display:flex;align-items:center;gap:4px;"><span style="width:14px;height:3px;background:#3b82f6;border-radius:2px;display:inline-block;vertical-align:middle;"></span> DiastA3lica</span>';
+      '<span style="display:flex;align-items:center;gap:4px;"><span style="width:14px;height:3px;background:#f59e0b;border-radius:2px;display:inline-block;vertical-align:middle;"></span> Sistólica</span>' +
+      '<span style="display:flex;align-items:center;gap:4px;"><span style="width:14px;height:3px;background:#3b82f6;border-radius:2px;display:inline-block;vertical-align:middle;"></span> Diastólica</span>';
 
     requestAnimationFrame(() => {
       const dpr = window.devicePixelRatio || 1;
@@ -12416,7 +12416,7 @@ function renderVitalDetailContent(historico) {
     const _meses3 = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
     const _filteredRows = passosSelectedDayIso
       ? dayRows.filter(function(r) { return r.day === passosSelectedDayIso; })
-      : dayRows; // aggregatePassosByDay jA? retorna do mais recente ao mais antigo
+      : dayRows; // aggregatePassosByDay já retorna do mais recente ao mais antigo
     let _clearFilterBtn = '';
     if (passosSelectedDayIso) {
       _clearFilterBtn = '<div style="text-align:center;padding:8px 0 4px;"><button type="button" onclick="setPassosDayFromChart(null)" style="font-size:13px;color:#3b82f6;background:none;border:none;cursor:pointer;padding:4px 8px;">Ver todos os dias</button></div>';
@@ -12854,7 +12854,7 @@ function renderVitalConfirmBodyFromPayload(p) {
 
 function openVitalConfirmModal(html, options = {}) {
   const title = options.title ?? 'Confirmar medição';
-  const lead = options.lead ?? 'Confira os valores. EstA?o corretos?';
+  const lead = options.lead ?? 'Confira os valores. Estão corretos?';
   const body = document.getElementById('vitalConfirmBody');
   if (body) body.innerHTML = html;
   const titleEl = document.getElementById('vitalConfirmTitle');
@@ -13005,7 +13005,7 @@ function executePendingVitalSave() {
 
   renderSaude();
   if (currentVitalDetail && currentVitalDetail.tipo === p.tipoVital && vital) {
-    // Re-sincroniza referA?ncia do detalhe para evitar estado antigo apA3s re-render.
+    // Re-sincroniza referência do detalhe para evitar estado antigo após re-render.
     const refreshed = mockData.sinaisVitais.find((v) => v.id === currentVitalDetail.id);
     if (refreshed) currentVitalDetail = refreshed;
 
@@ -13147,7 +13147,7 @@ function confirmHeartRateFollowup() {
   pendingHeartRateBpm = bpm;
   openVitalConfirmModal(renderHeartRateConfirmBody(bpm), {
     title: 'Confirmar batimento',
-    lead: 'Confira o valor. EstA? correto?'
+    lead: 'Confira o valor. Está correto?'
   });
 }
 

@@ -76,7 +76,7 @@ body {
 /* Fundo levemente mais escuro na home para separar visualmente os cards */
 .app-content:has(#homeScreen.active),
 .app-content:has(#composicaoScreen.active) {
-  background: #f3f3f3;
+  background: #eef2f7;
 }
 
 /* Header — Framework7 Navbar override */
@@ -11346,10 +11346,13 @@ body {
   font-weight: 800;
   color: var(--text-title);
   letter-spacing: -0.01em;
-  padding: 2px 0 4px;
+  padding: 8px 14px;
   display: flex;
   align-items: center;
   gap: 8px;
+  background: linear-gradient(135deg, #f0f4ff 0%, #ffffff 80%);
+  border-radius: 12px;
+  border: 1px solid #dbeafe;
 }
 
 .corpo-av-list-title::before {
@@ -11368,8 +11371,8 @@ body {
 }
 
 .corpo-av-row {
-  background: #ffffff;
-  border: 1px solid var(--border-soft);
+  background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
+  border: 1px solid #e0e8f0;
   border-left: 3px solid var(--accent-primary, #2563eb);
   border-radius: 14px;
   padding: 14px;
@@ -11377,7 +11380,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.06);
   transition: box-shadow 0.15s, transform 0.15s;
 }
 
@@ -11568,14 +11571,17 @@ body {
 
 .corpo-av-section--geral {
   border-top: 3px solid #3b82f6;
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
 }
 
 .corpo-av-section--circ {
   border-top: 3px solid #14b8a6;
+  background: linear-gradient(180deg, #f0fdfa 0%, #ffffff 100%);
 }
 
 .corpo-av-section--dobras {
   border-top: 3px solid #a855f7;
+  background: linear-gradient(180deg, #faf5ff 0%, #ffffff 100%);
 }
 
 .corpo-av-section-title {
@@ -11594,22 +11600,17 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 0;
-  border-top: 1px solid var(--surface-subtle);
+  padding: 10px 8px;
+  border-radius: 8px;
   transition: background-color 0.16s ease;
 }
 
-.corpo-av-data-row:hover {
+.corpo-av-data-row:nth-child(even) {
   background: #f8fafc;
 }
 
-.corpo-av-data-row:first-child {
-  border-top: none;
-  padding-top: 0;
-}
-
-.corpo-av-data-row:last-child {
-  padding-bottom: 0;
+.corpo-av-data-row:hover {
+  background: #eff6ff;
 }
 
 .corpo-av-data-row span {
@@ -12240,21 +12241,21 @@ body {
   width: 46px;
   height: 46px;
   border: none;
-  background: #eff6ff;
-  color: #2563eb;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #ffffff;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: background 0.15s, transform 0.15s;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
 }
 
 .corpo-av-chart-btn:hover {
-  background: #dbeafe;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.18);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
 }
 
 .corpo-av-chart-btn:active {
@@ -12631,20 +12632,22 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 10px 20px;
   font-size: 13px;
-  font-weight: 600;
-  color: #64748b;
-  background: transparent;
-  border: 1.5px dashed #cbd5e1;
+  font-weight: 700;
+  color: #f97316;
+  background: #fff7ed;
+  border: 1.5px solid #fdba74;
   border-radius: 10px;
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  transition: all 0.15s;
+  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.1);
 }
 .corpo-cfm-trigger:hover {
-  color: #f97316;
+  color: #ffffff;
+  background: #f97316;
   border-color: #f97316;
-  background: #fff7ed;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
 }
 
 .corpo-cfm-overlay {
