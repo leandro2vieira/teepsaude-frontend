@@ -4544,7 +4544,6 @@ function editCorpoField(index) {
           photoPreviewHtml +
         '</div>' +
       '</label>';
-    }
   }
 
   formContainer.innerHTML =
