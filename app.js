@@ -3410,7 +3410,6 @@ function rebuildCorpoWizardSteps() {
       if (f.group === 'custom') {
         step._customMin = f.customMin;
         step._customMax = f.customMax;
-        if (f.photoUrl) step.photoUrl = f.photoUrl;
         if (f.customMin != null && f.customMax != null) {
           CORPO_VALIDATION[f.key] = {
             min: f.customMin, max: f.customMax,
@@ -3418,6 +3417,7 @@ function rebuildCorpoWizardSteps() {
           };
         }
       }
+      if (f.photoUrl) step.photoUrl = f.photoUrl;
       CORPO_WIZARD_STEPS.push(step);
     }
   });
@@ -4527,22 +4527,23 @@ function editCorpoField(index) {
             '<input type="number" id="cfmMax" class="corpo-cfm-input-text" placeholder="Opcional" value="' + (f.customMax != null ? f.customMax : '') + '" />' +
           '</label>' +
         '</div>';
-      var existingPhoto = f.photoUrl || '';
-      var photoPreviewHtml = existingPhoto
-        ? '<div class="corpo-cfm-photo-preview" id="cfmPhotoPreview"><img id="cfmPhotoImg" src="' + escHtml(existingPhoto) + '" alt="Preview" /><button type="button" class="corpo-cfm-photo-remove" onclick="event.stopPropagation(); removeCorpoPhoto()">\u2715</button></div>'
-        : '<div class="corpo-cfm-photo-preview" id="cfmPhotoPreview" style="display:none"><img id="cfmPhotoImg" src="" alt="Preview" /><button type="button" class="corpo-cfm-photo-remove" onclick="event.stopPropagation(); removeCorpoPhoto()">\u2715</button></div>';
-      var photoPlaceholderHtml = existingPhoto
-        ? '<div class="corpo-cfm-photo-placeholder" id="cfmPhotoPlaceholder" style="display:none"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Toque para adicionar uma foto</span></div>'
-        : '<div class="corpo-cfm-photo-placeholder" id="cfmPhotoPlaceholder"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Toque para adicionar uma foto</span></div>';
-      extraFields +=
-        '<label class="corpo-cfm-field">' +
-          '<span class="corpo-cfm-field-label">Foto de instru\u00e7\u00e3o (opcional)</span>' +
-          '<div class="corpo-cfm-photo-upload" id="cfmPhotoUpload" onclick="document.getElementById(\'cfmPhotoInput\').click()">' +
-            '<input type="file" id="cfmPhotoInput" accept="image/*" style="display:none" onchange="handleCorpoPhotoSelect(event)">' +
-            photoPlaceholderHtml +
-            photoPreviewHtml +
-          '</div>' +
-        '</label>';
+    }
+    var existingPhoto = f.photoUrl || '';
+    var photoPreviewHtml = existingPhoto
+      ? '<div class="corpo-cfm-photo-preview" id="cfmPhotoPreview"><img id="cfmPhotoImg" src="' + escHtml(existingPhoto) + '" alt="Preview" /><button type="button" class="corpo-cfm-photo-remove" onclick="event.stopPropagation(); removeCorpoPhoto()">\u2715</button></div>'
+      : '<div class="corpo-cfm-photo-preview" id="cfmPhotoPreview" style="display:none"><img id="cfmPhotoImg" src="" alt="Preview" /><button type="button" class="corpo-cfm-photo-remove" onclick="event.stopPropagation(); removeCorpoPhoto()">\u2715</button></div>';
+    var photoPlaceholderHtml = existingPhoto
+      ? '<div class="corpo-cfm-photo-placeholder" id="cfmPhotoPlaceholder" style="display:none"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Toque para adicionar uma foto</span></div>'
+      : '<div class="corpo-cfm-photo-placeholder" id="cfmPhotoPlaceholder"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Toque para adicionar uma foto</span></div>';
+    extraFields +=
+      '<label class="corpo-cfm-field">' +
+        '<span class="corpo-cfm-field-label">Foto de instru\u00e7\u00e3o (opcional)</span>' +
+        '<div class="corpo-cfm-photo-upload" id="cfmPhotoUpload" onclick="document.getElementById(\'cfmPhotoInput\').click()">' +
+          '<input type="file" id="cfmPhotoInput" accept="image/*" style="display:none" onchange="handleCorpoPhotoSelect(event)">' +
+          photoPlaceholderHtml +
+          photoPreviewHtml +
+        '</div>' +
+      '</label>';
     }
   }
 
@@ -4586,10 +4587,10 @@ function saveCorpoFieldEdit(index) {
       var maxEl = document.getElementById('cfmMax');
       if (minEl) f.customMin = minEl.value ? Number(minEl.value) : null;
       if (maxEl) f.customMax = maxEl.value ? Number(maxEl.value) : null;
-      var photo = getCorpoPhotoDataUrl();
-      if (photo) { f.photoUrl = photo; }
-      else { delete f.photoUrl; }
     }
+    var photo = getCorpoPhotoDataUrl();
+    if (photo) { f.photoUrl = photo; }
+    else { delete f.photoUrl; }
   }
 
   saveCorpoAllFields(fields);
