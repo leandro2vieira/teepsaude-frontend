@@ -12484,7 +12484,6 @@ body {
   border: 1px solid var(--border-soft, #e9eef6);
   box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   cursor: grab;
-  touch-action: pan-x;
 }
 
 .corpo-compare-scroll:active {
