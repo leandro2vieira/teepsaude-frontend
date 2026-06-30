@@ -1477,7 +1477,10 @@ function updateHeaderUserName() {
 const SCREEN_HEADER = {
   homeScreen: { actions: '' },
   saudeScreen: { actions: '' },
-  composicaoScreen: { actions: '' },
+  composicaoScreen: {
+    actions:
+      '<button type="button" class="header-corpo-chart-btn" onclick="openCorpoComparacao()" title="Comparar avaliações"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg></button>'
+  },
   medicacoesScreen: {
     actions:
       '<button type="button" class="med-chip-btn med-chip-btn-primary med-header-add-btn" onclick="openAddMedicacaoEntry()" title="Adicionar medicação">+ Adicionar</button>'
@@ -3296,8 +3299,6 @@ function setupAgendaModal() {
 
 function renderComposicao() {
   ensureCorpoAvaliacoesData();
-  var subtitle = document.getElementById('composicaoSubtitle');
-  if (subtitle) subtitle.textContent = 'Avaliações';
 
   var listView = document.getElementById('corpoAvaliacoesListView');
   var detailView = document.getElementById('corpoAvaliacaoDetailView');
@@ -3366,7 +3367,6 @@ var CORPO_WIZARD_STEPS_BUILTIN = [
   { type: 'measure', group: 'geral', key: 'peso', label: 'Peso', unit: 'kg', decimals: 1, icon: 'weight' },
   { type: 'measure', group: 'geral', key: 'altura', label: 'Altura', unit: 'm', decimals: 2, icon: 'height' },
   { type: 'measure', group: 'geral', key: 'percMassaGorda', label: '% Massa Gorda', unit: '%', decimals: 1, icon: 'fat' },
-  { type: 'measure', group: 'geral', key: 'percMassaMagra', label: '% Massa Magra', unit: '%', decimals: 1, icon: 'muscle' },
   { type: 'measure', group: 'geral', key: 'rcq', label: 'Razão Cintura/Quadril', unit: '', decimals: 2, icon: 'waist' },
   { type: 'measure', group: 'circunferencias', key: 'ombro', label: 'Ombro', unit: 'cm', icon: 'shoulder' },
   { type: 'measure', group: 'circunferencias', key: 'peitoral', label: 'Peitoral', unit: 'cm', icon: 'chest' },
@@ -3428,7 +3428,6 @@ var CORPO_VALIDATION = {
   peso:                    { min: 20,  max: 350, msg: 'Peso deve estar entre 20 e 350 kg' },
   altura:                  { min: 0.5, max: 2.5, msg: 'Altura deve estar entre 0,50 e 2,50 m' },
   percMassaGorda:          { min: 3,   max: 70,  msg: '% massa gorda deve estar entre 3% e 70%' },
-  percMassaMagra:          { min: 30,  max: 97,  msg: '% massa magra deve estar entre 30% e 97%' },
   rcq:                     { min: 0.5, max: 1.5, msg: 'Razão cintura/quadril deve estar entre 0,50 e 1,50' },
   ombro:                   { min: 50,  max: 200, msg: 'Ombro deve estar entre 50 e 200 cm' },
   peitoral:                { min: 50,  max: 200, msg: 'Peitoral deve estar entre 50 e 200 cm' },
@@ -3612,8 +3611,9 @@ function renderCorpoAvaliacoesList() {
   listEl.innerHTML = list.map(function(item, idx) {
     var title = (item.nome && String(item.nome).trim()) ? String(item.nome).trim() : getCorpoAvaliacaoOrdinalLabel(idx);
     var dateTxt = item.data ? formatDateForUI(item.data) : 'Sem data';
+    var latestClass = idx === 0 ? ' corpo-av-row--latest' : '';
     return (
-      '<div class="corpo-av-row" onclick="openCorpoAvaliacaoDetail(' + item.id + ')" style="cursor:pointer;">' +
+      '<div class="corpo-av-row' + latestClass + '" onclick="openCorpoAvaliacaoDetail(' + item.id + ')" style="cursor:pointer;">' +
         '<div class="corpo-av-row-main">' +
           '<div class="corpo-av-row-title">' + title + '</div>' +
           '<div class="corpo-av-row-date">' + dateTxt + '</div>' +
@@ -4011,13 +4011,7 @@ function corpoWizDatePickHandler() {
   }, 10);
 }
 
-function getCorpoLastMeasure(group, key, unit) {
-  var hist = getHistoricoParaMedida(group, key);
-  if (!hist.length) return null;
-  return { value: hist[0].value, text: formatCorpoMeasure(hist[0].value, unit, 1) };
-}
-
-function makeCorpoStepperHtml(inputId, stepSize, lastText) {
+function makeCorpoStepperHtml(inputId, stepSize) {
   var step = Number.isFinite(stepSize) ? stepSize : 1;
   return (
     '<div class="corpo-wiz-stepper">' +
@@ -4026,7 +4020,7 @@ function makeCorpoStepperHtml(inputId, stepSize, lastText) {
         'onpointerup="corpoStepStop()" onpointerleave="corpoStepStop()" ' +
         'aria-label="Diminuir">\u2212</button>' +
       '<input type="number" id="' + inputId + '" class="corpo-wiz-input-field" step="' + step + '" min="0" ' +
-        'placeholder="' + (lastText || '0') + '" value="" ' +
+        'placeholder="0" value="" ' +
         'onkeydown="if(event.key===\'Enter\')corpoWizardNext()" inputmode="decimal" />' +
       '<button type="button" class="corpo-wiz-step-btn corpo-wiz-step-btn--plus" ' +
         'onpointerdown="corpoStepStart(\'' + inputId + '\',1,' + step + ')" ' +
@@ -4044,7 +4038,9 @@ function makeCorpoHistoryHtml(stepDef) {
   var rows = '';
   for (var i = 0; i < hist.length; i++) {
     var h = hist[i];
-    rows += '<tr><td>' + formatDateForUI(h.data) + '</td><td>' + formatCorpoMeasure(h.value, stepDef.unit, stepDef.decimals) + '</td></tr>';
+    var parts = String(h.data || '').split('-');
+    var shortDate = parts.length === 3 ? parts[2] + '/' + parts[1] + '/' + parts[0].slice(2) : h.data;
+    rows += '<tr><td>' + shortDate + '</td><td>' + formatCorpoMeasure(h.value, stepDef.unit, stepDef.decimals) + '</td></tr>';
   }
   return '<div class="corpo-wiz-history"><div class="corpo-wiz-history-title">Últimas medições</div><table class="corpo-wiz-history-table"><thead><tr><th>Data</th><th>Valor</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
 }
@@ -4059,13 +4055,8 @@ function renderCorpoWizardMeasureStep(stepDef) {
   var subtitle = stepDef.dual ? (stepDef.sideLabel + ' / ' + stepDef.label2) : getCorpoSectionLabel(stepDef);
   var stepSz = stepDef.decimals === 2 ? 0.05 : stepDef.decimals === 1 ? 0.5 : 1;
 
-  var last1 = getCorpoLastMeasure(stepDef.group, stepDef.key, stepDef.unit);
-  var lastText1 = last1 ? 'Últ: ' + last1.text : '';
-
   if (stepDef.dual) {
     var currentVal2 = group[stepDef.key2] != null ? String(group[stepDef.key2]) : '';
-    var last2 = getCorpoLastMeasure(stepDef.group, stepDef.key2, stepDef.unit);
-    var lastText2 = last2 ? 'Últ: ' + last2.text : '';
     body.innerHTML =
       '<div class="corpo-wiz-measure-wrap" ontouchstart="corpoTouchStart(event)" ontouchend="corpoTouchEnd(event)">' +
         '<div class="corpo-wiz-illustration">' + iconSvg + '</div>' +
@@ -4074,11 +4065,11 @@ function renderCorpoWizardMeasureStep(stepDef) {
         '<div class="corpo-wiz-dual-inputs">' +
           '<div class="corpo-wiz-input-group">' +
             '<label class="corpo-wiz-input-label">' + stepDef.sideLabel + '</label>' +
-            makeCorpoStepperHtml('corpoWizInput', stepSz, lastText1) +
+            makeCorpoStepperHtml('corpoWizInput', stepSz) +
           '</div>' +
           '<div class="corpo-wiz-input-group">' +
             '<label class="corpo-wiz-input-label">' + stepDef.label2 + '</label>' +
-            makeCorpoStepperHtml('corpoWizInput2', stepSz, lastText2) +
+            makeCorpoStepperHtml('corpoWizInput2', stepSz) +
           '</div>' +
           '</div>' +
           makeCorpoHistoryHtml(stepDef) +
@@ -4095,7 +4086,7 @@ function renderCorpoWizardMeasureStep(stepDef) {
         '<div class="corpo-wiz-measure-title">' + stepDef.label + '</div>' +
         '<div class="corpo-wiz-measure-subtitle">' + (subtitle ? subtitle + ' \u00b7 ' : '') + stepDef.unit + '</div>' +
         '<div class="corpo-wiz-input-group">' +
-          makeCorpoStepperHtml('corpoWizInput', stepSz, lastText1) +
+          makeCorpoStepperHtml('corpoWizInput', stepSz) +
         '</div>' +
         makeCorpoHistoryHtml(stepDef) +
       '</div>';
