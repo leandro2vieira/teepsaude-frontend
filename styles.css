@@ -759,6 +759,31 @@ body {
 
 #composicaoScreen .page-context-sub {
   color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+#composicaoScreen .page-context-sub .corpo-av-chart-btn {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-muted, #5f6773);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+#composicaoScreen .page-context-sub .corpo-av-chart-btn:hover {
+  background: rgba(0,0,0,0.05);
+  color: var(--accent-primary, #2563eb);
 }
 
 /* Home — status card (medicações) */
@@ -11364,6 +11389,8 @@ body {
   border-radius: 2px;
 }
 
+
+
 .corpo-av-list {
   display: flex;
   flex-direction: column;
@@ -12234,33 +12261,7 @@ body {
   padding: 10px 0;
 }
 
-/* ===== Botão Comparar ===== */
-/* ===== Botão Gráfico (sticky) ===== */
-.corpo-av-chart-btn {
-  flex: 0 0 46px;
-  width: 46px;
-  height: 46px;
-  border: none;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #ffffff;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.15s, transform 0.15s;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-}
 
-.corpo-av-chart-btn:hover {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
-}
-
-.corpo-av-chart-btn:active {
-  transform: scale(0.95);
-}
 
 /* ===== Tela de Comparação ===== */
 .corpo-compare-view {

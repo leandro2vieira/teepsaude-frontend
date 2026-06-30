@@ -63,16 +63,18 @@
 
                 <!-- Composição Corporal Screen -->
                 <div class="screen" id="composicaoScreen">
-                    <div class="page-subtitle page-context-sub" id="composicaoSubtitle">Avaliações</div>
+                    <div class="page-subtitle page-context-sub" id="composicaoSubtitle">
+                        <span>Avaliações</span>
+                        <button type="button" class="corpo-av-chart-btn" onclick="openCorpoComparacao()" title="Comparar avaliações">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>
+                        </button>
+                    </div>
                     <div id="composicaoContent">
                         <div id="corpoAvaliacoesListView" class="corpo-av-list-view">
                             <div class="corpo-av-list-title">Medidas Corporais</div>
                             <div id="corpoAvaliacoesList" class="corpo-av-list"></div>
                             <div class="corpo-av-sticky-cta">
                                 <button type="button" class="corpo-av-new-btn corpo-av-new-btn--sticky" onclick="openCorpoNovaAvaliacaoWizard()">+ Nova avaliação</button>
-                                <button type="button" class="corpo-av-chart-btn" onclick="openCorpoComparacao()" title="Comparar avaliações">
-                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg>
-                                </button>
                             </div>
                             <div class="corpo-av-list-footer">
                                 <button type="button" class="corpo-cfm-trigger" onclick="openCorpoCustomFieldManager()">
