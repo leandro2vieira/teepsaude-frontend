@@ -3410,6 +3410,7 @@ function rebuildCorpoWizardSteps() {
       if (f.group === 'custom') {
         step._customMin = f.customMin;
         step._customMax = f.customMax;
+        if (f.photoUrl) step.photoUrl = f.photoUrl;
         if (f.customMin != null && f.customMax != null) {
           CORPO_VALIDATION[f.key] = {
             min: f.customMin, max: f.customMax,
@@ -4050,7 +4051,9 @@ function renderCorpoWizardMeasureStep(stepDef) {
   if (!body) return;
   var group = corpoAvaliacaoDraft[stepDef.group] || {};
   var currentVal = group[stepDef.key] != null ? String(group[stepDef.key]) : '';
-  var iconSvg = getCorpoMeasurementIcon(stepDef.icon);
+  var illustrationHtml = stepDef.photoUrl
+    ? '<div class="corpo-wiz-illustration corpo-wiz-illustration--photo"><img src="' + stepDef.photoUrl + '" alt="' + escHtml(stepDef.label) + '" /></div>'
+    : '<div class="corpo-wiz-illustration">' + getCorpoMeasurementIcon(stepDef.icon) + '</div>';
 
   var subtitle = stepDef.dual ? (stepDef.sideLabel + ' / ' + stepDef.label2) : getCorpoSectionLabel(stepDef);
   var stepSz = stepDef.decimals === 2 ? 0.05 : stepDef.decimals === 1 ? 0.5 : 1;
@@ -4059,7 +4062,7 @@ function renderCorpoWizardMeasureStep(stepDef) {
     var currentVal2 = group[stepDef.key2] != null ? String(group[stepDef.key2]) : '';
     body.innerHTML =
       '<div class="corpo-wiz-measure-wrap" ontouchstart="corpoTouchStart(event)" ontouchend="corpoTouchEnd(event)">' +
-        '<div class="corpo-wiz-illustration">' + iconSvg + '</div>' +
+        illustrationHtml +
         '<div class="corpo-wiz-measure-title">' + stepDef.label + '</div>' +
         '<div class="corpo-wiz-measure-subtitle">' + (subtitle ? subtitle + ' \u00b7 ' : '') + stepDef.unit + '</div>' +
         '<div class="corpo-wiz-dual-inputs">' +
@@ -4082,7 +4085,7 @@ function renderCorpoWizardMeasureStep(stepDef) {
   } else {
     body.innerHTML =
       '<div class="corpo-wiz-measure-wrap" ontouchstart="corpoTouchStart(event)" ontouchend="corpoTouchEnd(event)">' +
-        '<div class="corpo-wiz-illustration">' + iconSvg + '</div>' +
+        illustrationHtml +
         '<div class="corpo-wiz-measure-title">' + stepDef.label + '</div>' +
         '<div class="corpo-wiz-measure-subtitle">' + (subtitle ? subtitle + ' \u00b7 ' : '') + stepDef.unit + '</div>' +
         '<div class="corpo-wiz-input-group">' +
@@ -4524,6 +4527,22 @@ function editCorpoField(index) {
             '<input type="number" id="cfmMax" class="corpo-cfm-input-text" placeholder="Opcional" value="' + (f.customMax != null ? f.customMax : '') + '" />' +
           '</label>' +
         '</div>';
+      var existingPhoto = f.photoUrl || '';
+      var photoPreviewHtml = existingPhoto
+        ? '<div class="corpo-cfm-photo-preview" id="cfmPhotoPreview"><img id="cfmPhotoImg" src="' + escHtml(existingPhoto) + '" alt="Preview" /><button type="button" class="corpo-cfm-photo-remove" onclick="event.stopPropagation(); removeCorpoPhoto()">\u2715</button></div>'
+        : '<div class="corpo-cfm-photo-preview" id="cfmPhotoPreview" style="display:none"><img id="cfmPhotoImg" src="" alt="Preview" /><button type="button" class="corpo-cfm-photo-remove" onclick="event.stopPropagation(); removeCorpoPhoto()">\u2715</button></div>';
+      var photoPlaceholderHtml = existingPhoto
+        ? '<div class="corpo-cfm-photo-placeholder" id="cfmPhotoPlaceholder" style="display:none"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Toque para adicionar uma foto</span></div>'
+        : '<div class="corpo-cfm-photo-placeholder" id="cfmPhotoPlaceholder"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Toque para adicionar uma foto</span></div>';
+      extraFields +=
+        '<label class="corpo-cfm-field">' +
+          '<span class="corpo-cfm-field-label">Foto de instru\u00e7\u00e3o (opcional)</span>' +
+          '<div class="corpo-cfm-photo-upload" id="cfmPhotoUpload" onclick="document.getElementById(\'cfmPhotoInput\').click()">' +
+            '<input type="file" id="cfmPhotoInput" accept="image/*" style="display:none" onchange="handleCorpoPhotoSelect(event)">' +
+            photoPlaceholderHtml +
+            photoPreviewHtml +
+          '</div>' +
+        '</label>';
     }
   }
 
@@ -4567,6 +4586,9 @@ function saveCorpoFieldEdit(index) {
       var maxEl = document.getElementById('cfmMax');
       if (minEl) f.customMin = minEl.value ? Number(minEl.value) : null;
       if (maxEl) f.customMax = maxEl.value ? Number(maxEl.value) : null;
+      var photo = getCorpoPhotoDataUrl();
+      if (photo) { f.photoUrl = photo; }
+      else { delete f.photoUrl; }
     }
   }
 
@@ -4625,12 +4647,65 @@ function showCorpoNewFieldForm() {
           '<input type="number" id="cfmMax" class="corpo-cfm-input-text" placeholder="Opcional" value="" />' +
         '</label>' +
       '</div>' +
+      '<label class="corpo-cfm-field">' +
+        '<span class="corpo-cfm-field-label">Foto de instrução (opcional)</span>' +
+        '<div class="corpo-cfm-photo-upload" id="cfmPhotoUpload" onclick="document.getElementById(\'cfmPhotoInput\').click()">' +
+          '<input type="file" id="cfmPhotoInput" accept="image/*" style="display:none" onchange="handleCorpoPhotoSelect(event)">' +
+          '<div class="corpo-cfm-photo-placeholder" id="cfmPhotoPlaceholder">' +
+            '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' +
+            '<span>Toque para adicionar uma foto</span>' +
+          '</div>' +
+          '<div class="corpo-cfm-photo-preview" id="cfmPhotoPreview" style="display:none">' +
+            '<img id="cfmPhotoImg" src="" alt="Preview" />' +
+            '<button type="button" class="corpo-cfm-photo-remove" onclick="event.stopPropagation(); removeCorpoPhoto()">✕</button>' +
+          '</div>' +
+        '</div>' +
+      '</label>' +
       '<div class="corpo-cfm-form-actions">' +
         '<button type="button" class="corpo-cfm-btn corpo-cfm-btn--outline" onclick="hideCorpoCustomFieldForm()">Cancelar</button>' +
         '<button type="button" class="corpo-cfm-btn corpo-cfm-btn--solid" onclick="saveCorpoNewField()">Adicionar</button>' +
       '</div>' +
     '</div>';
   formContainer.style.display = '';
+}
+
+function handleCorpoPhotoSelect(event) {
+  var file = event.target.files && event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    showFeedbackModal('Selecione um arquivo de imagem.', 'warning');
+    return;
+  }
+  if (file.size > 2 * 1024 * 1024) {
+    showFeedbackModal('A imagem deve ter no máximo 2 MB.', 'warning');
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = document.getElementById('cfmPhotoImg');
+    var placeholder = document.getElementById('cfmPhotoPlaceholder');
+    var preview = document.getElementById('cfmPhotoPreview');
+    if (img) img.src = e.target.result;
+    if (placeholder) placeholder.style.display = 'none';
+    if (preview) preview.style.display = '';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeCorpoPhoto() {
+  var input = document.getElementById('cfmPhotoInput');
+  var img = document.getElementById('cfmPhotoImg');
+  var placeholder = document.getElementById('cfmPhotoPlaceholder');
+  var preview = document.getElementById('cfmPhotoPreview');
+  if (input) input.value = '';
+  if (img) img.src = '';
+  if (placeholder) placeholder.style.display = '';
+  if (preview) preview.style.display = 'none';
+}
+
+function getCorpoPhotoDataUrl() {
+  var img = document.getElementById('cfmPhotoImg');
+  return (img && img.src && img.src.indexOf('data:image') === 0) ? img.src : null;
 }
 
 function saveCorpoNewField() {
@@ -4651,6 +4726,7 @@ function saveCorpoNewField() {
   if (!Number.isFinite(decimals)) decimals = 1;
   var min = minEl && minEl.value ? Number(minEl.value) : null;
   var max = maxEl && maxEl.value ? Number(maxEl.value) : null;
+  var photo = getCorpoPhotoDataUrl();
 
   var key = generateCorpoCustomKey(label);
   var newField = {
@@ -4658,6 +4734,7 @@ function saveCorpoNewField() {
     unit: unit, decimals: decimals, icon: 'custom',
     customMin: min, customMax: max, visible: true
   };
+  if (photo) newField.photoUrl = photo;
 
   var fields = getCorpoAllFields();
   fields.push(newField);
