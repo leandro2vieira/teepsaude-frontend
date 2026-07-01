@@ -4012,8 +4012,9 @@ function corpoWizDatePickHandler() {
   }, 10);
 }
 
-function makeCorpoStepperHtml(inputId, stepSize) {
+function makeCorpoStepperHtml(inputId, stepSize, placeholder) {
   var step = Number.isFinite(stepSize) ? stepSize : 1;
+  var ph = placeholder != null ? String(placeholder) : '0';
   return (
     '<div class="corpo-wiz-stepper">' +
       '<button type="button" class="corpo-wiz-step-btn corpo-wiz-step-btn--minus" ' +
@@ -4021,7 +4022,7 @@ function makeCorpoStepperHtml(inputId, stepSize) {
         'onpointerup="corpoStepStop()" onpointerleave="corpoStepStop()" ' +
         'aria-label="Diminuir">\u2212</button>' +
       '<input type="number" id="' + inputId + '" class="corpo-wiz-input-field" step="' + step + '" min="0" ' +
-        'placeholder="0" value="" ' +
+        'placeholder="' + ph + '" value="" ' +
         'onkeydown="if(event.key===\'Enter\')corpoWizardNext()" inputmode="decimal" />' +
       '<button type="button" class="corpo-wiz-step-btn corpo-wiz-step-btn--plus" ' +
         'onpointerdown="corpoStepStart(\'' + inputId + '\',1,' + step + ')" ' +
@@ -4058,7 +4059,16 @@ function renderCorpoWizardMeasureStep(stepDef) {
   var subtitle = stepDef.dual ? (stepDef.sideLabel + ' / ' + stepDef.label2) : getCorpoSectionLabel(stepDef);
   var stepSz = stepDef.decimals === 2 ? 0.05 : stepDef.decimals === 1 ? 0.5 : 1;
 
+  var lastVal = null;
+  var hist = getHistoricoParaMedida(stepDef.group, stepDef.key);
+  if (hist.length) lastVal = hist[0].value;
+  var lastValTxt = lastVal != null ? String(lastVal).replace('.', ',') : null;
+
   if (stepDef.dual) {
+    var lastVal2 = null;
+    var hist2 = getHistoricoParaMedida(stepDef.group, stepDef.key2);
+    if (hist2.length) lastVal2 = hist2[0].value;
+    var lastVal2Txt = lastVal2 != null ? String(lastVal2).replace('.', ',') : null;
     var currentVal2 = group[stepDef.key2] != null ? String(group[stepDef.key2]) : '';
     body.innerHTML =
       '<div class="corpo-wiz-measure-wrap" ontouchstart="corpoTouchStart(event)" ontouchend="corpoTouchEnd(event)">' +
@@ -4068,11 +4078,11 @@ function renderCorpoWizardMeasureStep(stepDef) {
         '<div class="corpo-wiz-dual-inputs">' +
           '<div class="corpo-wiz-input-group">' +
             '<label class="corpo-wiz-input-label">' + stepDef.sideLabel + '</label>' +
-            makeCorpoStepperHtml('corpoWizInput', stepSz) +
+            makeCorpoStepperHtml('corpoWizInput', stepSz, lastValTxt) +
           '</div>' +
           '<div class="corpo-wiz-input-group">' +
             '<label class="corpo-wiz-input-label">' + stepDef.label2 + '</label>' +
-            makeCorpoStepperHtml('corpoWizInput2', stepSz) +
+            makeCorpoStepperHtml('corpoWizInput2', stepSz, lastVal2Txt) +
           '</div>' +
           '</div>' +
           makeCorpoHistoryHtml(stepDef) +
@@ -4089,13 +4099,24 @@ function renderCorpoWizardMeasureStep(stepDef) {
         '<div class="corpo-wiz-measure-title">' + stepDef.label + '</div>' +
         '<div class="corpo-wiz-measure-subtitle">' + (subtitle ? subtitle + ' \u00b7 ' : '') + stepDef.unit + '</div>' +
         '<div class="corpo-wiz-input-group">' +
-          makeCorpoStepperHtml('corpoWizInput', stepSz) +
+          makeCorpoStepperHtml('corpoWizInput', stepSz, lastValTxt) +
         '</div>' +
         makeCorpoHistoryHtml(stepDef) +
       '</div>';
     var inp = document.getElementById('corpoWizInput');
     if (inp && currentVal) inp.value = currentVal;
     if (inp) inp.focus();
+    if (stepDef.key === 'altura' && inp) {
+      inp.addEventListener('input', function() {
+        var raw = this.value;
+        if (!raw) return;
+        if (raw.indexOf('.') !== -1 || raw.indexOf(',') !== -1) return;
+        var v = parseFloat(raw);
+        if (Number.isFinite(v) && v >= 100) {
+          this.value = (v / 100).toFixed(2);
+        }
+      });
+    }
   }
 }
 
@@ -9718,7 +9739,19 @@ function openVitalDetailModal(tipoVital, vitalId) {
   if (spacer) spacer.style.display = bc ? 'none' : 'flex';
 
   if (bcChrome) bcChrome.style.display = bc ? 'block' : 'none';
-  if (defChrome) defChrome.style.display = bc ? 'none' : 'block';
+  if (defChrome) {
+    defChrome.style.display = bc ? 'none' : 'block';
+    defChrome.classList.toggle('passos-active', isPassos);
+  }
+  const _modalContent = document.querySelector('#vitalDetailModal > .modal-content');
+  if (_modalContent) {
+    _modalContent.classList.toggle('passos-active', isPassos);
+    _modalContent.classList.toggle('glicemia-active', isGlicemia);
+    _modalContent.classList.toggle('pressao-active', isPressao);
+    _modalContent.classList.toggle('sono-active', isSono);
+    _modalContent.classList.toggle('oxig-active', isOxig);
+    _modalContent.classList.toggle('hidra-active', isHidra);
+  }
   if (batimentoBackBtn && !bc) batimentoBackBtn.hidden = true;
   if (defaultPeriodControls) defaultPeriodControls.style.display = !bc && (isPressao || isPassos || isGlicemia || isSono || isOxig || isHidra) ? 'block' : 'none';
   if (defaultDateFilterRow) defaultDateFilterRow.style.display = !bc && !isPressao && !isPassos && !isGlicemia && !isSono && !isOxig && !isHidra ? 'block' : 'none';
@@ -11555,6 +11588,22 @@ function renderSparklineChart(historico) {
     var _sonoRows = Array.from(_sonoByDay.values()).sort(function(a, b) { return a.day.localeCompare(b.day); });
     if (_sonoRows.length === 0) return;
 
+    // Year view: group by month
+    var _isSonoYearView = typeof vitalDefaultPeriod !== 'undefined' && vitalDefaultPeriod === 'year';
+    if (_isSonoYearView) {
+      var _sonoByMonth = new Map();
+      _sonoRows.forEach(function(row) {
+        var mk = row.day.slice(0, 7);
+        if (!_sonoByMonth.has(mk)) _sonoByMonth.set(mk, { day: row.day, monthKey: mk, v: 0, count: 0 });
+        var mo = _sonoByMonth.get(mk);
+        mo.v += row.v;
+        mo.count++;
+      });
+      _sonoRows = Array.from(_sonoByMonth.values()).sort(function(a, b) { return a.day.localeCompare(b.day); }).map(function(mo) {
+        return { day: mo.day, v: mo.v / mo.count, monthKey: mo.monthKey };
+      });
+    }
+
     var _sonoIdealLow = 7, _sonoIdealHigh = 9;
     if (currentVitalDetail.ideal && typeof currentVitalDetail.ideal === 'string') {
       var _sonoIm = currentVitalDetail.ideal.match(/(\d+)[–\-](\d+)/);
@@ -11667,7 +11716,14 @@ function renderSparklineChart(historico) {
           if (i % labelEvery !== 0 && i !== n - 1) return;
           var cx2 = padL + slot * i + slot / 2;
           var parts = (row.day || '').split('-');
-          ctx.fillText(parts.length === 3 ? String(Number(parts[2])) : '', cx2, H - 4);
+          var _label = '';
+          if (_isSonoYearView) {
+            var m = parseInt(parts[1], 10);
+            _label = Number.isFinite(m) ? _mAbrDS[m - 1] : '';
+          } else {
+            _label = parts.length === 3 ? String(Number(parts[2])) : '';
+          }
+          ctx.fillText(_label, cx2, H - 4);
         });
 
         // Hover crosshair + tooltip bubble
@@ -11688,7 +11744,9 @@ function renderSparklineChart(historico) {
           if (hRow.day) {
             var _hp = hRow.day.split('-').map(Number);
             var _hd = new Date(_hp[0], _hp[1] - 1, _hp[2]);
-            _hDL = _ptBrDS[_hd.getDay()] + ', ' + _hp[2] + ' ' + _mAbrDS[_hp[1] - 1];
+            _hDL = _isSonoYearView
+              ? _mAbrDS[_hp[1] - 1] + ' ' + _hp[0]
+              : _ptBrDS[_hd.getDay()] + ', ' + _hp[2] + ' ' + _mAbrDS[_hp[1] - 1];
           }
           ctx.font = 'bold 10px Inter, sans-serif'; var _hnw = ctx.measureText(_hValStr).width;
           ctx.font = '9px Inter, sans-serif'; var _husw = ctx.measureText(_hUnitStr).width;

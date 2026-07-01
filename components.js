@@ -165,33 +165,79 @@ function buildHidraDetailPanel(vital) {
   var pct = Math.min(100, (current / Math.max(goalMin, 1)) * 100);
   var faltam = Math.max(0, goalMin - current);
 
-  var barColor;
-  if (pct >= 100)      { barColor = '#22c55e'; }
-  else if (pct >= 50)  { barColor = '#3b82f6'; }
-  else                 { barColor = '#f59e0b'; }
+  var statusText = '';
+  if (pct >= 100) {
+    statusText = '✓ Meta diária atingida!';
+  } else if (pct >= 50) {
+    statusText = '⏳ Faltam ' + fmtMl(faltam);
+  } else {
+    statusText = '⚠ Faltam ' + fmtMl(faltam);
+  }
 
   function fmtMl(ml) {
     return ml >= 1000 ? (ml / 1000).toFixed(1).replace('.0', '') + ' L' : ml + ' ml';
   }
 
-  var faltamHtml = pct < 100
-    ? '<span class="hidra-faltam">Faltam ' + fmtMl(faltam) + '</span>'
-    : '<span class="hidra-faltam hidra-faltam--ok">✓ Meta diária atingida!</span>';
+  var currentDisplay = fmtMl(current);
+  var goalDisplay = fmtMl(goalMin);
+  var barColor = pct >= 100 ? '#22c55e' : pct >= 50 ? '#3b82f6' : '#f59e0b';
 
   return (
     '<div class="vital-detail-summary-panel vital-detail-summary-panel--hidra">' +
-      '<div class="hidra-progress-wrap">' +
-        '<div class="hidra-progress-track">' +
-          '<div class="hidra-progress-fill" style="width:' + pct.toFixed(1) + '%;background:' + barColor + '"></div>' +
-        '</div>' +
-        '<div class="hidra-progress-labels">' +
-          '<span class="hidra-pct-label">' + Math.round(pct) + '%</span>' +
-          '<span class="hidra-meta-label">Meta: ' + fmtMl(goalMin) + '</span>' +
-          faltamHtml +
-        '</div>' +
+      '<div class="hidra-kpi-header">' +
+        '<span class="hidra-kpi-icon">💧</span>' +
+        '<span class="hidra-kpi-title">Hidratação</span>' +
+      '</div>' +
+      '<div class="hidra-kpi-value-row">' +
+        '<span class="hidra-kpi-current">' + currentDisplay.replace(' L', '').replace(' ml', '') + '</span>' +
+        '<span class="hidra-kpi-current-unit">' + (current >= 1000 ? 'L' : 'ml') + '</span>' +
+      '</div>' +
+      '<div class="hidra-kpi-goal">de <b>' + goalDisplay + '</b></div>' +
+      '<div class="hidra-progress-track">' +
+        '<div class="hidra-progress-fill" style="width:' + pct.toFixed(1) + '%;background:' + barColor + '"></div>' +
+      '</div>' +
+      '<div class="hidra-kpi-footer">' +
+        '<span class="hidra-kpi-status ' + (pct >= 100 ? 'hidra-kpi-status--ok' : '') + '">' + statusText + '</span>' +
+        '<button type="button" class="hidra-lembrete-btn" onclick="showHidraLembrete()">🔔 Simular lembrete</button>' +
       '</div>' +
     '</div>'
   );
+}
+
+function showHidraLembrete() {
+  var existing = document.getElementById('hidraLembreteOverlay');
+  if (existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'hidraLembreteOverlay';
+  overlay.className = 'hidra-lembrete-overlay';
+  overlay.innerHTML =
+    '<div class="hidra-lembrete-modal">' +
+      '<div class="hidra-lembrete-icon">💧</div>' +
+      '<div class="hidra-lembrete-title">Hora de beber água!</div>' +
+      '<div class="hidra-lembrete-msg">Você já bebeu água nos últimos 60 minutos?</div>' +
+      '<div class="hidra-lembrete-actions">' +
+        '<button type="button" class="hidra-lembrete-btn--primary" onclick="beberAgora()">Beber agora</button>' +
+        '<button type="button" class="hidra-lembrete-btn--sec" onclick="fecharHidraLembrete()">Agora não</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  requestAnimationFrame(function() { overlay.classList.add('visible'); });
+}
+
+function beberAgora() {
+  fecharHidraLembrete();
+  if (typeof openHidraInsertView === 'function') {
+    openHidraInsertView();
+  }
+}
+
+function fecharHidraLembrete() {
+  var overlay = document.getElementById('hidraLembreteOverlay');
+  if (overlay) {
+    overlay.classList.remove('visible');
+    setTimeout(function() { overlay.remove(); }, 300);
+  }
 }
 
 // Card de Oxigenação para layout home

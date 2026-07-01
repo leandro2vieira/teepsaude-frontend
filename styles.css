@@ -8419,9 +8419,12 @@ body {
 }
 .pressao-dia-det-list-card {
   background: #fff;
-  border-radius: 12px;
-  padding: 4px 0;
+  border: var(--border-card-soft);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-card);
+  padding: 14px 14px 10px;
   margin-top: 8px;
+  margin-bottom: 12px;
 }
 
 /* ── Botão inserir dados ─────────────────────────────────────────────────── */
@@ -8482,9 +8485,12 @@ body {
 /* ── Tela de detalhe de uma coleta ───────────────────────────────────────── */
 .pressao-coleta-det-card {
   background: #fff;
-  border-radius: 16px;
+  border: var(--border-card-soft);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-card);
   padding: 24px 20px;
   margin-top: 4px;
+  margin-bottom: 12px;
 }
 
 .pressao-coleta-det-row {
@@ -8586,9 +8592,12 @@ body {
 /* ── Card de notas da coleta ─────────────────────────────────────────────── */
 .pressao-nota-card {
   background: #fff;
-  border-radius: 16px;
-  padding: 16px 18px;
-  margin-top: 10px;
+  border: var(--border-card-soft);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-card);
+  padding: 14px 14px 10px;
+  margin-top: 0;
+  margin-bottom: 12px;
 }
 
 .pressao-nota-header {
@@ -8755,12 +8764,17 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+#passosDiaDetailContent {
+  padding: 0 14px 14px;
+}
+
 .passos-resumo-card {
-  background: #fff;
-  border: 1px solid #eceff3;
-  border-radius: 14px;
-  padding: 14px 14px 12px;
-  margin-bottom: 10px;
+  background: #ffffff;
+  border: var(--border-card-soft);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-card);
+  padding: 14px 14px 10px;
+  margin-bottom: 12px;
 }
 
 .passos-resumo-head {
@@ -8889,11 +8903,12 @@ body {
 }
 
 .passos-hourly-card {
-  background: #fff;
-  border: 1px solid #eceff3;
-  border-radius: 14px;
-  padding: 10px 12px;
-  margin-bottom: 10px;
+  background: #ffffff;
+  border: var(--border-card-soft);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-card);
+  padding: 14px 14px 10px;
+  margin-bottom: 12px;
 }
 
 .passos-hourly-title {
@@ -8959,6 +8974,75 @@ body {
 .passos-footer-empty {
   font-size: 11px;
   color: #9aa1ad;
+}
+
+/* Passos and Glicemia main screen: card for chart area */
+.passos-active #pressaoHistoricoView,
+.glicemia-active #pressaoHistoricoView,
+.pressao-active #pressaoHistoricoView,
+.sono-active #pressaoHistoricoView,
+.oxig-active #pressaoHistoricoView,
+.hidra-active #pressaoHistoricoView {
+  background: #ffffff;
+  border: var(--border-card-soft);
+  box-shadow: var(--shadow-card);
+  border-radius: var(--radius-card);
+  padding: 12px 12px 6px;
+  margin: 0 0 12px;
+}
+.passos-active #pressaoHistoricoView .sparkline-chart--tight,
+.glicemia-active #pressaoHistoricoView .sparkline-chart--tight,
+.pressao-active #pressaoHistoricoView .sparkline-chart--tight,
+.sono-active #pressaoHistoricoView .sparkline-chart--tight,
+.oxig-active #pressaoHistoricoView .sparkline-chart--tight,
+.hidra-active #pressaoHistoricoView .sparkline-chart--tight {
+  width: 100%;
+  display: block;
+}
+
+/* Default chrome main screen: card for day list */
+#vitalDetailModal .passos-active #vitalDetailContent,
+#vitalDetailModal .glicemia-active #vitalDetailContent,
+#vitalDetailModal .sono-active #vitalDetailContent,
+#vitalDetailModal .oxig-active #vitalDetailContent,
+#vitalDetailModal .hidra-active #vitalDetailContent {
+  background: #ffffff !important;
+  border: var(--border-card-soft) !important;
+  box-shadow: var(--shadow-card) !important;
+  border-radius: var(--radius-card) !important;
+  padding: 10px 12px !important;
+  margin: 0 12px 12px !important;
+}
+
+/* Default chrome main screen: clickable rows inside card */
+#vitalDetailModal .passos-active #vitalDetailContent .vital-list-item,
+#vitalDetailModal .glicemia-active #vitalDetailContent .vital-list-item,
+#vitalDetailModal .sono-active #vitalDetailContent .vital-list-item,
+#vitalDetailModal .oxig-active #vitalDetailContent .vital-list-item,
+#vitalDetailModal .hidra-active #vitalDetailContent .vital-list-item {
+  background: #f8fafc !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 14px !important;
+  padding: 14px 16px !important;
+  margin: 0 0 8px !important;
+  cursor: pointer;
+  transition: background 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+#vitalDetailModal .passos-active #vitalDetailContent .vital-list-item:last-child,
+#vitalDetailModal .glicemia-active #vitalDetailContent .vital-list-item:last-child,
+#vitalDetailModal .sono-active #vitalDetailContent .vital-list-item:last-child,
+#vitalDetailModal .oxig-active #vitalDetailContent .vital-list-item:last-child,
+#vitalDetailModal .hidra-active #vitalDetailContent .vital-list-item:last-child {
+  margin-bottom: 0 !important;
+}
+#vitalDetailModal .passos-active #vitalDetailContent .vital-list-item:active,
+#vitalDetailModal .glicemia-active #vitalDetailContent .vital-list-item:active,
+#vitalDetailModal .sono-active #vitalDetailContent .vital-list-item:active,
+#vitalDetailModal .oxig-active #vitalDetailContent .vital-list-item:active,
+#vitalDetailModal .hidra-active #vitalDetailContent .vital-list-item:active {
+  background: #f1f5f9 !important;
 }
 
 .vital-pressao-sis-dia {
@@ -10517,59 +10601,71 @@ body {
 .hidra-progress-wrap {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 .hidra-progress-track {
   width: 100%;
-  height: 10px;
+  height: 20px;
   background: #dbeafe;
-  border-radius: 6px;
+  border-radius: 10px;
   overflow: hidden;
+  margin-top: 12px;
 }
 
 .hidra-progress-fill {
   height: 100%;
-  border-radius: 6px;
+  border-radius: 10px;
   transition: width 0.4s ease;
 }
 
-.hidra-progress-labels {
+/* ── KPI layout ─────────────────────────────────────────────────────── */
+.hidra-kpi-icon {
+  font-size: 28px;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.hidra-kpi-value-row {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 8px;
+  align-items: baseline;
+  gap: 4px;
+  margin-top: 2px;
 }
-
-.hidra-pct-label {
-  font-size: 11px;
+.hidra-kpi-current {
+  font-size: 36px;
   font-weight: 700;
-  color: #2563eb;
+  color: #0f172a;
+  line-height: 1.1;
 }
-
-.hidra-faltam {
-  font-size: 11px;
-  font-weight: 500;
-  color: #64748b;
-}
-
-.hidra-faltam--ok {
-  color: #16a34a;
+.hidra-kpi-current-unit {
+  font-size: 18px;
   font-weight: 600;
+  color: #475569;
 }
-
-.hidra-meta-label {
-  font-size: 11px;
+.hidra-kpi-goal {
+  font-size: 15px;
   font-weight: 500;
   color: #64748b;
   margin-top: 2px;
 }
-
-#homeScreen .hidra-meta-label {
-  font-size: 11px;
-  color: #94a3b8;
-  margin-top: 2px;
+.hidra-kpi-goal b {
+  font-weight: 700;
+  color: #334155;
+}
+.hidra-kpi-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+}
+.hidra-kpi-status--ok {
+  color: #16a34a;
+}
+.hidra-kpi-status--warn {
+  color: #d97706;
 }
 
 /* Quick-add buttons */
@@ -10632,8 +10728,88 @@ body {
   border: 1px solid #ccfbf1;
 }
 .vital-detail-summary-panel--hidra {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 12px;
+}
+
+.hidra-kpi-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.hidra-kpi-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+.hidra-kpi-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.hidra-kpi-value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.hidra-kpi-current {
+  font-size: 38px;
+  font-weight: 800;
+  color: #1e293b;
+  line-height: 1;
+}
+.hidra-kpi-current-unit {
+  font-size: 18px;
+  font-weight: 600;
+  color: #64748b;
+}
+.hidra-kpi-goal {
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  margin-top: 2px;
+}
+.hidra-kpi-goal b {
+  font-weight: 700;
+  color: #334155;
+}
+
+.hidra-progress-track {
+  width: 100%;
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-top: 14px;
+}
+
+.hidra-progress-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.4s ease;
+}
+
+.hidra-kpi-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+.hidra-kpi-status {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+}
+.hidra-kpi-status--ok {
+  color: #16a34a;
+  font-weight: 600;
 }
 
 .hidra-card {
@@ -10820,6 +10996,112 @@ body {
 .hidra-chip--ok    { background: #dcfce7; color: #16a34a; }
 .hidra-chip--baixo { background: #dbeafe; color: #1d4ed8; }
 .hidra-chip--muito { background: #fef3c7; color: #d97706; }
+
+/* ── Botão simular lembrete ─────────────────────────────────────────── */
+.hidra-lembrete-btn {
+  font-size: 12px;
+  font-weight: 600;
+  color: #3b82f6;
+  background: #eff6ff;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.hidra-lembrete-btn:hover,
+.hidra-lembrete-btn:active {
+  background: #dbeafe;
+}
+
+/* ── Overlay do lembrete ────────────────────────────────────────────── */
+.hidra-lembrete-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.hidra-lembrete-overlay.visible {
+  opacity: 1;
+}
+
+.hidra-lembrete-modal {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 32px 28px 24px;
+  width: 320px;
+  max-width: 88vw;
+  text-align: center;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+}
+.hidra-lembrete-overlay.visible .hidra-lembrete-modal {
+  transform: translateY(0);
+}
+
+.hidra-lembrete-icon {
+  font-size: 52px;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.hidra-lembrete-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.hidra-lembrete-msg {
+  font-size: 15px;
+  color: #475569;
+  line-height: 1.4;
+  margin-bottom: 24px;
+}
+
+.hidra-lembrete-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.hidra-lembrete-btn--primary {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: #3b82f6;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.hidra-lembrete-btn--primary:active {
+  background: #2563eb;
+}
+.hidra-lembrete-btn--sec {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.hidra-lembrete-btn--sec:active {
+  color: #0f172a;
+}
 
 /* --- Hidratação quick-add inline view --------------------------------- */
 /* -- Hidratação  insero estilo wizard ----------------------------------- */
