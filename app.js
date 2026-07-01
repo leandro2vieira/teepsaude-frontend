@@ -12533,9 +12533,7 @@ function renderVitalDetailContent(historico) {
       let _sLabel = 'Normal';
       if (_avg > 125) { _vColor = '#ef4444'; _sLabel = 'Alto'; }
       else if (_avg > 99) { _vColor = '#f59e0b'; _sLabel = 'Atenção'; }
-      const _rangeHtml = (row.min !== row.max)
-        ? '<span style="font-size:11px;color:#94a3b8;margin-left:4px;">(' + row.min + '–' + row.max + ')</span>'
-        : '';
+      const _rangeHtml = '';
       return '<div class="vital-list-item vital-list-item--day-nav vital-list-item--hour-bucket" role="button" tabindex="0" onclick="selectGlicemiaDay(\'' + row.day + '\')">' +
         '<div class="vital-list-main vital-list-main--hour-detail">' +
           '<div class="vital-list-measure-line">' +
