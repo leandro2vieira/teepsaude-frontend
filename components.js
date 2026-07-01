@@ -146,6 +146,7 @@ function buildHomeHidratacaoCard(vital) {
           '<span class="hidra-num">' + fmtMl(current) + '</span>' +
           '<span class="hidra-goal">/ ' + fmtMl(goalMin) + '</span>' +
         '</div>' +
+        '<div class="hidra-meta-label">Meta di\u00e1ria: ' + fmtMl(goalMin) + '</div>' +
       '</div>' +
     '</div>'
   );
@@ -185,6 +186,7 @@ function buildHidraDetailPanel(vital) {
         '</div>' +
         '<div class="hidra-progress-labels">' +
           '<span class="hidra-pct-label">' + Math.round(pct) + '%</span>' +
+          '<span class="hidra-meta-label">Meta: ' + fmtMl(goalMin) + '</span>' +
           faltamHtml +
         '</div>' +
       '</div>' +
