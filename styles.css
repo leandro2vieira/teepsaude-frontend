@@ -10634,7 +10634,15 @@ body {
 .vital-detail-summary-panel--hidra {
   background: #eff6ff;
   border: 1px solid #bfdbfe;
-  margin: 0 12px 12px;
+}
+
+.hidra-card {
+  background: #ffffff;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  border: var(--border-card-soft);
+  padding: 14px 14px 10px;
+  margin-bottom: 12px;
 }
 
 /* -- Sono detail chrome  estilo Batimento ---------------------------- */

@@ -9731,8 +9731,8 @@ function openVitalDetailModal(tipoVital, vitalId) {
   if (pressaoHistoricoView) pressaoHistoricoView.style.display = 'block';
 
   // Reset all sub-views whenever opening a new vital modal
-  var _existingHidSummary = document.getElementById('vitalDetailHidraSummary');
-  if (_existingHidSummary) _existingHidSummary.remove();
+  var _existingHidCards = document.getElementById('vitalDetailHidraCards');
+  if (_existingHidCards) _existingHidCards.remove();
   var _pdv = document.getElementById('pressaoDiaDetailView');
   if (_pdv) _pdv.style.display = 'none';
   var _pcv = document.getElementById('pressaoColetaDetailView');
@@ -12745,16 +12745,17 @@ function renderVitalDetailContent(historico) {
     const _emptyHid = _hidDayEntries.length === 0
       ? '<div class="empty-state"><div class="empty-text">Nenhum registro encontrado</div></div>'
       : '';
-    var _contentEl = document.getElementById('vitalDetailContent');
-    var _existingHidSummary = document.getElementById('vitalDetailHidraSummary');
-    if (_existingHidSummary) _existingHidSummary.remove();
-    if (_hidSummary) {
-      var _sumDiv = document.createElement('div');
-      _sumDiv.id = 'vitalDetailHidraSummary';
-      _sumDiv.innerHTML = _hidSummary;
-      _contentEl.parentNode.insertBefore(_sumDiv, _contentEl);
-    }
-    _contentEl.innerHTML = (_emptyHid || _hidListHtml);
+    document.getElementById('vitalDetailContent').style.display = 'none';
+    var _chromeEl = document.getElementById('vitalDetailDefaultChrome');
+    var _existingHidCards = document.getElementById('vitalDetailHidraCards');
+    if (_existingHidCards) _existingHidCards.remove();
+    var _hidCards = document.createElement('div');
+    _hidCards.id = 'vitalDetailHidraCards';
+    _hidCards.innerHTML = _hidSummary
+      ? '<div class="hidra-card">' + _hidSummary + '</div>' +
+        '<div class="hidra-card hidra-card--list">' + (_emptyHid || _hidListHtml) + '</div>'
+      : '<div class="hidra-card hidra-card--list">' + (_emptyHid || _hidListHtml) + '</div>';
+    _chromeEl.appendChild(_hidCards);
     return;
   }
 
