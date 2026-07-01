@@ -12743,7 +12743,7 @@ function renderVitalDetailContent(historico) {
     const _emptyHid = _hidDayEntries.length === 0
       ? '<div class="empty-state"><div class="empty-text">Nenhum registro encontrado</div></div>'
       : '';
-    document.getElementById('vitalDetailContent').innerHTML = '<div style="padding: 0 12px 12px;">' + _hidSummary + (_emptyHid || _hidListHtml) + '</div>';
+    document.getElementById('vitalDetailContent').innerHTML = '<div style="padding: 12px 12px 12px;">' + _hidSummary + (_emptyHid || _hidListHtml) + '</div>';
     return;
   }
 
