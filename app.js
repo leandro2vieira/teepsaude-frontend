@@ -9731,6 +9731,8 @@ function openVitalDetailModal(tipoVital, vitalId) {
   if (pressaoHistoricoView) pressaoHistoricoView.style.display = 'block';
 
   // Reset all sub-views whenever opening a new vital modal
+  var _existingHidSummary = document.getElementById('vitalDetailHidraSummary');
+  if (_existingHidSummary) _existingHidSummary.remove();
   var _pdv = document.getElementById('pressaoDiaDetailView');
   if (_pdv) _pdv.style.display = 'none';
   var _pcv = document.getElementById('pressaoColetaDetailView');
@@ -12743,7 +12745,16 @@ function renderVitalDetailContent(historico) {
     const _emptyHid = _hidDayEntries.length === 0
       ? '<div class="empty-state"><div class="empty-text">Nenhum registro encontrado</div></div>'
       : '';
-    document.getElementById('vitalDetailContent').innerHTML = '<div style="padding: 12px 12px 12px;">' + _hidSummary + (_emptyHid || _hidListHtml) + '</div>';
+    var _contentEl = document.getElementById('vitalDetailContent');
+    var _existingHidSummary = document.getElementById('vitalDetailHidraSummary');
+    if (_existingHidSummary) _existingHidSummary.remove();
+    if (_hidSummary) {
+      var _sumDiv = document.createElement('div');
+      _sumDiv.id = 'vitalDetailHidraSummary';
+      _sumDiv.innerHTML = _hidSummary;
+      _contentEl.parentNode.insertBefore(_sumDiv, _contentEl);
+    }
+    _contentEl.innerHTML = (_emptyHid || _hidListHtml);
     return;
   }
 
