@@ -10566,6 +10566,10 @@ body {
   margin-top: 2px;
 }
 
+.hidra-list-card {
+  margin-top: 8px;
+}
+
 #homeScreen .hidra-meta-label {
   font-size: 11px;
   color: #94a3b8;
