@@ -1,0 +1,8 @@
+<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="32" cy="10" r="5"/>
+  <path d="M32 15v5"/>
+  <path d="M22 20c-2 4-2 8 0 12l4 6v8h12v-8l4-6c2-4 2-8 0-12"/>
+  <path d="M26 28c2 2 6 2 8 0" stroke-width="2"/>
+  <path d="M26 34c2 2 6 2 8 0" stroke-width="2"/>
+  <line x1="32" y1="20" x2="32" y2="46" stroke-dasharray="3,3" stroke-width="1.5"/>
+</svg>

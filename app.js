@@ -4062,13 +4062,13 @@ function renderCorpoWizardMeasureStep(stepDef) {
   var lastVal = null;
   var hist = getHistoricoParaMedida(stepDef.group, stepDef.key);
   if (hist.length) lastVal = hist[0].value;
-  var lastValTxt = lastVal != null ? String(lastVal).replace('.', ',') : null;
+  var lastValTxt = lastVal != null ? formatCorpoMeasure(lastVal, '', stepDef.decimals) : null;
 
   if (stepDef.dual) {
     var lastVal2 = null;
     var hist2 = getHistoricoParaMedida(stepDef.group, stepDef.key2);
     if (hist2.length) lastVal2 = hist2[0].value;
-    var lastVal2Txt = lastVal2 != null ? String(lastVal2).replace('.', ',') : null;
+    var lastVal2Txt = lastVal2 != null ? formatCorpoMeasure(lastVal2, '', stepDef.decimals) : null;
     var currentVal2 = group[stepDef.key2] != null ? String(group[stepDef.key2]) : '';
     body.innerHTML =
       '<div class="corpo-wiz-measure-wrap" ontouchstart="corpoTouchStart(event)" ontouchend="corpoTouchEnd(event)">' +

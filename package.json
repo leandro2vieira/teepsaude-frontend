@@ -1,0 +1,28 @@
+{
+  "name": "mensuri",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "fix-encoding": "node fix_encoding.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alextrovateep-dev/Mensuri.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/alextrovateep-dev/Mensuri/issues"
+  },
+  "homepage": "https://github.com/alextrovateep-dev/Mensuri#readme",
+  "dependencies": {
+    "playwright": "^1.61.0"
+  }
+}
