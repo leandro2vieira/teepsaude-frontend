@@ -233,14 +233,14 @@ function openHidraConfigView() {
   for (var i = 0; i < chrome.children.length; i++) {
     var child = chrome.children[i];
     if (child.id !== 'hidraConfigView') {
-      child.setAttribute('data-hidra-hidden', '1');
+      child.setAttribute('data-hidra-display', child.style.display || '');
       child.style.display = 'none';
     }
   }
 
   var addRow = document.querySelector('.vital-detail-add-row');
   if (addRow) {
-    addRow.setAttribute('data-hidra-hidden', '1');
+    addRow.setAttribute('data-hidra-display', addRow.style.display || '');
     addRow.style.display = 'none';
   }
 
@@ -311,6 +311,7 @@ function renderHidraConfigView(chrome) {
       '</div>' +
 
       '<div class="hidra-config-info">O lembrete aparece automaticamente em qualquer tela do aplicativo.</div>' +
+      '<button type="button" class="hidra-config-save-btn" onclick="closeHidraConfigView()">Salvar</button>' +
     '</div>';
 
   chrome.appendChild(view);
@@ -324,17 +325,17 @@ function closeHidraConfigView() {
   if (chrome) {
     for (var i = 0; i < chrome.children.length; i++) {
       var child = chrome.children[i];
-      if (child.getAttribute('data-hidra-hidden') === '1') {
-        child.removeAttribute('data-hidra-hidden');
-        child.style.display = '';
+      if (child.hasAttribute('data-hidra-display')) {
+        child.style.display = child.getAttribute('data-hidra-display');
+        child.removeAttribute('data-hidra-display');
       }
     }
   }
 
   var addRow = document.querySelector('.vital-detail-add-row');
-  if (addRow && addRow.getAttribute('data-hidra-hidden') === '1') {
-    addRow.removeAttribute('data-hidra-hidden');
-    addRow.style.display = '';
+  if (addRow && addRow.hasAttribute('data-hidra-display')) {
+    addRow.style.display = addRow.getAttribute('data-hidra-display');
+    addRow.removeAttribute('data-hidra-display');
   }
 }
 

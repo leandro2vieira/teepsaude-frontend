@@ -11236,6 +11236,23 @@ body {
   line-height: 1.5;
   padding: 0 2px;
 }
+.hidra-config-save-btn {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  background: #2563eb;
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.hidra-config-save-btn:active {
+  background: #1d4ed8;
+}
 
 /* Toggle switch */
 .hidra-toggle {
