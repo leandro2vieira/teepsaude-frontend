@@ -309,11 +309,6 @@ function startHidraAutoReminder() {
   var cfg = getHidraLembreteConfig();
   if (!cfg.enabled) return;
   _hidraAutoTimer = setInterval(function() {
-    var modal = document.getElementById('vitalDetailModal');
-    if (!modal || !modal.classList.contains('active')) {
-      stopHidraAutoReminder();
-      return;
-    }
     showHidraLembrete();
   }, cfg.interval * 60 * 1000);
 }
@@ -366,6 +361,12 @@ function fecharHidraLembrete() {
     setTimeout(function() { overlay.remove(); }, 300);
   }
   restartHidraAutoReminder();
+}
+
+// Inicia o lembrete automático se configurado (funciona em qualquer tela)
+if (typeof getHidraLembreteConfig === 'function') {
+  var _cfg = getHidraLembreteConfig();
+  if (_cfg.enabled) startHidraAutoReminder();
 }
 
 // Card de Oxigenação para layout home
