@@ -233,6 +233,12 @@ function openHidraConfigView() {
     }
   }
 
+  var addRow = document.querySelector('.vital-detail-add-row');
+  if (addRow) {
+    addRow.setAttribute('data-hidra-hidden', '1');
+    addRow.style.display = 'none';
+  }
+
   var cfg = getHidraLembreteConfig();
 
   var view = document.createElement('div');
@@ -282,6 +288,12 @@ function closeHidraConfigView() {
         child.style.display = '';
       }
     }
+  }
+
+  var addRow = document.querySelector('.vital-detail-add-row');
+  if (addRow && addRow.getAttribute('data-hidra-hidden') === '1') {
+    addRow.removeAttribute('data-hidra-hidden');
+    addRow.style.display = '';
   }
 }
 
