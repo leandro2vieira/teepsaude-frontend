@@ -263,7 +263,7 @@ function openHidraConfigView() {
           '</div>' +
         '</div>' +
       '</div>' +
-      '<div class="hidra-config-info">O lembrete aparece automaticamente em qualquer tela do app.</div>' +
+      '<div class="hidra-config-info">O lembrete aparece automaticamente em qualquer tela do aplicativo.</div>' +
     '</div>';
 
   chrome.appendChild(view);
@@ -304,18 +304,27 @@ function setHidraInterval(minutes) {
   restartHidraAutoReminder();
 }
 
-function startHidraAutoReminder() {
-  stopHidraAutoReminder();
+function scheduleHidraReminder() {
   var cfg = getHidraLembreteConfig();
   if (!cfg.enabled) return;
-  _hidraAutoTimer = setInterval(function() {
+
+  var now = new Date();
+  var msPassouHoje = (now.getHours() * 60 + now.getMinutes()) * 60000 + now.getSeconds() * 1000 + now.getMilliseconds();
+  var slotMs = cfg.interval * 60000;
+  var proxSlot = Math.ceil(msPassouHoje / slotMs) * slotMs;
+
+  // Se estiver exatamente em cima do slot, pula pro próximo
+  if (proxSlot - msPassouHoje < 1000) proxSlot += slotMs;
+
+  _hidraAutoTimer = setTimeout(function() {
     showHidraLembrete();
-  }, cfg.interval * 60 * 1000);
+    scheduleHidraReminder();
+  }, proxSlot - msPassouHoje);
 }
 
 function stopHidraAutoReminder() {
   if (_hidraAutoTimer) {
-    clearInterval(_hidraAutoTimer);
+    clearTimeout(_hidraAutoTimer);
     _hidraAutoTimer = null;
   }
 }
@@ -323,6 +332,11 @@ function stopHidraAutoReminder() {
 function restartHidraAutoReminder() {
   stopHidraAutoReminder();
   startHidraAutoReminder();
+}
+
+function startHidraAutoReminder() {
+  stopHidraAutoReminder();
+  scheduleHidraReminder();
 }
 
 function showHidraLembrete() {
