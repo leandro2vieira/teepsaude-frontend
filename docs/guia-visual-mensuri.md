@@ -715,4 +715,83 @@ Para estado aberto: adicionar classe `config-chevron--open` (rotate 90deg).
 
 ---
 
-*Última atualização: 2026-06-12 — harmonização das seções Corpo e Perfil com o sistema Início.*
+## 16. Regras Obrigatórias
+
+1. **Sempre usar tokens CSS** (`--text-title`, `--surface-card`, etc.) — nunca hardcodar cores
+2. **Sempre usar Inter** como fonte — nunca introduzir fontes novas
+3. **Cards sempre brancos** com sombra sutil — nunca fundo colorido ou cream
+4. **Acento principal: azul `#2563eb`** — nunca substituir por teal, roxo, etc.
+5. **Border-radius: 16px** para cards, 10-12px para botões
+6. **Badges: pill format** com cores de status padronizadas
+7. **Icones de seção:** manter as 3 cores (azul, teal, roxo) para Gerais/Circ/Dobras
+8. **Animações:** usar stagger delay para listas, spring easing para números
+
+---
+
+## 17. Padrão Card-per-Section — Telas de Detalhe
+
+Cada seção de informação na view de detalhe é um **card independente** com:
+
+```css
+.meu-componente-card {
+  background: #ffffff;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  border: var(--border-card-soft);
+  padding: 14px 14px 10px;
+  margin-bottom: 12px;
+}
+```
+
+### Estrutura HTML esperada
+
+```
+vitalDetailDefaultChrome          ← contém gráfico + controles de período
+  └── div.hidra-card              ← Card 1: progresso/resumo
+  └── div.hidra-card--list        ← Card 2: lista de registros
+```
+
+O `#vitalDetailContent` fica `display: none` para esse tipo de tela. Os cards são inseridos via JS dentro do `vitalDetailDefaultChrome`.
+
+### Implementação no JS (padrão)
+
+```js
+// Esconder vitalDetailContent
+document.getElementById('vitalDetailContent').style.display = 'none';
+
+// Criar container dos cards
+var _chromeEl = document.getElementById('vitalDetailDefaultChrome');
+var _existingCards = document.getElementById('meuContainerCards');
+if (_existingCards) _existingCards.remove();
+var _cardsDiv = document.createElement('div');
+_cardsDiv.id = 'meuContainerCards';
+_cardsDiv.innerHTML =
+  '<div class="meu-componente-card">' + resumoHtml + '</div>' +
+  '<div class="meu-componente-card">' + listaHtml + '</div>';
+_chromeEl.appendChild(_cardsDiv);
+```
+
+### Cleanup ao abrir outro vital
+
+```js
+var _existingCards = document.getElementById('meuContainerCards');
+if (_existingCards) _existingCards.remove();
+```
+
+### Exemplo vivo
+
+- **Hidratação**: `components.js` → `buildHidraDetailPanel()` retorna HTML do resumo; `app.js` renderiza os dois cards dentro de `vitalDetailDefaultChrome`; `styles.css` → `.hidra-card` com o padrão acima.
+
+---
+
+## 18. Arquivos de Referência
+
+| Arquivo | Conteúdo |
+|---------|----------|
+| `docs/guia-visual-mensuri.md` | Este arquivo — guia visual completo (tokens, cores, componentes, padrões) |
+| `docs/refs-visuais-home-batimentos.md` | Specs específicas das telas Home e Batimentos (gráficos, day picker, etc.) |
+| `styles.css` (linhas 19-46) | Variáveis CSS `:root` com todos os tokens |
+
+---
+
+*Última atualização: 2026-07-02 — mesclados design-system.md e padrao-card-detail.md neste guia.*
