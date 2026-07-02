@@ -225,8 +225,13 @@ function openHidraConfigView() {
   var existing = document.getElementById('hidraConfigView');
   if (existing) return;
 
-  var hidCards = document.getElementById('vitalDetailHidraCards');
-  if (hidCards) hidCards.style.display = 'none';
+  for (var i = 0; i < chrome.children.length; i++) {
+    var child = chrome.children[i];
+    if (child.id !== 'hidraConfigView') {
+      child.setAttribute('data-hidra-hidden', '1');
+      child.style.display = 'none';
+    }
+  }
 
   var cfg = getHidraLembreteConfig();
 
@@ -262,20 +267,22 @@ function openHidraConfigView() {
     '</div>';
 
   chrome.appendChild(view);
-
-  var periodControls = document.getElementById('vitalDefaultPeriodControls');
-  if (periodControls) periodControls.style.display = 'none';
 }
 
 function closeHidraConfigView() {
   var view = document.getElementById('hidraConfigView');
   if (view) view.remove();
 
-  var hidCards = document.getElementById('vitalDetailHidraCards');
-  if (hidCards) hidCards.style.display = '';
-
-  var periodControls = document.getElementById('vitalDefaultPeriodControls');
-  if (periodControls) periodControls.style.display = '';
+  var chrome = document.getElementById('vitalDetailDefaultChrome');
+  if (chrome) {
+    for (var i = 0; i < chrome.children.length; i++) {
+      var child = chrome.children[i];
+      if (child.getAttribute('data-hidra-hidden') === '1') {
+        child.removeAttribute('data-hidra-hidden');
+        child.style.display = '';
+      }
+    }
+  }
 }
 
 function toggleHidraAutoLembrete(checked) {
