@@ -182,11 +182,33 @@ function buildHidraDetailPanel(vital) {
   var goalDisplay = fmtMl(goalMin);
   var barColor = pct >= 100 ? '#22c55e' : pct >= 50 ? '#3b82f6' : '#f59e0b';
 
+  var cfg = getHidraLembreteConfig();
+  var configHtml =
+    '<div class="hidra-config" id="hidraConfigPanel" style="display:none;">' +
+      '<div class="hidra-config-row">' +
+        '<span class="hidra-config-label">Lembretes automáticos</span>' +
+        '<label class="hidra-toggle">' +
+          '<input type="checkbox" id="hidraAutoToggle" ' + (cfg.enabled ? 'checked' : '') + ' onchange="toggleHidraAutoLembrete(this.checked)">' +
+          '<span class="hidra-toggle-slider"></span>' +
+        '</label>' +
+      '</div>' +
+      '<div class="hidra-config-row hidra-config-interval-row" id="hidraIntervalRow" style="' + (cfg.enabled ? '' : 'display:none;') + '">' +
+        '<span class="hidra-config-label">Intervalo</span>' +
+        '<div class="hidra-config-intervals">' +
+          [30, 60, 120, 180].map(function(m) {
+            return '<button type="button" class="hidra-config-intv-btn' + (cfg.interval === m ? ' active' : '') + '" onclick="setHidraInterval(' + m + ')">' + (m < 60 ? m + ' min' : (m / 60) + ' h') + '</button>';
+          }).join('') +
+        '</div>' +
+      '</div>' +
+      '<div class="hidra-config-info">O lembrete aparece automaticamente enquanto esta tela estiver aberta</div>' +
+    '</div>';
+
   return (
     '<div class="vital-detail-summary-panel vital-detail-summary-panel--hidra">' +
       '<div class="hidra-kpi-header">' +
         '<span class="hidra-kpi-icon">💧</span>' +
         '<span class="hidra-kpi-title">Hidratação</span>' +
+        '<button type="button" class="hidra-gear-btn" onclick="toggleHidraConfig()" aria-label="Configurar lembrete">⚙️</button>' +
       '</div>' +
       '<div class="hidra-kpi-value-row">' +
         '<span class="hidra-kpi-current">' + currentDisplay.replace(' L', '').replace(' ml', '') + '</span>' +
@@ -200,8 +222,74 @@ function buildHidraDetailPanel(vital) {
         '<span class="hidra-kpi-status ' + (pct >= 100 ? 'hidra-kpi-status--ok' : '') + '">' + statusText + '</span>' +
         '<button type="button" class="hidra-lembrete-btn" onclick="showHidraLembrete()">🔔 Simular lembrete</button>' +
       '</div>' +
+      configHtml +
     '</div>'
   );
+}
+
+function getHidraLembreteConfig() {
+  try {
+    var raw = localStorage.getItem('hidraLembreteConfig');
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return { enabled: false, interval: 60 };
+}
+
+function saveHidraLembreteConfig(cfg) {
+  try { localStorage.setItem('hidraLembreteConfig', JSON.stringify(cfg)); } catch (e) {}
+}
+
+var _hidraAutoTimer = null;
+
+function toggleHidraConfig() {
+  var panel = document.getElementById('hidraConfigPanel');
+  if (!panel) return;
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+function toggleHidraAutoLembrete(checked) {
+  var cfg = getHidraLembreteConfig();
+  cfg.enabled = checked;
+  saveHidraLembreteConfig(cfg);
+  var row = document.getElementById('hidraIntervalRow');
+  if (row) row.style.display = checked ? '' : 'none';
+  restartHidraAutoReminder();
+}
+
+function setHidraInterval(minutes) {
+  var cfg = getHidraLembreteConfig();
+  cfg.interval = minutes;
+  saveHidraLembreteConfig(cfg);
+  document.querySelectorAll('.hidra-config-intv-btn').forEach(function(b) {
+    b.classList.toggle('active', Number(b.getAttribute('onclick').match(/\d+/)[0]) === minutes);
+  });
+  restartHidraAutoReminder();
+}
+
+function startHidraAutoReminder() {
+  stopHidraAutoReminder();
+  var cfg = getHidraLembreteConfig();
+  if (!cfg.enabled) return;
+  _hidraAutoTimer = setInterval(function() {
+    var modal = document.getElementById('vitalDetailModal');
+    if (!modal || !modal.classList.contains('active')) {
+      stopHidraAutoReminder();
+      return;
+    }
+    showHidraLembrete();
+  }, cfg.interval * 60 * 1000);
+}
+
+function stopHidraAutoReminder() {
+  if (_hidraAutoTimer) {
+    clearInterval(_hidraAutoTimer);
+    _hidraAutoTimer = null;
+  }
+}
+
+function restartHidraAutoReminder() {
+  stopHidraAutoReminder();
+  startHidraAutoReminder();
 }
 
 function showHidraLembrete() {
@@ -227,6 +315,7 @@ function showHidraLembrete() {
 
 function beberAgora() {
   fecharHidraLembrete();
+  restartHidraAutoReminder();
   if (typeof openHidraInsertView === 'function') {
     openHidraInsertView();
   }
@@ -238,6 +327,7 @@ function fecharHidraLembrete() {
     overlay.classList.remove('visible');
     setTimeout(function() { overlay.remove(); }, 300);
   }
+  restartHidraAutoReminder();
 }
 
 // Card de Oxigenação para layout home

@@ -11016,6 +11016,114 @@ body {
   background: #dbeafe;
 }
 
+/* ── Gear icon ─────────────────────────────────────────────────────── */
+.hidra-gear-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px;
+  margin-left: auto;
+  cursor: pointer;
+  opacity: 0.45;
+  transition: opacity 0.15s;
+}
+.hidra-gear-btn:hover,
+.hidra-gear-btn:active {
+  opacity: 0.8;
+}
+
+/* ── Config panel ──────────────────────────────────────────────────── */
+.hidra-config {
+  margin-top: 12px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+.hidra-config-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.hidra-config-row + .hidra-config-row {
+  margin-top: 10px;
+}
+.hidra-config-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+.hidra-config-intervals {
+  display: flex;
+  gap: 6px;
+}
+.hidra-config-intv-btn {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.hidra-config-intv-btn.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+}
+.hidra-config-intv-btn:active {
+  transform: scale(0.96);
+}
+.hidra-config-info {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 10px;
+  line-height: 1.4;
+}
+
+/* Toggle switch */
+.hidra-toggle {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.hidra-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.hidra-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #cbd5e1;
+  border-radius: 24px;
+  transition: background 0.25s;
+}
+.hidra-toggle-slider::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  bottom: 3px;
+  width: 18px;
+  height: 18px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.25s;
+}
+.hidra-toggle input:checked + .hidra-toggle-slider {
+  background: #2563eb;
+}
+.hidra-toggle input:checked + .hidra-toggle-slider::before {
+  transform: translateX(18px);
+}
+
 /* ── Overlay do lembrete ────────────────────────────────────────────── */
 .hidra-lembrete-overlay {
   position: fixed;

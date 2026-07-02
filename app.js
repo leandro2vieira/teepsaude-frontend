@@ -4840,6 +4840,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (window._passaosDiaActive) { closePassosDiaDetail(); return; }
       if (window._oxigenacaoDiaActive) { closeOxigenacaoDiaDetail(); return; }
       document.getElementById('vitalDetailModal').classList.remove('active');
+      if (typeof stopHidraAutoReminder === 'function') stopHidraAutoReminder();
+      var _hidOverlay = document.getElementById('hidraLembreteOverlay');
+      if (_hidOverlay) _hidOverlay.remove();
       setGlobalHeaderVisible(true);
     });
   }
@@ -9838,6 +9841,10 @@ function openVitalDetailModal(tipoVital, vitalId) {
 
   document.getElementById('vitalDetailModal').classList.add('active');
   setGlobalHeaderVisible(false);
+
+  if (isHidra && typeof startHidraAutoReminder === 'function') {
+    startHidraAutoReminder();
+  }
 
   if (bc) {
     updateVitalBatimentoModalView();
