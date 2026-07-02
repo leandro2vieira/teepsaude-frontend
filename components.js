@@ -208,7 +208,6 @@ function buildHidraDetailPanel(vital) {
       '<div class="hidra-kpi-header">' +
         '<span class="hidra-kpi-icon">💧</span>' +
         '<span class="hidra-kpi-title">Hidratação</span>' +
-        '<button type="button" class="hidra-gear-btn" onclick="toggleHidraConfig()" aria-label="Configurar lembrete">⚙️</button>' +
       '</div>' +
       '<div class="hidra-kpi-value-row">' +
         '<span class="hidra-kpi-current">' + currentDisplay.replace(' L', '').replace(' ml', '') + '</span>' +

@@ -9737,9 +9737,11 @@ function openVitalDetailModal(tipoVital, vitalId) {
 
   // Share button (Batimento only) + spacer placeholder
   const shareBtn = document.getElementById('batShareBtn');
+  const hidraGearBtn = document.getElementById('hidraGearBtn');
   const spacer = document.getElementById('vitalDetailHeaderSpacer');
   if (shareBtn) shareBtn.style.display = bc ? 'flex' : 'none';
-  if (spacer) spacer.style.display = bc ? 'none' : 'flex';
+  if (hidraGearBtn) hidraGearBtn.style.display = isHidra ? 'flex' : 'none';
+  if (spacer) spacer.style.display = (bc || isHidra) ? 'none' : 'flex';
 
   if (bcChrome) bcChrome.style.display = bc ? 'block' : 'none';
   if (defChrome) {
