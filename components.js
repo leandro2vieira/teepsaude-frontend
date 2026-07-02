@@ -207,9 +207,14 @@ function buildHidraDetailPanel(vital) {
 function getHidraLembreteConfig() {
   try {
     var raw = localStorage.getItem('hidraLembreteConfig');
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      var p = JSON.parse(raw);
+      if (!p.mode) p.mode = 'interval';
+      if (!p.customTimes) p.customTimes = [];
+      return p;
+    }
   } catch (e) {}
-  return { enabled: false, interval: 60 };
+  return { enabled: false, interval: 60, mode: 'interval', customTimes: [] };
 }
 
 function saveHidraLembreteConfig(cfg) {
@@ -239,7 +244,23 @@ function openHidraConfigView() {
     addRow.style.display = 'none';
   }
 
+  renderHidraConfigView(chrome);
+}
+
+function renderHidraConfigView(chrome) {
   var cfg = getHidraLembreteConfig();
+
+  var timesHtml = '';
+  if (cfg.customTimes.length) {
+    timesHtml = cfg.customTimes.map(function(t, idx) {
+      return '<div class="hidra-custom-time-row">' +
+        '<span class="hidra-custom-time-val">' + t + '</span>' +
+        '<button type="button" class="hidra-custom-time-del" onclick="removeHidraCustomTime(' + idx + ')" aria-label="Remover">✕</button>' +
+      '</div>';
+    }).join('');
+  } else {
+    timesHtml = '<div class="hidra-custom-time-empty" id="hidraCustomEmpty">Nenhum horário cadastrado</div>';
+  }
 
   var view = document.createElement('div');
   view.id = 'hidraConfigView';
@@ -260,15 +281,35 @@ function openHidraConfigView() {
             '<span class="hidra-toggle-slider"></span>' +
           '</label>' +
         '</div>' +
-        '<div class="hidra-config-row hidra-config-interval-row" id="hidraIntervalRow" style="' + (cfg.enabled ? '' : 'display:none;') + '">' +
-          '<span class="hidra-config-label">Intervalo</span>' +
-          '<div class="hidra-config-intervals">' +
-            [30, 60, 120, 180].map(function(m) {
-              return '<button type="button" class="hidra-config-intv-btn' + (cfg.interval === m ? ' active' : '') + '" onclick="setHidraInterval(' + m + ')">' + (m < 60 ? m + ' min' : (m / 60) + ' h') + '</button>';
-            }).join('') +
+      '</div>' +
+
+      '<div class="hidra-config-card">' +
+        '<div class="hidra-config-mode-selector">' +
+          '<button type="button" class="hidra-config-mode-btn' + (cfg.mode === 'interval' ? ' active' : '') + '" onclick="setHidraMode(\'interval\')">Intervalo fixo</button>' +
+          '<button type="button" class="hidra-config-mode-btn' + (cfg.mode === 'custom' ? ' active' : '') + '" onclick="setHidraMode(\'custom\')">Horários personalizados</button>' +
+        '</div>' +
+
+        '<div id="hidraIntervalSection" style="' + (cfg.mode === 'interval' ? '' : 'display:none;') + '">' +
+          '<div class="hidra-config-row" style="margin-top:14px;">' +
+            '<span class="hidra-config-label">Intervalo</span>' +
+            '<div class="hidra-config-intervals">' +
+              [30, 60, 120, 180].map(function(m) {
+                return '<button type="button" class="hidra-config-intv-btn' + (cfg.interval === m ? ' active' : '') + '" onclick="setHidraInterval(' + m + ')">' + (m < 60 ? m + ' min' : (m / 60) + ' h') + '</button>';
+              }).join('') +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div id="hidraCustomSection" style="' + (cfg.mode === 'custom' ? '' : 'display:none;') + '">' +
+          '<div class="hidra-custom-times-wrap">' +
+            '<div class="hidra-custom-times-list" id="hidraCustomTimesList">' + timesHtml + '</div>' +
+            '<div class="hidra-custom-add-row" id="hidraCustomAddRow">' +
+              '<button type="button" class="hidra-custom-add-btn" onclick="showHidraCustomTimeInput()">+ Adicionar horário</button>' +
+            '</div>' +
           '</div>' +
         '</div>' +
       '</div>' +
+
       '<div class="hidra-config-info">O lembrete aparece automaticamente em qualquer tela do aplicativo.</div>' +
     '</div>';
 
@@ -297,12 +338,100 @@ function closeHidraConfigView() {
   }
 }
 
+function setHidraMode(mode) {
+  var cfg = getHidraLembreteConfig();
+  cfg.mode = mode;
+  saveHidraLembreteConfig(cfg);
+
+  document.querySelectorAll('.hidra-config-mode-btn').forEach(function(b) {
+    b.classList.toggle('active', b.getAttribute('onclick').indexOf("'" + mode + "'") !== -1);
+  });
+
+  var intvSec = document.getElementById('hidraIntervalSection');
+  var custSec = document.getElementById('hidraCustomSection');
+  if (intvSec) intvSec.style.display = mode === 'interval' ? '' : 'none';
+  if (custSec) custSec.style.display = mode === 'custom' ? '' : 'none';
+
+  restartHidraAutoReminder();
+}
+
+function showHidraCustomTimeInput() {
+  var container = document.getElementById('hidraCustomTimesList');
+  var addRow = document.getElementById('hidraCustomAddRow');
+  if (!container) return;
+
+  var existingInput = document.getElementById('hidraCustomTimeInputRow');
+  if (existingInput) return;
+
+  var row = document.createElement('div');
+  row.id = 'hidraCustomTimeInputRow';
+  row.className = 'hidra-custom-time-input-row';
+  row.innerHTML =
+    '<input type="time" id="hidraCustomTimeInput" class="hidra-custom-time-input" value="08:00">' +
+    '<button type="button" class="hidra-custom-time-ok" onclick="confirmHidraCustomTime()">OK</button>' +
+    '<button type="button" class="hidra-custom-time-cancel" onclick="cancelHidraCustomTime()">Cancelar</button>';
+
+  container.appendChild(row);
+  if (addRow) addRow.style.display = 'none';
+  setTimeout(function() {
+    var inp = document.getElementById('hidraCustomTimeInput');
+    if (inp) inp.focus();
+  }, 50);
+}
+
+function cancelHidraCustomTime() {
+  var row = document.getElementById('hidraCustomTimeInputRow');
+  if (row) row.remove();
+  var addRow = document.getElementById('hidraCustomAddRow');
+  if (addRow) addRow.style.display = '';
+}
+
+function confirmHidraCustomTime() {
+  var inp = document.getElementById('hidraCustomTimeInput');
+  if (!inp || !inp.value) return;
+  var time = inp.value; // "HH:MM"
+
+  var cfg = getHidraLembreteConfig();
+  if (cfg.customTimes.indexOf(time) !== -1) return; // duplicado
+
+  cfg.customTimes.push(time);
+  cfg.customTimes.sort();
+  saveHidraLembreteConfig(cfg);
+
+  cancelHidraCustomTime();
+  refreshHidraCustomTimesList();
+  restartHidraAutoReminder();
+}
+
+function removeHidraCustomTime(idx) {
+  var cfg = getHidraLembreteConfig();
+  cfg.customTimes.splice(idx, 1);
+  saveHidraLembreteConfig(cfg);
+  refreshHidraCustomTimesList();
+  restartHidraAutoReminder();
+}
+
+function refreshHidraCustomTimesList() {
+  var cfg = getHidraLembreteConfig();
+  var container = document.getElementById('hidraCustomTimesList');
+  if (!container) return;
+
+  if (cfg.customTimes.length) {
+    container.innerHTML = cfg.customTimes.map(function(t, idx) {
+      return '<div class="hidra-custom-time-row">' +
+        '<span class="hidra-custom-time-val">' + t + '</span>' +
+        '<button type="button" class="hidra-custom-time-del" onclick="removeHidraCustomTime(' + idx + ')" aria-label="Remover">✕</button>' +
+      '</div>';
+    }).join('');
+  } else {
+    container.innerHTML = '<div class="hidra-custom-time-empty" id="hidraCustomEmpty">Nenhum horário cadastrado</div>';
+  }
+}
+
 function toggleHidraAutoLembrete(checked) {
   var cfg = getHidraLembreteConfig();
   cfg.enabled = checked;
   saveHidraLembreteConfig(cfg);
-  var row = document.getElementById('hidraIntervalRow');
-  if (row) row.style.display = checked ? '' : 'none';
   restartHidraAutoReminder();
 }
 
@@ -319,19 +448,64 @@ function setHidraInterval(minutes) {
 function scheduleHidraReminder() {
   var cfg = getHidraLembreteConfig();
   if (!cfg.enabled) return;
+  if (cfg.mode === 'custom') {
+    scheduleCustomHidraReminder();
+  } else {
+    scheduleIntervalHidraReminder();
+  }
+}
 
+function scheduleIntervalHidraReminder() {
+  var cfg = getHidraLembreteConfig();
   var now = new Date();
   var msPassouHoje = (now.getHours() * 60 + now.getMinutes()) * 60000 + now.getSeconds() * 1000 + now.getMilliseconds();
   var slotMs = cfg.interval * 60000;
   var proxSlot = Math.ceil(msPassouHoje / slotMs) * slotMs;
 
-  // Se estiver exatamente em cima do slot, pula pro próximo
   if (proxSlot - msPassouHoje < 1000) proxSlot += slotMs;
 
   _hidraAutoTimer = setTimeout(function() {
     showHidraLembrete();
     scheduleHidraReminder();
   }, proxSlot - msPassouHoje);
+}
+
+function scheduleCustomHidraReminder() {
+  var cfg = getHidraLembreteConfig();
+  var times = cfg.customTimes || [];
+  if (!times.length) return;
+
+  var now = new Date();
+  var nowMin = now.getHours() * 60 + now.getMinutes();
+
+  var nextTime = null;
+  for (var i = 0; i < times.length; i++) {
+    var parts = times[i].split(':');
+    var tm = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    if (tm > nowMin) {
+      nextTime = times[i];
+      break;
+    }
+  }
+
+  var target = new Date(now);
+  if (!nextTime) {
+    // Amanhã
+    target.setDate(target.getDate() + 1);
+    target.setHours(0, 0, 0, 0);
+    nextTime = times[0];
+  }
+
+  var tp = nextTime.split(':');
+  target.setHours(parseInt(tp[0]), parseInt(tp[1]), 0, 0);
+
+  var delay = target.getTime() - now.getTime();
+  if (delay < 5000) delay = 5000;
+
+  _hidraAutoTimer = setTimeout(function() {
+    showHidraLembrete();
+    scheduleHidraReminder();
+  }, delay);
 }
 
 function stopHidraAutoReminder() {

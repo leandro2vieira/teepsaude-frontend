@@ -11071,6 +11071,137 @@ body {
   padding-top: 14px;
   border-top: 1px solid #f1f5f9;
 }
+/* Mode selector */
+.hidra-config-mode-selector {
+  display: flex;
+  gap: 0;
+  background: #f1f5f9;
+  border-radius: 10px;
+  padding: 3px;
+}
+.hidra-config-mode-btn {
+  flex: 1;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.hidra-config-mode-btn.active {
+  background: #ffffff;
+  color: #1e293b;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+
+/* Custom times */
+.hidra-custom-times-wrap {
+  margin-top: 14px;
+}
+.hidra-custom-times-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.hidra-custom-time-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+.hidra-custom-time-val {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.hidra-custom-time-del {
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+.hidra-custom-time-del:hover,
+.hidra-custom-time-del:active {
+  background: #fee2e2;
+  color: #ef4444;
+}
+.hidra-custom-time-empty {
+  font-size: 13px;
+  color: #94a3b8;
+  text-align: center;
+  padding: 16px 0;
+}
+.hidra-custom-add-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.hidra-custom-add-btn:active {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+.hidra-custom-time-input-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+.hidra-custom-time-input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  background: #ffffff;
+  outline: none;
+}
+.hidra-custom-time-input:focus {
+  border-color: #2563eb;
+}
+.hidra-custom-time-ok {
+  padding: 10px 16px;
+  background: #2563eb;
+  border: none;
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.hidra-custom-time-ok:active {
+  background: #1d4ed8;
+}
+.hidra-custom-time-cancel {
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
 .hidra-config-label {
   font-size: 14px;
   font-weight: 600;
