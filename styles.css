@@ -232,9 +232,10 @@ body {
   box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.06) !important;
   position: absolute !important;
   bottom: 0;
-  left: 0;
-  right: 0;
-  max-width: 480px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 540px;
   height: 60px !important;
   padding-bottom: env(safe-area-inset-bottom);
 }

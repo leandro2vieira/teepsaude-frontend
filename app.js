@@ -12713,10 +12713,11 @@ function renderVitalDetailContent(historico) {
       const _slClass = _sl === 'Normal' ? 'normal' : (_sl === 'Atenção' ? 'atencao' : 'critico');
       return '<div class="vital-list-item vital-list-item--day-nav vital-list-item--hour-bucket" role="button" tabindex="0" onclick="selectOxigenacaoDay(\'' + dayIso.replace(/'/g, "\\'") + '\')">' +
         '<div class="vital-list-main vital-list-main--hour-detail">' +
+          '<div class="vital-list-time-line" style="font-weight:600;">' + _dl + '</div>' +
           '<div class="vital-list-measure-line">' +
             '<span style="color:' + _col + ';font-weight:700;">' + _fv + '</span>' +
+            (_sl ? ' <span class="oxig-status-chip oxig-status-chip--' + _slClass + '">' + _sl + '</span>' : '') +
           '</div>' +
-          '<div class="vital-list-time-line">' + _dl + (_sl ? ' <span class="oxig-status-chip oxig-status-chip--' + _slClass + '">' + _sl + '</span>' : '') + '</div>' +
         '</div>' +
         '<div class="vital-list-trail"><span class="vital-list-chevron" aria-hidden="true">&#8250;</span></div>' +
       '</div>';
@@ -12790,10 +12791,11 @@ function renderVitalDetailContent(historico) {
       const _slClass = _sl === 'Meta atingida' ? 'ok' : (_sl === 'Abaixo da meta' ? 'baixo' : 'muito');
       return '<div class="vital-list-item vital-list-item--day-nav vital-list-item--hour-bucket">' +
         '<div class="vital-list-main vital-list-main--hour-detail">' +
+          '<div class="vital-list-time-line" style="font-weight:600;">' + _dl + '</div>' +
           '<div class="vital-list-measure-line">' +
             '<span style="color:' + _col + ';font-weight:700;">' + _fv + '</span>' +
+            (_sl ? ' <span class="hidra-chip hidra-chip--' + _slClass + '">' + _sl + '</span>' : '') +
           '</div>' +
-          '<div class="vital-list-time-line">' + _dl + (_sl ? ' <span class="hidra-chip hidra-chip--' + _slClass + '">' + _sl + '</span>' : '') + '</div>' +
         '</div>' +
         '<div class="vital-list-trail"><span class="vital-list-chevron" aria-hidden="true">&#8250;</span></div>' +
       '</div>';
