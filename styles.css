@@ -11016,42 +11016,63 @@ body {
   background: #dbeafe;
 }
 
-/* ── Gear icon ─────────────────────────────────────────────────────── */
-.hidra-gear-btn {
-  background: none;
+/* ── Config view ───────────────────────────────────────────────────── */
+.hidra-config-view {
+  padding: 0 0 4px;
+}
+.hidra-config-view-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0 14px;
+}
+.hidra-config-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   border: none;
-  font-size: 16px;
-  line-height: 1;
-  padding: 2px;
-  margin-left: auto;
+  background: #f1f5f9;
+  color: #475569;
   cursor: pointer;
-  opacity: 0.45;
-  transition: opacity 0.15s;
+  flex-shrink: 0;
+  transition: background 0.15s, transform 0.1s;
 }
-.hidra-gear-btn:hover,
-.hidra-gear-btn:active {
-  opacity: 0.8;
+.hidra-config-back-btn:active {
+  background: #e2e8f0;
+  transform: scale(0.9);
 }
-
-/* ── Config panel ──────────────────────────────────────────────────── */
-.hidra-config {
-  margin-top: 12px;
-  padding: 14px 16px;
-  background: #f8fafc;
+.hidra-config-view-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1e293b;
+}
+.hidra-config-view-body {
+  padding: 0;
+}
+.hidra-config-card {
+  background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 12px;
 }
-.hidra-config-row {
+.hidra-config-card .hidra-config-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
-.hidra-config-row + .hidra-config-row {
-  margin-top: 10px;
+.hidra-config-card .hidra-config-row + .hidra-config-row {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #f1f5f9;
 }
 .hidra-config-label {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: #334155;
 }
@@ -11063,8 +11084,8 @@ body {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: 6px 14px;
+  font-size: 13px;
   font-weight: 600;
   color: #64748b;
   cursor: pointer;
@@ -11078,19 +11099,19 @@ body {
 .hidra-config-intv-btn:active {
   transform: scale(0.96);
 }
-.hidra-config-info {
-  font-size: 11px;
+.hidra-config-view-body .hidra-config-info {
+  font-size: 12px;
   color: #94a3b8;
-  margin-top: 10px;
-  line-height: 1.4;
+  line-height: 1.5;
+  padding: 0 2px;
 }
 
 /* Toggle switch */
 .hidra-toggle {
   position: relative;
   display: inline-block;
-  width: 42px;
-  height: 24px;
+  width: 44px;
+  height: 26px;
   flex-shrink: 0;
 }
 .hidra-toggle input {
@@ -11103,7 +11124,7 @@ body {
   cursor: pointer;
   inset: 0;
   background: #cbd5e1;
-  border-radius: 24px;
+  border-radius: 26px;
   transition: background 0.25s;
 }
 .hidra-toggle-slider::before {
@@ -11111,8 +11132,8 @@ body {
   position: absolute;
   left: 3px;
   bottom: 3px;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   background: #ffffff;
   border-radius: 50%;
   transition: transform 0.25s;

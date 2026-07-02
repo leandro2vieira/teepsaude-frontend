@@ -182,27 +182,6 @@ function buildHidraDetailPanel(vital) {
   var goalDisplay = fmtMl(goalMin);
   var barColor = pct >= 100 ? '#22c55e' : pct >= 50 ? '#3b82f6' : '#f59e0b';
 
-  var cfg = getHidraLembreteConfig();
-  var configHtml =
-    '<div class="hidra-config" id="hidraConfigPanel" style="display:none;">' +
-      '<div class="hidra-config-row">' +
-        '<span class="hidra-config-label">Lembretes automáticos</span>' +
-        '<label class="hidra-toggle">' +
-          '<input type="checkbox" id="hidraAutoToggle" ' + (cfg.enabled ? 'checked' : '') + ' onchange="toggleHidraAutoLembrete(this.checked)">' +
-          '<span class="hidra-toggle-slider"></span>' +
-        '</label>' +
-      '</div>' +
-      '<div class="hidra-config-row hidra-config-interval-row" id="hidraIntervalRow" style="' + (cfg.enabled ? '' : 'display:none;') + '">' +
-        '<span class="hidra-config-label">Intervalo</span>' +
-        '<div class="hidra-config-intervals">' +
-          [30, 60, 120, 180].map(function(m) {
-            return '<button type="button" class="hidra-config-intv-btn' + (cfg.interval === m ? ' active' : '') + '" onclick="setHidraInterval(' + m + ')">' + (m < 60 ? m + ' min' : (m / 60) + ' h') + '</button>';
-          }).join('') +
-        '</div>' +
-      '</div>' +
-      '<div class="hidra-config-info">O lembrete aparece automaticamente enquanto esta tela estiver aberta</div>' +
-    '</div>';
-
   return (
     '<div class="vital-detail-summary-panel vital-detail-summary-panel--hidra">' +
       '<div class="hidra-kpi-header">' +
@@ -221,7 +200,6 @@ function buildHidraDetailPanel(vital) {
         '<span class="hidra-kpi-status ' + (pct >= 100 ? 'hidra-kpi-status--ok' : '') + '">' + statusText + '</span>' +
         '<button type="button" class="hidra-lembrete-btn" onclick="showHidraLembrete()">🔔 Simular lembrete</button>' +
       '</div>' +
-      configHtml +
     '</div>'
   );
 }
@@ -240,10 +218,64 @@ function saveHidraLembreteConfig(cfg) {
 
 var _hidraAutoTimer = null;
 
-function toggleHidraConfig() {
-  var panel = document.getElementById('hidraConfigPanel');
-  if (!panel) return;
-  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+function openHidraConfigView() {
+  var chrome = document.getElementById('vitalDetailDefaultChrome');
+  if (!chrome) return;
+
+  var existing = document.getElementById('hidraConfigView');
+  if (existing) return;
+
+  var hidCards = document.getElementById('vitalDetailHidraCards');
+  if (hidCards) hidCards.style.display = 'none';
+
+  var cfg = getHidraLembreteConfig();
+
+  var view = document.createElement('div');
+  view.id = 'hidraConfigView';
+  view.className = 'hidra-config-view';
+  view.innerHTML =
+    '<div class="hidra-config-view-head">' +
+      '<button type="button" class="hidra-config-back-btn" onclick="closeHidraConfigView()" aria-label="Voltar">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>' +
+      '</button>' +
+      '<span class="hidra-config-view-title">Configurar lembrete</span>' +
+    '</div>' +
+    '<div class="hidra-config-view-body">' +
+      '<div class="hidra-config-card">' +
+        '<div class="hidra-config-row">' +
+          '<span class="hidra-config-label">Lembretes automáticos</span>' +
+          '<label class="hidra-toggle">' +
+            '<input type="checkbox" id="hidraAutoToggle" ' + (cfg.enabled ? 'checked' : '') + ' onchange="toggleHidraAutoLembrete(this.checked)">' +
+            '<span class="hidra-toggle-slider"></span>' +
+          '</label>' +
+        '</div>' +
+        '<div class="hidra-config-row hidra-config-interval-row" id="hidraIntervalRow" style="' + (cfg.enabled ? '' : 'display:none;') + '">' +
+          '<span class="hidra-config-label">Intervalo</span>' +
+          '<div class="hidra-config-intervals">' +
+            [30, 60, 120, 180].map(function(m) {
+              return '<button type="button" class="hidra-config-intv-btn' + (cfg.interval === m ? ' active' : '') + '" onclick="setHidraInterval(' + m + ')">' + (m < 60 ? m + ' min' : (m / 60) + ' h') + '</button>';
+            }).join('') +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="hidra-config-info">O lembrete aparece automaticamente enquanto a tela de hidratação estiver aberta.</div>' +
+    '</div>';
+
+  chrome.appendChild(view);
+
+  var periodControls = document.getElementById('vitalDefaultPeriodControls');
+  if (periodControls) periodControls.style.display = 'none';
+}
+
+function closeHidraConfigView() {
+  var view = document.getElementById('hidraConfigView');
+  if (view) view.remove();
+
+  var hidCards = document.getElementById('vitalDetailHidraCards');
+  if (hidCards) hidCards.style.display = '';
+
+  var periodControls = document.getElementById('vitalDefaultPeriodControls');
+  if (periodControls) periodControls.style.display = '';
 }
 
 function toggleHidraAutoLembrete(checked) {
