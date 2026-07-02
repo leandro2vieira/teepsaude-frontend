@@ -263,7 +263,7 @@ function openHidraConfigView() {
           '</div>' +
         '</div>' +
       '</div>' +
-      '<div class="hidra-config-info">O lembrete aparece automaticamente enquanto a tela de hidratação estiver aberta.</div>' +
+      '<div class="hidra-config-info">O lembrete aparece automaticamente em qualquer tela do app.</div>' +
     '</div>';
 
   chrome.appendChild(view);
