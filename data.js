@@ -2202,3 +2202,200 @@ injectMedicacaoHistoricoDemo(mockData);
 injectHistorico30DiasDemo(mockData);
 normalizeMockDataForAnalysis(mockData);
 injectDemoMedicoesUltimas24h(mockData);
+
+// ============================================================
+// CONTROLE PARENTAL — Multi-usuário e Sessão
+// ============================================================
+
+function _deepClone(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+const _allUsers = {};
+const _allUsersData = {};
+const _controleParental = [];
+const _session = { loggedInUserId: null, viewingUserId: null };
+
+function _genId() {
+  return 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+}
+
+function _saveSession() {
+  try {
+    localStorage.setItem('_allUsers', JSON.stringify(_allUsers));
+    localStorage.setItem('_allUsersData', JSON.stringify(_allUsersData));
+    localStorage.setItem('_controleParental', JSON.stringify(_controleParental));
+    localStorage.setItem('_session_luid', _session.loggedInUserId || '');
+  } catch (e) { console.warn('localStorage error:', e); }
+}
+
+function _loadSession() {
+  try {
+    var u = localStorage.getItem('_allUsers');
+    var d = localStorage.getItem('_allUsersData');
+    var c = localStorage.getItem('_controleParental');
+    var lid = localStorage.getItem('_session_luid');
+    if (u) Object.assign(_allUsers, JSON.parse(u));
+    if (d) Object.assign(_allUsersData, JSON.parse(d));
+    if (c) _controleParental.push.apply(_controleParental, JSON.parse(c));
+    if (lid) _session.loggedInUserId = lid;
+  } catch (e) { console.warn('localStorage load error:', e); }
+}
+
+function _populateMockUsers() {
+  // Clear existing data to avoid duplicates on re-population
+  for (var k in _allUsers) delete _allUsers[k];
+  for (var k in _allUsersData) delete _allUsersData[k];
+  _controleParental.length = 0;
+  _session.loggedInUserId = null;
+  _session.viewingUserId = null;
+
+  var uid1 = 'user_leandro';
+  var uid2 = 'user_dependente';
+  var uid3 = 'user_helena';
+
+  _allUsers[uid1] = {
+    id: uid1, nome: 'Maria Silva', email: 'joao@email.com',
+    fotoPerfilUrl: 'assets/img/Foto_Paciente.jpeg', tipo: 'paciente', dataCadastro: '2026-01-01',
+    dataNascimento: '1985-05-15', telefone: '(11) 98765-4321', cpf: '123.456.789-00'
+  };
+  _allUsers[uid2] = {
+    id: uid2, nome: 'João - Filho', email: 'joao.filho@email.com',
+    fotoPerfilUrl: 'assets/img/Screenshot_2.png', tipo: 'paciente', dataCadastro: '2026-06-01',
+    dataNascimento: '2015-08-12', telefone: '(11) 97777-6666', cpf: '987.654.321-00'
+  };
+  _allUsers[uid3] = {
+    id: uid3, nome: 'Helena - Irmã', email: 'helena@email.com',
+    fotoPerfilUrl: 'assets/img/Screenshot_3.png', tipo: 'paciente', dataCadastro: '2026-06-01',
+    dataNascimento: '1995-11-20', telefone: '(11) 96666-5555', cpf: '456.789.123-00'
+  };
+
+  // Helper: clone mockData and assign user profile
+  function _makeUserData(uid) {
+    var d = _deepClone(mockData);
+    Object.assign(d.usuario, _allUsers[uid]);
+    return d;
+  }
+
+  _allUsersData[uid1] = _makeUserData(uid1);
+
+  // João data
+  var d2 = _makeUserData(uid2);
+  d2.sinaisVitais[0].valor = 82;
+  d2.sinaisVitais[0].historico = d2.sinaisVitais[0].historico.map(function(h) { var c = _deepClone(h); c.valor = h.valor + 6; return c; });
+  d2.sinaisVitais[1].valor = '118/76';
+  d2.sinaisVitais[3].valor = 5400;
+  d2.sinaisVitais[6].valor = 85;
+  d2.medicacoes = d2.medicacoes.slice(0, 2);
+  d2.medicacoes[0].nome = 'Paracetamol';
+  d2.medicacoes[0].dosagem = '500mg';
+  d2.composicaoCorporal[0].valor = 42.5;
+  d2.consultas = [];
+  d2.examesAgendados = [];
+  d2.examesRealizados = [];
+  _allUsersData[uid2] = d2;
+
+  // Helena data
+  var d3 = _makeUserData(uid3);
+  d3.sinaisVitais[0].valor = 70;
+  d3.sinaisVitais[0].historico = d3.sinaisVitais[0].historico.map(function(h) { var c = _deepClone(h); c.valor = 70; return c; });
+  d3.sinaisVitais[1].valor = '110/72';
+  d3.sinaisVitais[3].valor = 8200;
+  d3.sinaisVitais[6].valor = 92;
+  d3.medicacoes = d3.medicacoes.slice(0, 1);
+  d3.medicacoes[0].nome = 'Dipirona';
+  d3.medicacoes[0].dosagem = '500mg';
+  d3.composicaoCorporal[0].valor = 58.2;
+  d3.consultas = [];
+  d3.examesAgendados = [];
+  d3.examesRealizados = [];
+  _allUsersData[uid3] = d3;
+
+  _controleParental.push({
+    id: 'cp_1', controllerId: uid1, controlledId: uid2,
+    status: 'active',
+    invitedAt: '2026-06-15T10:00:00', acceptedAt: '2026-06-15T10:05:00'
+  });
+  _controleParental.push({
+    id: 'cp_2', controllerId: uid1, controlledId: uid3,
+    status: 'active',
+    invitedAt: '2026-06-16T14:00:00', acceptedAt: '2026-06-16T14:02:00'
+  });
+}
+
+function initSession() {
+  // Always refresh mock data to ensure consistency
+  _populateMockUsers();
+  _saveSession();
+}
+
+function switchViewToUser(targetUserId) {
+  if (targetUserId === _session.viewingUserId) return;
+  _allUsersData[_session.viewingUserId] = _deepClone(mockData);
+  Object.assign(mockData, _allUsersData[targetUserId]);
+  if (!mockData.configBottomNav) mockData.configBottomNav = {};
+  _session.viewingUserId = targetUserId;
+  _saveSession();
+}
+
+function switchViewToSelf() {
+  if (_session.viewingUserId === _session.loggedInUserId) return;
+  switchViewToUser(_session.loggedInUserId);
+}
+
+function getLoggedInUser() { return _allUsers[_session.loggedInUserId] || null; }
+
+function getViewingUser() { return _allUsers[_session.viewingUserId] || null; }
+
+function isViewingAnotherUser() { return _session.viewingUserId !== _session.loggedInUserId; }
+
+function getControleParentalList() {
+  return _controleParental.filter(function(r) { return r.controllerId === _session.loggedInUserId; });
+}
+
+function getControleParentalListAsControlled() {
+  return _controleParental.filter(function(r) { return r.controlledId === _session.loggedInUserId; });
+}
+
+function addControleParental(email) {
+  var target = null;
+  for (var k in _allUsers) { if (_allUsers[k].email === email) { target = _allUsers[k]; break; } }
+  if (!target) return { ok: false, msg: 'Usuário não encontrado com este email.' };
+  if (target.id === _session.loggedInUserId) return { ok: false, msg: 'Você não pode adicionar a si mesmo.' };
+  for (var i = 0; i < _controleParental.length; i++) {
+    var r = _controleParental[i];
+    if (r.controllerId === _session.loggedInUserId && r.controlledId === target.id) {
+      return { ok: false, msg: 'Vínculo já existe.' };
+    }
+  }
+  _controleParental.push({
+    id: 'cp_' + _genId(),
+    controllerId: _session.loggedInUserId,
+    controlledId: target.id,
+    status: 'pending',
+    invitedAt: new Date().toISOString(),
+    acceptedAt: null
+  });
+  _saveSession();
+  return { ok: true, msg: 'Convite enviado para ' + target.nome + '.' };
+}
+
+function aceitarControleParental(relId) {
+  for (var i = 0; i < _controleParental.length; i++) {
+    if (_controleParental[i].id === relId) {
+      _controleParental[i].status = 'active';
+      _controleParental[i].acceptedAt = new Date().toISOString();
+      _saveSession();
+      return;
+    }
+  }
+}
+
+function getUsersControlledByMe() {
+  var ids = [];
+  for (var i = 0; i < _controleParental.length; i++) {
+    var r = _controleParental[i];
+    if (r.controllerId === _session.loggedInUserId && r.status === 'active') {
+      ids.push(r.controlledId);
+    }
+  }
+  return ids;
+}

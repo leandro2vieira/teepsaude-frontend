@@ -1397,6 +1397,12 @@ function toggleBottomNavItem(screenId, toggleEl) {
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
+  initSession();
+  // Always show login screen — session check is just to know if user data exists
+  setupUserSwitcher();
+});
+
+function initApp() {
   ensureBottomNavConfig();
   ensureConfigColetaPressao();
   refreshHeaderUser();
@@ -1414,7 +1420,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setupFotoUpload();
   checkMedicationAlerts();
   checkRescheduledMeasurementAlerts();
-});
+  checkViewingBanner();
+}
 
 function getUsuarioPrimeiroNome() {
   return mockData.usuario.nome.split(' ')[0];
@@ -1508,6 +1515,235 @@ function setGlobalHeaderVisible(visible) {
 function refreshHeaderUser() {
   updateHeaderUserName();
   applyHeaderAvatar();
+}
+
+function onAvatarClick(event) {
+  if (event) event.stopPropagation();
+  openUserDropdown();
+}
+
+function openUserDropdown() {
+  var dd = document.getElementById('avatarDropdown');
+  if (!dd) return;
+  var backdrop = document.getElementById('avatarDropdownBackdrop');
+  if (!backdrop) {
+    backdrop = document.createElement('div');
+    backdrop.id = 'avatarDropdownBackdrop';
+    backdrop.className = 'avatar-dropdown-backdrop';
+    document.body.appendChild(backdrop);
+    backdrop.addEventListener('click', closeUserDropdown);
+  }
+  var avatar = document.getElementById('headerAvatar');
+  if (avatar) {
+    var rect = avatar.getBoundingClientRect();
+    dd.style.top = (rect.bottom + 6) + 'px';
+    dd.style.left = Math.max(8, rect.left) + 'px';
+    dd.style.minWidth = Math.max(250, rect.width * 2) + 'px';
+  }
+  renderAvatarDropdown();
+  var isOpen = dd.classList.toggle('active');
+  backdrop.style.display = isOpen ? 'block' : 'none';
+  var chevron = document.getElementById('headerChevron');
+  if (chevron) chevron.style.transform = isOpen ? 'rotate(180deg)' : '';
+}
+
+function setupUserSwitcher() {
+  // Click on name/greeting area (avatar has inline onclick)
+  var profile = document.querySelector('.header-profile');
+  if (profile) {
+    profile.addEventListener('click', function(e) {
+      if (e.target.closest('.header-screen-actions')) return;
+      if (e.target.closest('#headerAvatar')) return;
+      openUserDropdown();
+    });
+  }
+}
+
+function renderAvatarDropdown() {
+  var dd = document.getElementById('avatarDropdown');
+  if (!dd) return;
+  var loggedUser = getLoggedInUser();
+
+  var controlledItems = [];
+  var myId = _session.loggedInUserId;
+
+  if (myId) {
+    for (var idx = 0; idx < _controleParental.length; idx++) {
+      var rel = _controleParental[idx];
+      if (rel.controllerId === myId && rel.status === 'active') {
+        var cUser = _allUsers[rel.controlledId];
+        if (cUser) {
+          controlledItems.push({
+            id: cUser.id,
+            nome: cUser.nome,
+            fotoUrl: cUser.fotoPerfilUrl,
+            isViewing: _session.viewingUserId === cUser.id
+          });
+        }
+      }
+    }
+  }
+
+  var items = [];
+  var isViewingSelf = !myId || _session.viewingUserId === myId;
+
+  items.push(
+    '<div class="avatar-dropdown-item' + (isViewingSelf ? ' active' : '') + '" onclick="switchViewToSelf(); refreshHeaderUser(); reRenderCurrentScreen(); hideViewingBanner(); closeUserDropdown();">' +
+      '<div class="drop-avatar">' +
+        (loggedUser && loggedUser.fotoPerfilUrl ? '<img src="' + loggedUser.fotoPerfilUrl + '" alt="">' : (loggedUser ? loggedUser.nome.charAt(0).toUpperCase() : '?')) +
+      '</div>' +
+      '<span class="drop-name">' + (loggedUser ? loggedUser.nome : 'Eu') + '<span class="drop-role">' + (isViewingSelf ? 'Você' : 'Minha conta') + '</span></span>' +
+      (isViewingSelf ? '<span class="drop-check">&#10003;</span>' : '') +
+    '</div>'
+  );
+
+  if (controlledItems.length > 0) {
+    items.push('<div class="avatar-dropdown-item" style="font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;padding:8px 18px 4px;cursor:default;border-left-color:transparent;">Dependentes</div>');
+    for (var i = 0; i < controlledItems.length; i++) {
+      var ci = controlledItems[i];
+      items.push(
+        '<div class="avatar-dropdown-item' + (ci.isViewing ? ' active' : '') + '" onclick="switchViewToUser(\'' + ci.id + '\'); refreshHeaderUser(); reRenderCurrentScreen(); showViewingBanner(\'' + ci.nome.replace(/'/g, "\\'") + '\'); closeUserDropdown();">' +
+          '<div class="drop-avatar">' +
+            (ci.fotoUrl ? '<img src="' + ci.fotoUrl + '" alt="">' : ci.nome.charAt(0).toUpperCase()) +
+          '</div>' +
+          '<span class="drop-name">' + ci.nome + '</span>' +
+          (ci.isViewing ? '<span class="drop-check">&#10003;</span>' : '') +
+        '</div>'
+      );
+    }
+    items.push('<div class="avatar-dropdown-divider"></div>');
+    items.push('<div class="avatar-dropdown-item avatar-dropdown-item--manage" onclick="switchScreen(\'perfilScreen\'); closeUserDropdown();">Gerenciar Controle Parental</div>');
+  } else {
+    items.push('<div class="avatar-dropdown-divider"></div>');
+    items.push('<div class="avatar-dropdown-item avatar-dropdown-item--manage" onclick="switchScreen(\'perfilScreen\'); closeUserDropdown();">Configurar Controle Parental</div>');
+  }
+
+  dd.innerHTML = items.join('');
+}
+
+function closeUserDropdown() {
+  var dd = document.getElementById('avatarDropdown');
+  if (dd) dd.classList.remove('active');
+  var backdrop = document.getElementById('avatarDropdownBackdrop');
+  if (backdrop) backdrop.style.display = 'none';
+  var chevron = document.getElementById('headerChevron');
+  if (chevron) chevron.style.transform = '';
+}
+
+function showViewingBanner(nome) {
+  var b = document.getElementById('viewingBanner');
+  var t = document.getElementById('viewingBannerText');
+  if (!b) return;
+  if (t) t.textContent = 'Visualizando: ' + nome;
+  b.classList.add('active');
+  // Push header down below the banner
+  var header = document.getElementById('header');
+  if (header) header.style.marginTop = '44px';
+}
+
+function hideViewingBanner() {
+  var b = document.getElementById('viewingBanner');
+  if (!b) return;
+  b.classList.remove('active');
+  var header = document.getElementById('header');
+  if (header) header.style.marginTop = '';
+}
+
+function checkViewingBanner() {
+  var v = getViewingUser();
+  var l = getLoggedInUser();
+  if (v && l && v.id !== l.id) {
+    showViewingBanner(v.nome);
+  } else {
+    hideViewingBanner();
+  }
+}
+
+function reRenderCurrentScreen() {
+  var screenId = currentScreen || 'homeScreen';
+  switchScreen(screenId);
+}
+
+// ===== LOGIN =====
+document.addEventListener('DOMContentLoaded', function() {
+  var loginInput = document.getElementById('loginEmail');
+  if (loginInput) {
+    loginInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') handleLogin();
+    });
+  }
+});
+
+function handleLogin() {
+  var input = document.getElementById('loginEmail');
+  var errorEl = document.getElementById('loginError');
+  var email = input ? input.value.trim() : '';
+  if (!email) {
+    if (errorEl) errorEl.textContent = 'Digite seu e-mail.';
+    return;
+  }
+
+  // Find user by email
+  var foundUser = null;
+  for (var k in _allUsers) {
+    if (_allUsers[k].email === email) {
+      foundUser = _allUsers[k];
+      break;
+    }
+  }
+
+  if (!foundUser) {
+    if (errorEl) errorEl.textContent = 'Usuário não encontrado. Verifique o e-mail.';
+    return;
+  }
+
+  if (errorEl) errorEl.textContent = '';
+  _session.loggedInUserId = foundUser.id;
+  _session.viewingUserId = foundUser.id;
+  Object.assign(mockData, _allUsersData[foundUser.id]);
+  _saveSession();
+
+  var overlay = document.getElementById('loginOverlay');
+  if (overlay) overlay.classList.add('hidden');
+
+  initApp();
+}
+
+// ===== CONTROLE PARENTAL MODALS =====
+function closeControleParentalModal() {
+  document.getElementById('controleParentalModal').classList.remove('active');
+}
+
+function closeModal(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.remove('active');
+}
+
+function confirmAddDependente() {
+  var input = document.getElementById('addDepEmail');
+  var feedback = document.getElementById('addDepFeedback');
+  if (!input) return;
+  var email = input.value.trim();
+  if (!email) { if (feedback) feedback.textContent = 'Digite o e-mail.'; return; }
+  var result = addControleParental(email);
+  if (feedback) {
+    feedback.textContent = result.msg;
+    feedback.style.color = result.ok ? '#16a34a' : '#ef4444';
+  }
+  if (result.ok) {
+    setTimeout(function() {
+      document.getElementById('addDependenteModal').classList.remove('active');
+      if (feedback) feedback.textContent = '';
+      // Re-render perfil
+      if (currentScreen === 'perfilScreen') renderPerfil();
+    }, 1200);
+  }
+}
+
+function simularAceite(relId) {
+  aceitarControleParental(relId);
+  // Re-render perfil
+  if (currentScreen === 'perfilScreen') renderPerfil();
 }
 
 // ===== RENDERIZAÇÃO DE TELAS =====
@@ -1936,6 +2172,77 @@ function renderCompartilhamentoInPerfil() {
   }
 }
 
+function renderControleParentalInPerfil() {
+  var section = document.getElementById('controleParentalSection');
+  if (!section) return;
+  // Hide section when viewing another user's profile
+  if (isViewingAnotherUser()) {
+    section.innerHTML = '';
+    section.style.display = 'none';
+    // Also hide the section title
+    var titles = document.querySelectorAll('.perfil-section-title');
+    for (var t = 0; t < titles.length; t++) {
+      if (titles[t].textContent.trim() === 'Controle Parental') {
+        titles[t].style.display = 'none';
+      }
+    }
+    return;
+  }
+  // Show the section
+  section.style.display = '';
+  var titles = document.querySelectorAll('.perfil-section-title');
+  for (var t = 0; t < titles.length; t++) {
+    if (titles[t].textContent.trim() === 'Controle Parental') {
+      titles[t].style.display = '';
+    }
+  }
+  var list = getControleParentalList();
+  var html = '';
+
+  if (list.length === 0) {
+    html = '<div class="cp-empty">Nenhum dependente vinculado.</div>';
+  } else {
+    html = '<div class="cp-section">';
+    for (var i = 0; i < list.length; i++) {
+      var rel = list[i];
+      var u = _allUsers[rel.controlledId];
+      if (!u) continue;
+      var statusClass = rel.status === 'active' ? 'active' : 'pending';
+      var statusLabel = rel.status === 'active' ? 'Ativo' : 'Pendente';
+      var initials = u.nome ? u.nome.charAt(0).toUpperCase() : '?';
+      html += '<div class="cp-item">' +
+        '<div class="cp-item-avatar">' +
+          (u.fotoPerfilUrl ? '<img src="' + u.fotoPerfilUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : initials) +
+        '</div>' +
+        '<div class="cp-item-info">' +
+          '<div class="cp-item-name">' + u.nome + '</div>' +
+          '<div class="cp-item-email">' + u.email + '</div>' +
+        '</div>' +
+        '<span class="cp-item-status ' + statusClass + '">' + statusLabel + '</span>';
+      if (rel.status === 'pending') {
+        html += '<button class="cp-accept-btn" onclick="simularAceite(\'' + rel.id + '\')">Simular aceite</button>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+
+  html += '<div class="cp-add-btn" onclick="openAddDependenteModal()">' +
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+    'Adicionar dependente</div>';
+
+  section.innerHTML = html;
+}
+
+function openAddDependenteModal() {
+  var modal = document.getElementById('addDependenteModal');
+  var input = document.getElementById('addDepEmail');
+  var feedback = document.getElementById('addDepFeedback');
+  if (input) input.value = '';
+  if (feedback) feedback.textContent = '';
+  if (modal) modal.classList.add('active');
+}
+
 function togglePerfilMask(elId) {
   var el = document.getElementById(elId);
   if (!el) return;
@@ -2121,8 +2428,11 @@ function renderPerfil() {
     </div>
     <div id="compartilhamentoContent" style="margin-top:8px;"></div>
 
+    <!-- ?"–? CONTROLE PARENTAL ?"–? -->
+    <div class="perfil-section-title">Controle Parental</div>
+    <div id="controleParentalSection"></div>
+
     <!-- ?"–? CONTA ?"–? -->
-    <div class="perfil-section-title">Conta</div>
     <div class="config-item" style="cursor:pointer;">
       <div class="config-item-content">
         <div class="config-icon" style="color:#3b82f6;"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
@@ -2188,6 +2498,7 @@ function renderPerfil() {
   });
 
   renderCompartilhamentoInPerfil();
+  renderControleParentalInPerfil();
   renderDispositivos();
 }
 

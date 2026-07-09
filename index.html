@@ -13,16 +13,25 @@
 <body>
     <div id="root">
         <div id="app" class="mobile-container framework7-root safe-areas">
+            <!-- Viewing Banner (inside container) -->
+            <div class="viewing-banner" id="viewingBanner">
+                <div class="viewing-banner-content">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span id="viewingBannerText">Visualizando: João Filho</span>
+                    <button class="viewing-banner-btn" onclick="switchViewToSelf(); refreshHeaderUser(); reRenderCurrentScreen(); hideViewingBanner();">Voltar</button>
+                </div>
+            </div>
             <!-- Header: avatar em cima + nome embaixo (estilo perfil); ações à direita -->
             <div class="navbar header" id="header">
                 <div class="navbar-bg"></div>
                 <div class="navbar-inner header-top-row">
                     <div class="header-profile">
-                        <div class="header-avatar" id="headerAvatar" role="img" aria-label="Avatar do usuário">👤</div>
+                        <div class="header-avatar" id="headerAvatar" role="img" aria-label="Avatar do usuário" onclick="onAvatarClick(event)">👤</div>
                         <div class="header-user-text">
                             <div class="header-name-row">
                                 <span class="header-greeting" id="headerGreeting">Bom dia</span>
                                 <span class="header-user-name" id="headerUserName">João</span>
+                                <span class="header-chevron" id="headerChevron">▼</span>
                             </div>
                             <span class="header-date" id="headerDate"></span>
                         </div>
@@ -1917,6 +1926,51 @@
             <div class="feedback-modal-message" id="feedbackModalMessage">Operação realizada com sucesso.</div>
             <div class="button-group">
                 <button type="button" class="button-submit" id="feedbackModalOkBtn">Entendi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-card">
+            <div class="login-logo">
+                <img src="assets/img/DrFazSaude.png" alt="Teep Saúde" onerror="this.style.display='none'" style="height:48px;">
+            </div>
+            <div class="login-title">Teep Saúde</div>
+            <div class="login-subtitle">Acesse sua conta</div>
+            <div class="login-form">
+                <input type="email" class="login-input" id="loginEmail" placeholder="Seu e-mail" value="joao@email.com" autocomplete="email">
+                <button class="login-btn" id="loginBtn" onclick="handleLogin()">Entrar</button>
+            </div>
+            <div class="login-error" id="loginError"></div>
+        </div>
+    </div>
+
+    <!-- Avatar Dropdown -->
+    <div class="avatar-dropdown" id="avatarDropdown"></div>
+
+    <!-- Controle Parental Modal -->
+    <div class="modal" id="controleParentalModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Controle Parental</span>
+                <button class="modal-ok" onclick="closeControleParentalModal()">OK</button>
+            </div>
+            <div id="controleParentalContent"></div>
+        </div>
+    </div>
+
+    <!-- Add Dependente Modal -->
+    <div class="modal" id="addDependenteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Adicionar Dependente</span>
+                <button class="modal-ok" onclick="closeModal('addDependenteModal')">Cancelar</button>
+            </div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:12px;">
+                <input type="email" class="login-input" id="addDepEmail" placeholder="E-mail do dependente" value="joao.filho@email.com">
+                <button class="login-btn" onclick="confirmAddDependente()">Enviar Convite</button>
+                <div id="addDepFeedback" style="font-size:13px;color:#64748b;text-align:center;"></div>
             </div>
         </div>
     </div>
