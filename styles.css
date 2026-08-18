@@ -2792,9 +2792,6 @@ body {
   text-overflow: ellipsis;
   max-width: 200px;
 }
-  font-size: 42px;
-  color: #0f172a;
-}
 
 .vital-card--featured .vital-pressao-num {
   font-size: 38px;
@@ -14318,5 +14315,4 @@ body.corpo-insert-screen-open {
   .corpo-insert-confirm-actions {
     flex-direction: column;
   }
-}
 }
