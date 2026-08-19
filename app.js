@@ -1,4 +1,158 @@
-﻿let currentScreen = 'homeScreen';
+﻿// ── Onboarding Wizard ──
+var _onbCurrentStep = 0;
+var _onbTotalSteps = 6;
+var _onbDirection = 1; // 1 = forward, -1 = backward
+
+function wizardShowStep(step) {
+  var pages = document.querySelectorAll('.onb-page');
+  pages.forEach(function(p) {
+    p.classList.remove('active', 'onb-page--enter', 'onb-page--exit');
+  });
+  var target = document.querySelector('.onb-page[data-step="' + step + '"]');
+  if (target) {
+    target.classList.add('active', 'onb-page--enter');
+    // Focus input if present (skip steppers — user uses the +/- buttons)
+    setTimeout(function() {
+      var inp = target.querySelector('.onb-wiz-input:not(.onb-stepper-input)');
+      if (inp) inp.focus();
+    }, 350);
+  }
+}
+
+function wizardNext() {
+  _onbDirection = 1;
+  _onbCurrentStep++;
+  if (_onbCurrentStep > _onbTotalSteps) {
+    finishOnboarding();
+    return;
+  }
+  // Pre-fill mock data on Google login
+  if (_onbCurrentStep === 1 && window._onbGoogleLogin) {
+    document.getElementById('wizNome').value = 'Maria';
+  }
+  if (_onbCurrentStep === 2 && window._onbGoogleLogin) {
+    document.getElementById('wizSobrenome').value = 'Oliveira';
+  }
+  if (_onbCurrentStep === 3 && window._onbGoogleLogin) {
+    document.getElementById('wizEmail').value = 'maria.oliveira@gmail.com';
+  }
+  if (_onbCurrentStep === 4 && window._onbGoogleLogin) {
+    document.getElementById('wizPeso').value = '65';
+  }
+  if (_onbCurrentStep === 5 && window._onbGoogleLogin) {
+    document.getElementById('wizAltura').value = '168';
+  }
+  if (_onbCurrentStep === 6 && window._onbGoogleLogin) {
+    document.getElementById('wizNascimento').value = '1992';
+    window._onbGoogleLogin = false;
+  }
+  wizardShowStep(_onbCurrentStep);
+}
+
+function wizardBack() {
+  _onbDirection = -1;
+  if (_onbCurrentStep <= 0) return;
+  _onbCurrentStep--;
+  wizardShowStep(_onbCurrentStep);
+}
+
+function loginWithGoogle() {
+  window._onbGoogleLogin = true;
+  _onbCurrentStep = 0;
+  wizardNext();
+}
+
+function finishOnboarding() {
+  // Collect wizard data
+  var nome = (document.getElementById('wizNome') || {}).value || 'João';
+  var sobrenome = (document.getElementById('wizSobrenome') || {}).value || 'Silva';
+  var email = (document.getElementById('wizEmail') || {}).value || 'joao.silva@email.com';
+  var peso = (document.getElementById('wizPeso') || {}).value || '78';
+  var altura = (document.getElementById('wizAltura') || {}).value || '175';
+  var nascimento = (document.getElementById('wizNascimento') || {}).value || '1990';
+
+  // Setup session with first mock user
+  var firstUserKey = Object.keys(_allUsers)[0];
+  if (firstUserKey) {
+    _session.loggedInUserId = firstUserKey;
+    _session.viewingUserId = firstUserKey;
+    Object.assign(mockData, _allUsersData[firstUserKey]);
+    // Override name from wizard
+    if (mockData.usuario) {
+      mockData.usuario.nome = nome + ' ' + sobrenome;
+      mockData.usuario.email = email;
+    }
+    _saveSession();
+  }
+
+  var overlay = document.getElementById('onboardingOverlay');
+  overlay.classList.add('onb--fadeout');
+  setTimeout(function() {
+    overlay.style.display = 'none';
+    initApp();
+  }, 500);
+}
+
+// Enter key advances wizard
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && _onbCurrentStep > 0 && _onbCurrentStep <= _onbTotalSteps) {
+    e.preventDefault();
+    wizardNext();
+  }
+});
+
+// ── Stepper touch (+/− buttons) ──
+var _stepperConfig = {
+  wizPeso:        { step: 1, min: 30,  max: 300, def: 70  },
+  wizAltura:      { step: 1, min: 100, max: 250, def: 165 },
+  wizNascimento:  { step: 1, min: 1930, max: new Date().getFullYear(), def: 1960 }
+};
+
+function stepperChange(id, delta) {
+  var cfg = _stepperConfig[id];
+  var inp = document.getElementById(id);
+  if (!inp || !cfg) return;
+  var v = parseFloat(inp.value);
+  if (isNaN(v)) v = cfg.def;
+  v += delta * cfg.step;
+  if (v > cfg.max) v = cfg.max;
+  if (v < cfg.min) v = cfg.min;
+  inp.value = v;
+}
+
+// Hold-to-repeat: press and hold a button to keep changing
+(function setupSteppers() {
+  document.querySelectorAll('.onb-stepper-btn').forEach(function(btn) {
+    var host = btn.closest('.onb-stepper');
+    if (!host) return;
+    var idInput = host.querySelector('.onb-stepper-input');
+    if (!idInput) return;
+    var id = idInput.id;
+    var delta = btn.classList.contains('onb-stepper-btn--plus') ? 1 : -1;
+    var timer = null, interval = null;
+
+    function start(e) {
+      e.preventDefault();
+      stepperChange(id, delta);
+      timer = setTimeout(function() {
+        interval = setInterval(function() { stepperChange(id, delta); }, 90);
+      }, 400);
+    }
+    function stop() {
+      clearTimeout(timer);
+      clearInterval(interval);
+      timer = null; interval = null;
+    }
+    btn.addEventListener('mousedown', start);
+    btn.addEventListener('mouseup', stop);
+    btn.addEventListener('mouseleave', stop);
+    btn.addEventListener('touchstart', start, { passive: false });
+    btn.addEventListener('touchend', stop);
+    btn.addEventListener('touchcancel', stop);
+  });
+})();
+
+let currentScreen = 'homeScreen';
 let fotoAtualMedicacao = null;
 let fotoAtualMedicacaoEdit = null;
 let currentVitalType = '';
@@ -1662,51 +1816,6 @@ function checkViewingBanner() {
 function reRenderCurrentScreen() {
   var screenId = currentScreen || 'homeScreen';
   switchScreen(screenId);
-}
-
-// ===== LOGIN =====
-document.addEventListener('DOMContentLoaded', function() {
-  var loginInput = document.getElementById('loginEmail');
-  if (loginInput) {
-    loginInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') handleLogin();
-    });
-  }
-});
-
-function handleLogin() {
-  var input = document.getElementById('loginEmail');
-  var errorEl = document.getElementById('loginError');
-  var email = input ? input.value.trim() : '';
-  if (!email) {
-    if (errorEl) errorEl.textContent = 'Digite seu e-mail.';
-    return;
-  }
-
-  // Find user by email
-  var foundUser = null;
-  for (var k in _allUsers) {
-    if (_allUsers[k].email === email) {
-      foundUser = _allUsers[k];
-      break;
-    }
-  }
-
-  if (!foundUser) {
-    if (errorEl) errorEl.textContent = 'Usuário não encontrado. Verifique o e-mail.';
-    return;
-  }
-
-  if (errorEl) errorEl.textContent = '';
-  _session.loggedInUserId = foundUser.id;
-  _session.viewingUserId = foundUser.id;
-  Object.assign(mockData, _allUsersData[foundUser.id]);
-  _saveSession();
-
-  var overlay = document.getElementById('loginOverlay');
-  if (overlay) overlay.classList.add('hidden');
-
-  initApp();
 }
 
 // ===== CONTROLE PARENTAL MODALS =====

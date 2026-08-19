@@ -14346,34 +14346,14 @@ body.corpo-insert-screen-open {
 }
 
 /* ============================================
-   CONTROLE PARENTAL — LOGIN / DROPDOWN / BANNER
+   CONTROLE PARENTAL — DROPDOWN / BANNER
    ============================================ */
 
-/* --- Login Screen --- */
-.login-overlay {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  background: linear-gradient(135deg, #1a2332 0%, #2563eb 100%);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 10000; padding: 24px;
-  transition: opacity 0.35s ease, visibility 0.35s ease;
-}
-.login-overlay.hidden {
-  opacity: 0; visibility: hidden; pointer-events: none;
-}
-.login-card {
-  background: #fff; border-radius: 20px; padding: 36px 28px 28px;
-  width: 100%; max-width: 360px; text-align: center;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-}
-.login-logo { margin-bottom: 12px; }
-.login-title { font-size: 22px; font-weight: 800; color: #1a2332; margin-bottom: 4px; }
-.login-subtitle { font-size: 14px; color: #64748b; margin-bottom: 24px; }
-.login-form { display: flex; flex-direction: column; gap: 12px; }
+/* Shared input/button classes (used in dependent modal) */
 .login-input {
   width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px;
   font-size: 15px; color: #1a2332; outline: none; box-sizing: border-box;
-  transition: border-color 0.2s;
-  background: #f8fafc;
+  transition: border-color 0.2s; background: #f8fafc;
 }
 .login-input:focus { border-color: #2563eb; background: #fff; }
 .login-btn {
@@ -14383,7 +14363,6 @@ body.corpo-insert-screen-open {
 }
 .login-btn:hover { background: #1d4ed8; }
 .login-btn:active { transform: scale(0.97); }
-.login-error { font-size: 13px; color: #ef4444; margin-top: 10px; min-height: 20px; }
 
 /* --- Avatar Dropdown --- */
 .avatar-dropdown {
@@ -14489,4 +14468,484 @@ body.corpo-insert-screen-open {
 .cp-accept-btn {
   background: #16a34a; color: #fff; border: none; border-radius: 8px;
   padding: 4px 12px; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ONBOARDING WIZARD — Alinhado ao Design System
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.onb {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--surface-subtle, #f1f5f9);
+  overflow: hidden;
+}
+
+.onb--fadeout {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Tech atmosphere — floating orbs */
+.onb-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.onb-orb--1 {
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.16) 0%, transparent 70%);
+  top: -140px;
+  right: -120px;
+  animation: onbOrbFloat 16s ease-in-out infinite;
+}
+
+.onb-orb--2 {
+  width: 360px;
+  height: 360px;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.12) 0%, transparent 70%);
+  bottom: -110px;
+  left: -110px;
+  animation: onbOrbFloat 20s ease-in-out infinite reverse;
+}
+
+.onb-orb--3 {
+  width: 240px;
+  height: 240px;
+  background: radial-gradient(circle, rgba(5, 150, 105, 0.1) 0%, transparent 70%);
+  top: 40%;
+  left: 8%;
+  animation: onbOrbFloat 24s ease-in-out infinite;
+}
+
+@keyframes onbOrbFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(24px, -18px) scale(1.06); }
+}
+
+/* Container */
+.onb-container {
+  width: 100%;
+  max-width: 540px;
+  height: 100vh;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Pages ── */
+.onb-page {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  background: var(--surface-subtle, #f1f5f9);
+}
+
+.onb-page.active {
+  display: flex;
+}
+
+.onb-page--enter {
+  animation: onbSlideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes onbSlideIn {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ══════════════════════════════════════
+   HERO PAGE
+   ══════════════════════════════════════ */
+
+.onb-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 48px 32px 40px;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+.onb-hero-logo {
+  margin-bottom: 24px;
+}
+
+.onb-hero-logo svg {
+  width: 64px;
+  height: 64px;
+  filter: drop-shadow(0 4px 12px rgba(37, 99, 235, 0.2));
+}
+
+.onb-hero-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-title, #0f172a);
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+}
+
+.onb-hero-sub {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-muted, #64748b);
+  margin-bottom: 48px;
+}
+
+/* Hero actions */
+.onb-hero-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.onb-hero-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 56px;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.onb-hero-btn:active { transform: scale(0.97); }
+
+.onb-hero-btn--google {
+  background: var(--surface-card, #ffffff);
+  color: var(--text-title, #0f172a);
+  border: var(--border-card, 1px solid #efefef);
+  box-shadow: var(--shadow-card, 0 2px 10px rgba(0, 0, 0, 0.06));
+}
+
+.onb-hero-btn--google:hover {
+  box-shadow: var(--shadow-card-hover, 0 4px 14px rgba(0, 0, 0, 0.08));
+}
+
+.onb-hero-btn--primary {
+  background: var(--accent-primary, #2563eb);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.25);
+}
+
+.onb-hero-btn--primary:hover {
+  box-shadow: 0 6px 24px rgba(37, 99, 235, 0.35);
+  transform: translateY(-1px);
+}
+
+.onb-hero-or {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 0;
+}
+
+.onb-hero-or span:first-child,
+.onb-hero-or span:last-child {
+  flex: 1;
+  height: 1px;
+  background: var(--border-soft, #e2e8f0);
+}
+
+.onb-hero-or span:nth-child(2) {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted, #64748b);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.onb-hero-legal {
+  font-size: 11px;
+  color: var(--text-muted, #64748b);
+  text-align: center;
+  line-height: 1.6;
+  margin-top: 28px;
+}
+
+.onb-hero-legal a {
+  color: var(--accent-primary, #2563eb);
+  text-decoration: none;
+}
+
+/* ══════════════════════════════════════
+   WIZARD PAGES
+   ══════════════════════════════════════ */
+
+/* Top bar: back + progress */
+.onb-wiz-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 16px 0;
+}
+
+.onb-wiz-back {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: var(--border-card-soft, 1px solid #f1f1f1);
+  background: var(--surface-card, #ffffff);
+  color: var(--text-muted, #64748b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  box-shadow: var(--shadow-card, 0 2px 10px rgba(0, 0, 0, 0.06));
+}
+
+.onb-wiz-back:active {
+  transform: scale(0.9);
+  background: var(--surface-soft, #f8fafc);
+}
+
+.onb-wiz-progress {
+  flex: 1;
+  height: 6px;
+  background: var(--border-soft, #e2e8f0);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.onb-wiz-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+  border-radius: 3px;
+  position: relative;
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.onb-wiz-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  animation: onbProgressGlow 2s ease-in-out infinite;
+}
+
+@keyframes onbProgressGlow {
+  0% { left: -40px; }
+  100% { left: 110%; }
+}
+
+/* Body: centered question + input */
+.onb-wiz-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 32px;
+  text-align: center;
+}
+
+.onb-wiz-step-num {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  letter-spacing: 0.04em;
+  margin-bottom: 16px;
+}
+
+.onb-wiz-question {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-title, #0f172a);
+  line-height: 1.2;
+  margin-bottom: 40px;
+}
+
+.onb-wiz-question strong {
+  color: var(--accent-primary, #2563eb);
+}
+
+/* Input — minimalista, tipografia como elemento */
+.onb-wiz-field {
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  justify-content: center;
+}
+
+.onb-wiz-input {
+  width: 100%;
+  max-width: 320px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--border-soft, #e2e8f0);
+  border-radius: 0;
+  padding: 12px 4px;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-title, #0f172a);
+  text-align: center;
+  outline: none;
+  caret-color: var(--accent-primary, #2563eb);
+  transition: border-color 0.3s;
+}
+
+.onb-wiz-input::placeholder {
+  color: var(--border-strong, #cbd5e1);
+  font-weight: 600;
+}
+
+.onb-wiz-input:focus {
+  border-color: var(--accent-primary, #2563eb);
+}
+
+.onb-wiz-input--big {
+  font-size: 42px;
+  letter-spacing: -0.01em;
+}
+
+/* ── Stepper touch: botões grandes +/− ── */
+.onb-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  width: 100%;
+  max-width: 340px;
+}
+
+.onb-stepper-btn {
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.onb-stepper-btn:active {
+  transform: scale(0.88);
+}
+
+.onb-stepper-btn--minus {
+  background: var(--surface-card, #ffffff);
+  color: var(--text-muted, #64748b);
+  border: 2px solid var(--border-soft, #e2e8f0);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.onb-stepper-btn--plus {
+  background: var(--accent-primary, #2563eb);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.28);
+}
+
+.onb-stepper-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  min-width: 130px;
+}
+
+.onb-stepper-input {
+  max-width: 140px;
+  text-align: center;
+}
+
+.onb-stepper-unit {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  flex-shrink: 0;
+}
+
+/* Next button — tech shine sweep + pulse */
+.onb-wiz-next {
+  position: relative;
+  overflow: hidden;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent-primary, #2563eb);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin: 0 auto 48px;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.25);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  animation: onbNextPulse 2.8s ease-in-out infinite;
+}
+
+.onb-wiz-next::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: skewX(-20deg);
+  animation: onbShine 3.4s ease-in-out infinite;
+}
+
+.onb-wiz-next:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(37, 99, 235, 0.4);
+}
+
+.onb-wiz-next:active {
+  transform: scale(0.92);
+}
+
+@keyframes onbShine {
+  0% { left: -60%; }
+  55%, 100% { left: 130%; }
+}
+
+@keyframes onbNextPulse {
+  0%, 100% { box-shadow: 0 4px 16px rgba(37, 99, 235, 0.25); }
+  50% { box-shadow: 0 4px 30px rgba(37, 99, 235, 0.5); }
+}
+
+.onb-wiz-next--done {
+  background: #059669;
+  box-shadow: 0 4px 16px rgba(5, 150, 105, 0.25);
+  animation: onbNextPulseDone 2.8s ease-in-out infinite;
+}
+
+.onb-wiz-next--done::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+}
+
+.onb-wiz-next--done:hover {
+  box-shadow: 0 6px 24px rgba(5, 150, 105, 0.4);
+}
+
+@keyframes onbNextPulseDone {
+  0%, 100% { box-shadow: 0 4px 16px rgba(5, 150, 105, 0.25); }
+  50% { box-shadow: 0 4px 30px rgba(5, 150, 105, 0.5); }
 }
