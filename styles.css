@@ -14466,6 +14466,131 @@ body.corpo-insert-screen-open {
   background: #16a34a; color: #fff; border: none; border-radius: 8px;
   padding: 4px 12px; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap;
 }
+.cp-share-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px; border: 2px dashed #2563eb; border-radius: 12px;
+  color: #2563eb; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px;
+  background: #eff6ff; transition: border-color 0.2s, background 0.2s;
+}
+.cp-share-btn:hover { border-color: #1d4ed8; background: #dbeafe; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAIRING — QR Code / Código / Categorias
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.pairing-options { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.pairing-option-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 14px; border: 2px solid #e2e8f0; border-radius: 12px;
+  background: #fff; font-size: 15px; font-weight: 600; color: #1a2332;
+  cursor: pointer; transition: border-color 0.2s, background 0.2s;
+}
+.pairing-option-btn:hover { border-color: #2563eb; background: #f8fafc; }
+.pairing-option-btn svg { color: #2563eb; }
+.pairing-divider { display: flex; align-items: center; gap: 12px; color: #94a3b8; font-size: 12px; }
+.pairing-divider::before, .pairing-divider::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
+.pairing-email-section { display: flex; flex-direction: column; gap: 8px; }
+
+.pairing-qr-scan { position: relative; width: 100%; aspect-ratio: 1; background: #000; border-radius: 12px; overflow: hidden; }
+.pairing-qr-scan video { width: 100%; height: 100%; object-fit: cover; }
+.pairing-qr-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.pairing-qr-frame { width: 200px; height: 200px; border: 3px solid rgba(255,255,255,0.8); border-radius: 16px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.4); }
+.pairing-qr-hint { text-align: center; font-size: 13px; color: #64748b; margin-top: 12px; }
+
+.pairing-code-input { padding: 24px 16px; text-align: center; }
+.pairing-code-label { font-size: 15px; font-weight: 600; color: #1a2332; margin-bottom: 16px; }
+.pairing-code-fields { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 20px; }
+.pairing-digit {
+  width: 48px; height: 56px; text-align: center; font-size: 24px; font-weight: 700;
+  border: 2px solid #e2e8f0; border-radius: 12px; background: #f8fafc; color: #1a2332;
+  outline: none; transition: border-color 0.2s;
+}
+.pairing-digit:focus { border-color: #2563eb; background: #fff; }
+.pairing-digit-sep { font-size: 24px; color: #94a3b8; font-weight: 600; }
+.pairing-confirm-btn {
+  width: 100%; padding: 14px; border: none; border-radius: 12px;
+  background: #2563eb; color: #fff; font-size: 16px; font-weight: 700;
+  cursor: pointer; transition: background 0.2s;
+}
+.pairing-confirm-btn:hover { background: #1d4ed8; }
+.pairing-cancel-btn {
+  width: 100%; padding: 12px; border: none; border-radius: 12px;
+  background: transparent; color: #64748b; font-size: 14px; font-weight: 600;
+  cursor: pointer; margin-top: 8px;
+}
+.pairing-cancel-btn:hover { background: #f1f5f9; }
+
+/* Compartilhar Dados Modal */
+.share-categories-section { padding: 16px; }
+.share-categories-title { font-size: 14px; color: #64748b; margin-bottom: 12px; }
+.share-category-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.share-category-item:last-child { border-bottom: none; }
+.share-category-icon { font-size: 20px; }
+.share-category-label { flex: 1; font-size: 14px; font-weight: 500; color: #1a2332; }
+
+.share-toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+.share-toggle-input { opacity: 0; width: 0; height: 0; }
+.share-toggle-slider {
+  position: absolute; inset: 0; background: #cbd5e1; border-radius: 24px;
+  cursor: pointer; transition: background 0.3s;
+}
+.share-toggle-slider::before {
+  content: ''; position: absolute; width: 18px; height: 18px;
+  left: 3px; bottom: 3px; background: #fff; border-radius: 50%;
+  transition: transform 0.3s;
+}
+.share-toggle-input:checked + .share-toggle-slider { background: #2563eb; }
+.share-toggle-input:checked + .share-toggle-slider::before { transform: translateX(20px); }
+
+.share-code-section { padding: 16px; text-align: center; background: #f8fafc; border-top: 1px solid #e2e8f0; }
+.share-qr-container { display: flex; justify-content: center; margin-bottom: 16px; }
+.share-qr-container img { border-radius: 8px; }
+.share-code-display { margin-bottom: 12px; }
+.share-code-label { font-size: 12px; color: #64748b; display: block; margin-bottom: 4px; }
+.share-code-value {
+  font-size: 32px; font-weight: 800; color: #1a2332; letter-spacing: 4px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+.share-copy-btn {
+  margin-top: 8px; padding: 6px 16px; border: 1px solid #e2e8f0; border-radius: 8px;
+  background: #fff; font-size: 13px; font-weight: 600; color: #2563eb;
+  cursor: pointer; transition: background 0.2s;
+}
+.share-copy-btn:hover { background: #f1f5f9; }
+.share-timer { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 12px 0; font-size: 13px; color: #64748b; }
+.share-regen-btn {
+  padding: 10px 20px; border: 2px solid #e2e8f0; border-radius: 12px;
+  background: #fff; font-size: 14px; font-weight: 600; color: #1a2332;
+  cursor: pointer; transition: border-color 0.2s, background 0.2s;
+}
+.share-regen-btn:hover { border-color: #2563eb; background: #f8fafc; }
+
+.pending-requests-header { padding: 16px 16px 8px; border-top: 1px solid #e2e8f0; }
+.pending-requests-title { font-size: 14px; font-weight: 700; color: #1a2332; }
+.pending-request-item {
+  display: flex; align-items: center; gap: 10px; padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.pending-request-avatar {
+  width: 40px; height: 40px; border-radius: 50%; background: #e2e8f0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; color: #64748b; overflow: hidden; flex-shrink: 0;
+}
+.pending-request-info { flex: 1; }
+.pending-request-name { font-size: 14px; font-weight: 600; color: #1a2332; }
+.pending-request-email { font-size: 12px; color: #94a3b8; }
+.pending-request-actions { display: flex; gap: 6px; }
+.pending-accept-btn {
+  background: #16a34a; color: #fff; border: none; border-radius: 8px;
+  padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.pending-reject-btn {
+  background: #fee2e2; color: #ef4444; border: none; border-radius: 8px;
+  padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer;
+}
 
 /* ═══════════════════════════════════════════════════════════════════════════
    ONBOARDING WIZARD — Alinhado ao Design System
@@ -14676,6 +14801,23 @@ body.corpo-insert-screen-open {
 .onb-hero-legal a {
   color: var(--accent-primary, #2563eb);
   text-decoration: none;
+}
+
+.onb-skip-btn {
+  display: block;
+  margin: 16px auto 0;
+  background: none;
+  border: none;
+  color: var(--text-muted, #94a3b8);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: color 0.2s, background 0.2s;
+}
+.onb-skip-btn:hover {
+  color: var(--text-primary, #1a2332);
+  background: rgba(0,0,0,0.05);
 }
 
 /* ══════════════════════════════════════

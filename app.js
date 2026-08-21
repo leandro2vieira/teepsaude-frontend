@@ -2340,16 +2340,346 @@ function renderControleParentalInPerfil() {
     '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
     'Adicionar dependente</div>';
 
+  html += '<div class="cp-share-btn" onclick="openCompartilharDadosModal()">' +
+    '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>' +
+    'Compartilhar meus dados</div>';
+
   section.innerHTML = html;
 }
 
 function openAddDependenteModal() {
   var modal = document.getElementById('addDependenteModal');
-  var input = document.getElementById('addDepEmail');
   var feedback = document.getElementById('addDepFeedback');
-  if (input) input.value = '';
   if (feedback) feedback.textContent = '';
+  var qrView = document.getElementById('pairingQRScanView');
+  var codeView = document.getElementById('pairingCodeInputView');
+  var mainView = document.getElementById('addDepContent');
+  if (qrView) qrView.style.display = 'none';
+  if (codeView) codeView.style.display = 'none';
+  if (mainView) mainView.style.display = '';
   if (modal) modal.classList.add('active');
+}
+
+// ── Controle Parental: Código + QR Code ──
+
+var _pairingQRInstance = null;
+var _pairingTimerInterval = null;
+
+function openCompartilharDadosModal() {
+  var modal = document.getElementById('compartilharDadosModal');
+  if (!modal) return;
+  renderShareCategories();
+  renderPendingRequests();
+  var pairing = getActivePairingCode();
+  if (pairing) {
+    showExistingPairingCode(pairing.code, pairing.expiresAt);
+  } else {
+    generateNewPairingCode();
+  }
+  modal.classList.add('active');
+}
+
+function renderShareCategories() {
+  var container = document.getElementById('shareCategoriesList');
+  if (!container) return;
+  var categories = getVitalCategories();
+  var html = '';
+  for (var i = 0; i < categories.length; i++) {
+    var cat = categories[i];
+    html += '<div class="share-category-item">' +
+      '<span class="share-category-icon">' + cat.icon + '</span>' +
+      '<span class="share-category-label">' + cat.label + '</span>' +
+      '<label class="share-toggle">' +
+        '<input type="checkbox" class="share-toggle-input" data-cat="' + cat.id + '" checked>' +
+        '<span class="share-toggle-slider"></span>' +
+      '</label>' +
+    '</div>';
+  }
+  container.innerHTML = html;
+}
+
+function getSelectedCategories() {
+  var checkboxes = document.querySelectorAll('.share-toggle-input');
+  var selected = [];
+  for (var i = 0; i < checkboxes.length; i++) {
+    if (checkboxes[i].checked) {
+      selected.push(checkboxes[i].dataset.cat);
+    }
+  }
+  return selected;
+}
+
+function generateNewPairingCode() {
+  var result = generatePairingCode();
+  if (!result) return;
+  showExistingPairingCode(result.code, result.expiresAt);
+}
+
+function showExistingPairingCode(code, expiresAt) {
+  var codeEl = document.getElementById('shareCodeValue');
+  if (codeEl) codeEl.textContent = code;
+  var qrContainer = document.getElementById('shareQRContainer');
+  if (qrContainer) {
+    qrContainer.innerHTML = '';
+    var qrData = JSON.stringify({ code: code, type: 'mensuri_pairing' });
+    _pairingQRInstance = new QRCode(qrContainer, {
+      text: qrData,
+      width: 160,
+      height: 160,
+      colorDark: '#1a2332',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  }
+  startPairingTimer(expiresAt);
+}
+
+function startPairingTimer(expiresAt) {
+  if (_pairingTimerInterval) clearInterval(_pairingTimerInterval);
+  var timerText = document.getElementById('shareTimerText');
+  function update() {
+    var now = new Date();
+    var exp = new Date(expiresAt);
+    var diff = Math.max(0, Math.floor((exp - now) / 1000));
+    var min = Math.floor(diff / 60);
+    var sec = diff % 60;
+    if (timerText) timerText.textContent = 'Expira em ' + min + ':' + (sec < 10 ? '0' : '') + sec;
+    if (diff <= 0) {
+      clearInterval(_pairingTimerInterval);
+      if (timerText) timerText.textContent = 'Código expirado';
+      var codeEl = document.getElementById('shareCodeValue');
+      if (codeEl) codeEl.textContent = '------';
+    }
+  }
+  update();
+  _pairingTimerInterval = setInterval(update, 1000);
+}
+
+function copyPairingCode() {
+  var codeEl = document.getElementById('shareCodeValue');
+  if (!codeEl) return;
+  var code = codeEl.textContent;
+  if (code === '------') return;
+  navigator.clipboard.writeText(code).then(function() {
+    var btn = document.querySelector('.share-copy-btn');
+    if (btn) {
+      btn.textContent = 'Copiado!';
+      setTimeout(function() { btn.textContent = 'Copiar código'; }, 1500);
+    }
+  });
+}
+
+function regeneratePairingCode() {
+  var categories = getSelectedCategories();
+  generateNewPairingCode();
+}
+
+function renderPendingRequests() {
+  var section = document.getElementById('pendingRequestsSection');
+  var list = document.getElementById('pendingRequestsList');
+  if (!section || !list) return;
+  var requests = getPendingPairingRequests();
+  if (requests.length === 0) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = '';
+  var html = '';
+  for (var i = 0; i < requests.length; i++) {
+    var req = requests[i];
+    var controller = req.controller;
+    var initials = controller.nome ? controller.nome.charAt(0).toUpperCase() : '?';
+    html += '<div class="pending-request-item">' +
+      '<div class="pending-request-avatar">' +
+        (controller.fotoPerfilUrl ? '<img src="' + controller.fotoPerfilUrl + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">' : initials) +
+      '</div>' +
+      '<div class="pending-request-info">' +
+        '<div class="pending-request-name">' + controller.nome + '</div>' +
+        '<div class="pending-request-email">' + controller.email + '</div>' +
+      '</div>' +
+      '<div class="pending-request-actions">' +
+        '<button class="pending-accept-btn" onclick="acceptPairingRequest(\'' + req.rel.id + '\')">Aceitar</button>' +
+        '<button class="pending-reject-btn" onclick="rejectPairingRequest(\'' + req.rel.id + '\')">Recusar</button>' +
+      '</div>' +
+    '</div>';
+  }
+  list.innerHTML = html;
+}
+
+function acceptPairingRequest(relId) {
+  var categories = getSelectedCategories();
+  if (categories.length === 0) {
+    categories = getVitalCategories().map(function(c) { return c.id; });
+  }
+  confirmPairing(relId);
+  renderPendingRequests();
+}
+
+function rejectPairingRequest(relId) {
+  for (var i = _controleParental.length - 1; i >= 0; i--) {
+    if (_controleParental[i].id === relId) {
+      _controleParental.splice(i, 1);
+      break;
+    }
+  }
+  _saveSession();
+  renderPendingRequests();
+}
+
+function showPairingQRScan() {
+  var mainView = document.getElementById('addDepContent');
+  var qrView = document.getElementById('pairingQRScanView');
+  if (mainView) mainView.style.display = 'none';
+  if (qrView) qrView.style.display = '';
+  startQRScan();
+}
+
+function startQRScan() {
+  var video = document.getElementById('pairingCameraFeed');
+  if (!video || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    var feedback = document.getElementById('addDepFeedback');
+    if (feedback) {
+      feedback.textContent = 'Câmera não disponível. Use o código.';
+      feedback.style.color = '#f59e0b';
+    }
+    cancelQRScan();
+    return;
+  }
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+    .then(function(stream) {
+      video.srcObject = stream;
+      video.play();
+      scanQRFrame(video);
+    })
+    .catch(function(err) {
+      var feedback = document.getElementById('addDepFeedback');
+      if (feedback) {
+        feedback.textContent = 'Permissão de câmera negada. Use o código.';
+        feedback.style.color = '#f59e0b';
+      }
+      cancelQRScan();
+    });
+}
+
+var _qrScanInterval = null;
+
+function scanQRFrame(video) {
+  if (_qrScanInterval) clearInterval(_qrScanInterval);
+  _qrScanInterval = setInterval(function() {
+    if (!video || video.paused || video.ended) return;
+    var canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    var ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    try {
+      var code = jsQR(imageData.data, imageData.width, imageData.height);
+      if (code && code.data) {
+        var data = JSON.parse(code.data);
+        if (data.code && data.type === 'mensuri_pairing') {
+          cancelQRScan();
+          validateAndPair(data.code);
+        }
+      }
+    } catch (e) {}
+  }, 500);
+}
+
+function cancelQRScan() {
+  if (_qrScanInterval) clearInterval(_qrScanInterval);
+  var video = document.getElementById('pairingCameraFeed');
+  if (video && video.srcObject) {
+    video.srcObject.getTracks().forEach(function(t) { t.stop(); });
+    video.srcObject = null;
+  }
+  var mainView = document.getElementById('addDepContent');
+  var qrView = document.getElementById('pairingQRScanView');
+  if (qrView) qrView.style.display = 'none';
+  if (mainView) mainView.style.display = '';
+}
+
+function showPairingCodeInput() {
+  var mainView = document.getElementById('addDepContent');
+  var codeView = document.getElementById('pairingCodeInputView');
+  if (mainView) mainView.style.display = 'none';
+  if (codeView) codeView.style.display = '';
+  var digits = document.querySelectorAll('.pairing-digit');
+  if (digits[0]) digits[0].focus();
+}
+
+function cancelCodeInput() {
+  var mainView = document.getElementById('addDepContent');
+  var codeView = document.getElementById('pairingCodeInputView');
+  if (codeView) codeView.style.display = 'none';
+  if (mainView) mainView.style.display = '';
+  var digits = document.querySelectorAll('.pairing-digit');
+  for (var i = 0; i < digits.length; i++) digits[i].value = '';
+}
+
+function pairingDigitInput(el) {
+  var val = el.value.replace(/[^0-9]/g, '');
+  el.value = val;
+  if (val && el.dataset.idx < 5) {
+    var next = document.querySelector('.pairing-digit[data-idx="' + (parseInt(el.dataset.idx) + 1) + '"]');
+    if (next) next.focus();
+  }
+  checkAllDigits();
+}
+
+function pairingDigitKeydown(e, el) {
+  if (e.key === 'Backspace' && !el.value && el.dataset.idx > 0) {
+    var prev = document.querySelector('.pairing-digit[data-idx="' + (parseInt(el.dataset.idx) - 1) + '"]');
+    if (prev) { prev.focus(); prev.value = ''; }
+  }
+  if (e.key === 'Enter') {
+    confirmPairingCode();
+  }
+}
+
+function checkAllDigits() {
+  var digits = document.querySelectorAll('.pairing-digit');
+  var full = true;
+  for (var i = 0; i < digits.length; i++) {
+    if (!digits[i].value) { full = false; break; }
+  }
+  var confirmBtn = document.querySelector('.pairing-confirm-btn');
+  if (confirmBtn) {
+    confirmBtn.disabled = !full;
+    confirmBtn.style.opacity = full ? '1' : '0.5';
+  }
+}
+
+function confirmPairingCode() {
+  var digits = document.querySelectorAll('.pairing-digit');
+  var code = '';
+  for (var i = 0; i < digits.length; i++) {
+    code += digits[i].value || '';
+  }
+  validateAndPair(code);
+}
+
+function validateAndPair(code) {
+  var result = validatePairingCode(code);
+  var feedback = document.getElementById('addDepFeedback');
+  if (result.ok) {
+    var rel = result.rel;
+    var controlled = result.controlled;
+    if (feedback) {
+      feedback.textContent = 'Pareado com ' + controlled.nome + '! Aguardando aceitação.';
+      feedback.style.color = '#16a34a';
+    }
+    setTimeout(function() {
+      closeModal('addDependenteModal');
+      if (feedback) feedback.textContent = '';
+      if (currentScreen === 'perfilScreen') renderPerfil();
+    }, 1500);
+  } else {
+    if (feedback) {
+      feedback.textContent = result.msg;
+      feedback.style.color = '#ef4444';
+    }
+  }
 }
 
 function togglePerfilMask(elId) {

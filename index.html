@@ -43,6 +43,7 @@
                         </button>
                     </div>
                     <p class="onb-hero-legal">Ao continuar você concorda com os<br><a href="#">Termos</a> e <a href="#">Privacidade</a></p>
+                    <button class="onb-skip-btn" onclick="finishOnboarding()">Pular para teste</button>
                 </div>
             </div>
 
@@ -2134,16 +2135,95 @@
                 <span>Adicionar Dependente</span>
                 <button class="modal-ok" onclick="closeModal('addDependenteModal')">Cancelar</button>
             </div>
-            <div style="padding:16px;display:flex;flex-direction:column;gap:12px;">
-                <input type="email" class="login-input" id="addDepEmail" placeholder="E-mail do dependente" value="joao.filho@email.com">
-                <button class="login-btn" onclick="confirmAddDependente()">Enviar Convite</button>
-                <div id="addDepFeedback" style="font-size:13px;color:#64748b;text-align:center;"></div>
+            <div id="addDepContent">
+                <div class="pairing-options">
+                    <button class="pairing-option-btn" onclick="showPairingQRScan()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                        Escanear QR Code
+                    </button>
+                    <button class="pairing-option-btn" onclick="showPairingCodeInput()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="8" x2="6" y2="16"/><line x1="10" y1="8" x2="10" y2="16"/><line x1="14" y1="8" x2="14" y2="16"/><line x1="18" y1="8" x2="18" y2="16"/></svg>
+                        Digitar Código
+                    </button>
+                    <div class="pairing-divider"><span>ou</span></div>
+                    <div class="pairing-email-section">
+                        <input type="email" class="login-input" id="addDepEmail" placeholder="E-mail do dependente">
+                        <button class="login-btn" onclick="confirmAddDependente()">Enviar Convite por E-mail</button>
+                    </div>
+                </div>
+                <div id="addDepFeedback" style="font-size:13px;color:#64748b;text-align:center;margin-top:8px;"></div>
+            </div>
+            <!-- QR Scan View (hidden by default) -->
+            <div id="pairingQRScanView" style="display:none;">
+                <div class="pairing-qr-scan">
+                    <video id="pairingCameraFeed" autoplay playsinline></video>
+                    <div class="pairing-qr-overlay">
+                        <div class="pairing-qr-frame"></div>
+                    </div>
+                    <p class="pairing-qr-hint">Aponte para o QR Code do dependente</p>
+                    <button class="pairing-cancel-btn" onclick="cancelQRScan()">Cancelar</button>
+                </div>
+            </div>
+            <!-- Code Input View (hidden by default) -->
+            <div id="pairingCodeInputView" style="display:none;">
+                <div class="pairing-code-input">
+                    <p class="pairing-code-label">Digite o código de 6 dígitos</p>
+                    <div class="pairing-code-fields">
+                        <input type="tel" maxlength="1" class="pairing-digit" data-idx="0" oninput="pairingDigitInput(this)" onkeydown="pairingDigitKeydown(event, this)">
+                        <input type="tel" maxlength="1" class="pairing-digit" data-idx="1" oninput="pairingDigitInput(this)" onkeydown="pairingDigitKeydown(event, this)">
+                        <input type="tel" maxlength="1" class="pairing-digit" data-idx="2" oninput="pairingDigitInput(this)" onkeydown="pairingDigitKeydown(event, this)">
+                        <span class="pairing-digit-sep">-</span>
+                        <input type="tel" maxlength="1" class="pairing-digit" data-idx="3" oninput="pairingDigitInput(this)" onkeydown="pairingDigitKeydown(event, this)">
+                        <input type="tel" maxlength="1" class="pairing-digit" data-idx="4" oninput="pairingDigitInput(this)" onkeydown="pairingDigitKeydown(event, this)">
+                        <input type="tel" maxlength="1" class="pairing-digit" data-idx="5" oninput="pairingDigitInput(this)" onkeydown="pairingDigitKeydown(event, this)">
+                    </div>
+                    <button class="pairing-confirm-btn" onclick="confirmPairingCode()">Parear</button>
+                    <button class="pairing-cancel-btn" onclick="cancelCodeInput()">Voltar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Compartilhar Dados Modal (Dependente) -->
+    <div class="modal" id="compartilharDadosModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>Compartilhar meus dados</span>
+                <button class="modal-ok" onclick="closeModal('compartilharDadosModal')">Fechar</button>
+            </div>
+            <div id="compartilharDadosContent">
+                <div class="share-categories-section">
+                    <p class="share-categories-title">Selecione os dados que deseja compartilhar:</p>
+                    <div id="shareCategoriesList"></div>
+                </div>
+                <div class="share-code-section">
+                    <div id="shareQRContainer" class="share-qr-container"></div>
+                    <div class="share-code-display">
+                        <span class="share-code-label">Código de pareamento:</span>
+                        <div class="share-code-value" id="shareCodeValue">------</div>
+                        <button class="share-copy-btn" onclick="copyPairingCode()">Copiar código</button>
+                    </div>
+                    <div class="share-timer" id="shareTimer">
+                        <span class="share-timer-icon">⏱️</span>
+                        <span id="shareTimerText">Expira em 5:00</span>
+                    </div>
+                    <button class="share-regen-btn" onclick="regeneratePairingCode()">Gerar novo código</button>
+                </div>
+            </div>
+            <!-- Pending Requests Section -->
+            <div id="pendingRequestsSection" style="display:none;">
+                <div class="pending-requests-header">
+                    <span class="pending-requests-title">Solicitações pendentes</span>
+                </div>
+                <div id="pendingRequestsList"></div>
             </div>
         </div>
     </div>
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script src="vendor/framework7/framework7.bundle.min.js"></script>
     <script src="data.js"></script>
     <script src="components.js"></script>

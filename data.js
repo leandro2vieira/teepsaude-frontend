@@ -2399,3 +2399,150 @@ function getUsersControlledByMe() {
   }
   return ids;
 }
+
+// ── Controle Parental: Código + QR Code ──
+
+var _VITAL_CATEGORIES = [
+  { id: 'batimento', label: 'Batimento Cardíaco', icon: '🫀' },
+  { id: 'pressao', label: 'Pressão Arterial', icon: '🩺' },
+  { id: 'glicemia', label: 'Glicemia', icon: '🩸' },
+  { id: 'passos', label: 'Passos', icon: '👟' },
+  { id: 'peso', label: 'Peso / Altura', icon: '⚖️' },
+  { id: 'hidratacao', label: 'Hidratação', icon: '💧' },
+  { id: 'composicao', label: 'Composição Corporal', icon: '📊' },
+  { id: 'medicacoes', label: 'Medicamentos', icon: '💊' }
+];
+
+function getVitalCategories() {
+  return _VITAL_CATEGORIES;
+}
+
+function _generateCode6() {
+  var code = '';
+  for (var i = 0; i < 6; i++) {
+    code += Math.floor(Math.random() * 10).toString();
+  }
+  return code;
+}
+
+function generatePairingCode() {
+  var userId = _session.loggedInUserId;
+  if (!userId) return null;
+  for (var i = _controleParental.length - 1; i >= 0; i--) {
+    var r = _controleParental[i];
+    if (r.controlledId === userId && r.pairingCode) {
+      _controleParental.splice(i, 1);
+    }
+  }
+  var code = _generateCode6();
+  var expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+  _controleParental.push({
+    id: 'cp_' + _genId(),
+    controllerId: null,
+    controlledId: userId,
+    status: 'awaiting_controller',
+    invitedAt: new Date().toISOString(),
+    acceptedAt: null,
+    sharedCategories: _VITAL_CATEGORIES.map(function(c) { return c.id; }),
+    pairingCode: code,
+    codeExpiresAt: expiresAt
+  });
+  _saveSession();
+  return { code: code, expiresAt: expiresAt };
+}
+
+function getActivePairingCode() {
+  var userId = _session.loggedInUserId;
+  if (!userId) return null;
+  for (var i = 0; i < _controleParental.length; i++) {
+    var r = _controleParental[i];
+    if (r.controlledId === userId && r.pairingCode && r.status === 'awaiting_controller') {
+      if (new Date(r.codeExpiresAt) > new Date()) {
+        return { code: r.pairingCode, expiresAt: r.codeExpiresAt, relId: r.id };
+      }
+    }
+  }
+  return null;
+}
+
+function validatePairingCode(code) {
+  if (!code || code.length !== 6) return { ok: false, msg: 'Código inválido.' };
+  for (var i = 0; i < _controleParental.length; i++) {
+    var r = _controleParental[i];
+    if (r.pairingCode === code && r.status === 'awaiting_controller') {
+      if (new Date(r.codeExpiresAt) <= new Date()) {
+        return { ok: false, msg: 'Código expirado. Peça um novo código.' };
+      }
+      var controlled = _allUsers[r.controlledId];
+      if (!controlled) return { ok: false, msg: 'Usuário não encontrado.' };
+      if (r.controlledId === _session.loggedInUserId) {
+        return { ok: false, msg: 'Você não pode parear consigo mesmo.' };
+      }
+      var alreadyLinked = false;
+      for (var j = 0; j < _controleParental.length; j++) {
+        var existing = _controleParental[j];
+        if (existing.controllerId === _session.loggedInUserId && existing.controlledId === r.controlledId && existing.status === 'active') {
+          alreadyLinked = true;
+          break;
+        }
+      }
+      if (alreadyLinked) return { ok: false, msg: 'Vínculo já existe.' };
+      return { ok: true, rel: r, controlled: controlled };
+    }
+  }
+  return { ok: false, msg: 'Código inválido ou não encontrado.' };
+}
+
+function acceptPairing(relId, categories) {
+  for (var i = 0; i < _controleParental.length; i++) {
+    var r = _controleParental[i];
+    if (r.id === relId) {
+      r.status = 'pending_acceptance';
+      r.sharedCategories = categories || _VITAL_CATEGORIES.map(function(c) { return c.id; });
+      delete r.pairingCode;
+      delete r.codeExpiresAt;
+      _saveSession();
+      return true;
+    }
+  }
+  return false;
+}
+
+function confirmPairing(relId) {
+  for (var i = 0; i < _controleParental.length; i++) {
+    var r = _controleParental[i];
+    if (r.id === relId) {
+      r.status = 'active';
+      r.acceptedAt = new Date().toISOString();
+      _saveSession();
+      return true;
+    }
+  }
+  return false;
+}
+
+function getSharedCategories(controllerId, controlledId) {
+  for (var i = 0; i < _controleParental.length; i++) {
+    var r = _controleParental[i];
+    if (r.controllerId === controllerId && r.controlledId === controlledId && r.status === 'active') {
+      return r.sharedCategories || [];
+    }
+  }
+  return [];
+}
+
+function getPendingPairingRequests() {
+  var userId = _session.loggedInUserId;
+  if (!userId) return [];
+  var requests = [];
+  for (var i = 0; i < _controleParental.length; i++) {
+    var r = _controleParental[i];
+    if (r.controlledId === userId && r.status === 'pending_acceptance') {
+      var controller = _allUsers[r.controllerId];
+      if (controller) {
+        requests.push({ rel: r, controller: controller });
+      }
+    }
+  }
+  return requests;
+}
