@@ -26,7 +26,7 @@
                             <path d="M28 12C28 12 19 22 19 30a9 9 0 0018 0c0-8-9-18-9-18z" fill="white" opacity="0.95"/>
                         </svg>
                     </div>
-                    <h1 class="onb-hero-title">Mensuri</h1>
+                    <h1 class="onb-hero-title">Teep Saúde</h1>
                     <p class="onb-hero-sub">Acompanhe sua saúde com simplicidade</p>
 
                     <div class="onb-hero-actions">
@@ -47,28 +47,8 @@
                 </div>
             </div>
 
-            <!-- ═══ STEP 1: Nome ═══ -->
+            <!-- ═══ STEP 1: Nome + Sobrenome ═══ -->
             <div id="wizStep1" class="onb-page" data-step="1">
-                <div class="onb-wiz-top">
-                    <button class="onb-wiz-back" onclick="wizardBack()" aria-label="Voltar">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-                    </button>
-                    <div class="onb-wiz-progress"><div class="onb-wiz-progress-fill" style="width:16.6%"></div></div>
-                </div>
-                <div class="onb-wiz-body">
-                    <span class="onb-wiz-step-num">1 de 6</span>
-                    <h2 class="onb-wiz-question">Qual seu<br><strong>nome</strong>?</h2>
-                    <div class="onb-wiz-field">
-                        <input type="text" class="onb-wiz-input" id="wizNome" placeholder="Ex: Maria" autocomplete="given-name" autofocus>
-                    </div>
-                </div>
-                <button class="onb-wiz-next" onclick="wizardNext()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                </button>
-            </div>
-
-            <!-- ═══ STEP 2: Sobrenome ═══ -->
-            <div id="wizStep2" class="onb-page" data-step="2">
                 <div class="onb-wiz-top">
                     <button class="onb-wiz-back" onclick="wizardBack()" aria-label="Voltar">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -76,9 +56,12 @@
                     <div class="onb-wiz-progress"><div class="onb-wiz-progress-fill" style="width:33.3%"></div></div>
                 </div>
                 <div class="onb-wiz-body">
-                    <span class="onb-wiz-step-num">2 de 6</span>
-                    <h2 class="onb-wiz-question">E seu<br><strong>sobrenome</strong>?</h2>
+                    <span class="onb-wiz-step-num">1 de 3</span>
+                    <h2 class="onb-wiz-question">Qual seu<br><strong>nome</strong>?</h2>
                     <div class="onb-wiz-field">
+                        <input type="text" class="onb-wiz-input" id="wizNome" placeholder="Ex: Maria" autocomplete="given-name" autofocus>
+                    </div>
+                    <div class="onb-wiz-field" style="margin-top:12px;">
                         <input type="text" class="onb-wiz-input" id="wizSobrenome" placeholder="Ex: Oliveira" autocomplete="family-name">
                     </div>
                 </div>
@@ -87,16 +70,16 @@
                 </button>
             </div>
 
-            <!-- ═══ STEP 3: Email ═══ -->
-            <div id="wizStep3" class="onb-page" data-step="3">
+            <!-- ═══ STEP 2: Email ═══ -->
+            <div id="wizStep2" class="onb-page" data-step="2">
                 <div class="onb-wiz-top">
                     <button class="onb-wiz-back" onclick="wizardBack()" aria-label="Voltar">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                     </button>
-                    <div class="onb-wiz-progress"><div class="onb-wiz-progress-fill" style="width:50%"></div></div>
+                    <div class="onb-wiz-progress"><div class="onb-wiz-progress-fill" style="width:66.6%"></div></div>
                 </div>
                 <div class="onb-wiz-body">
-                    <span class="onb-wiz-step-num">3 de 6</span>
+                    <span class="onb-wiz-step-num">2 de 3</span>
                     <h2 class="onb-wiz-question">Seu<br><strong>e-mail</strong>?</h2>
                     <div class="onb-wiz-field">
                         <input type="email" class="onb-wiz-input" id="wizEmail" placeholder="exemplo@email.com" autocomplete="email">
@@ -107,90 +90,37 @@
                 </button>
             </div>
 
-            <!-- ═══ STEP 4: Peso ═══ -->
-            <div id="wizStep4" class="onb-page" data-step="4">
-                <div class="onb-wiz-top">
-                    <button class="onb-wiz-back" onclick="wizardBack()" aria-label="Voltar">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-                    </button>
-                    <div class="onb-wiz-progress"><div class="onb-wiz-progress-fill" style="width:66.6%"></div></div>
-                </div>
-                <div class="onb-wiz-body">
-                    <span class="onb-wiz-step-num">4 de 6</span>
-                    <h2 class="onb-wiz-question">Quanto<br><strong>pesa</strong>?</h2>
-                    <div class="onb-stepper">
-                        <button type="button" class="onb-stepper-btn onb-stepper-btn--minus" aria-label="Diminuir peso">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        </button>
-                        <div class="onb-stepper-value">
-                            <input type="number" class="onb-wiz-input onb-wiz-input--big onb-stepper-input" id="wizPeso" placeholder="78" inputmode="decimal">
-                            <span class="onb-stepper-unit">kg</span>
-                        </div>
-                        <button type="button" class="onb-stepper-btn onb-stepper-btn--plus" aria-label="Aumentar peso">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        </button>
-                    </div>
-                </div>
-                <button class="onb-wiz-next" onclick="wizardNext()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                </button>
-            </div>
-
-            <!-- ═══ STEP 5: Altura ═══ -->
-            <div id="wizStep5" class="onb-page" data-step="5">
-                <div class="onb-wiz-top">
-                    <button class="onb-wiz-back" onclick="wizardBack()" aria-label="Voltar">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-                    </button>
-                    <div class="onb-wiz-progress"><div class="onb-wiz-progress-fill" style="width:83.3%"></div></div>
-                </div>
-                <div class="onb-wiz-body">
-                    <span class="onb-wiz-step-num">5 de 6</span>
-                    <h2 class="onb-wiz-question">Qual sua<br><strong>altura</strong>?</h2>
-                    <div class="onb-stepper">
-                        <button type="button" class="onb-stepper-btn onb-stepper-btn--minus" aria-label="Diminuir altura">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        </button>
-                        <div class="onb-stepper-value">
-                            <input type="number" class="onb-wiz-input onb-wiz-input--big onb-stepper-input" id="wizAltura" placeholder="175" inputmode="numeric">
-                            <span class="onb-stepper-unit">cm</span>
-                        </div>
-                        <button type="button" class="onb-stepper-btn onb-stepper-btn--plus" aria-label="Aumentar altura">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        </button>
-                    </div>
-                </div>
-                <button class="onb-wiz-next" onclick="wizardNext()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                </button>
-            </div>
-
-            <!-- ═══ STEP 6: Nascimento ═══ -->
-            <div id="wizStep6" class="onb-page" data-step="6">
+            <!-- ═══ STEP 3: Confirmar dados (Boas-vindas) ═══ -->
+            <div id="wizStep3" class="onb-page" data-step="3">
                 <div class="onb-wiz-top">
                     <button class="onb-wiz-back" onclick="wizardBack()" aria-label="Voltar">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                     </button>
                     <div class="onb-wiz-progress"><div class="onb-wiz-progress-fill" style="width:100%"></div></div>
                 </div>
-                <div class="onb-wiz-body">
-                    <span class="onb-wiz-step-num">6 de 6</span>
-                    <h2 class="onb-wiz-question">Ano de<br><strong>nascimento</strong>?</h2>
-                    <div class="onb-stepper">
-                        <button type="button" class="onb-stepper-btn onb-stepper-btn--minus" aria-label="Diminuir ano">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        </button>
-                        <div class="onb-stepper-value">
-                            <input type="number" class="onb-wiz-input onb-wiz-input--big onb-stepper-input" id="wizNascimento" placeholder="1990" maxlength="4" inputmode="numeric">
+                <div class="onb-wiz-body onb-confirm-body">
+                    <div class="onb-confirm-avatar-ring">
+                        <img class="onb-confirm-avatar onb-confirm-avatar--photo" id="wizConfirmAvatar" src="assets/img/Foto_Paciente.jpeg" alt="Foto do perfil" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                        <div class="onb-confirm-avatar onb-confirm-avatar--initials" id="wizConfirmInitials" style="display:none">👤</div>
+                        <div class="onb-confirm-check">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                         </div>
-                        <button type="button" class="onb-stepper-btn onb-stepper-btn--plus" aria-label="Aumentar ano">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                        </button>
                     </div>
+                    <h2 class="onb-confirm-greeting">Bem-vindo(a)!</h2>
+                    <p class="onb-confirm-name" id="wizConfirmNome">—</p>
+                    <div class="onb-confirm-email-badge">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        <span id="wizConfirmEmail">—</span>
+                    </div>
+                    <p class="onb-confirm-hint">Seus dados podem ser alterados em <strong>Perfil</strong> a qualquer momento.</p>
                 </div>
-                <button class="onb-wiz-next onb-wiz-next--done" onclick="finishOnboarding()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                </button>
+                <div class="onb-confirm-actions">
+                    <button class="onb-confirm-btn-primary" onclick="finishOnboarding()">
+                        Começar a usar
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </button>
+                    <button class="onb-confirm-btn-ghost" onclick="wizardBack()">Editar meus dados</button>
+                </div>
             </div>
         </div>
     </div>
@@ -210,7 +140,9 @@
                 <div class="navbar-bg"></div>
                 <div class="navbar-inner header-top-row">
                     <div class="header-profile">
-                        <div class="header-avatar" id="headerAvatar" role="img" aria-label="Avatar do usuário" onclick="onAvatarClick(event)">👤</div>
+                        <div class="header-avatar-wrap" id="headerAvatarWrap">
+                            <div class="header-avatar" id="headerAvatar" role="img" aria-label="Avatar do usuário" onclick="onAvatarClick(event)">👤</div>
+                        </div>
                         <div class="header-user-text">
                             <div class="header-name-row">
                                 <span class="header-greeting" id="headerGreeting">Bom dia</span>
@@ -229,6 +161,7 @@
             <div class="app-content">
                 <!-- Home Screen -->
                 <div class="screen active" id="homeScreen">
+                    <div id="homeCompletion"></div>
                     <div id="homeNow"></div>
 
                     <div class="home-section-header">
@@ -2217,6 +2150,156 @@
                 </div>
                 <div id="pendingRequestsList"></div>
             </div>
+        </div>
+    </div>
+
+    <!-- Tela Editar Perfil (wizard) -->
+    <div class="screen" id="editarPerfilScreen">
+        <div class="ep-header">
+            <button class="ep-back" id="epBackBtn" onclick="epWizardBack()" aria-label="Voltar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <h1 class="ep-title">Editar Perfil</h1>
+            <div class="ep-header-spacer"></div>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="ep-progress">
+            <div class="ep-progress-fill" id="epProgressFill"></div>
+        </div>
+
+        <div class="ep-wizard" id="epWizard">
+
+            <!-- STEP 0: Foto + Nome -->
+            <div class="ep-step active" data-step="0">
+                <div class="ep-step-content">
+                    <div class="ep-avatar-section">
+                        <div class="ep-avatar-ring">
+                            <div class="ep-avatar" id="epAvatar">👤</div>
+                            <button class="ep-avatar-btn" onclick="document.getElementById('epFotoInput').click()" aria-label="Trocar foto">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                            </button>
+                        </div>
+                        <input type="file" id="epFotoInput" accept="image/*" style="display:none" onchange="handleEpFotoUpload(event)">
+                        <button class="ep-foto-text-btn" onclick="document.getElementById('epFotoInput').click()">Trocar foto</button>
+                    </div>
+                    <h2 class="ep-step-question">Qual seu <strong>nome</strong>?</h2>
+                    <div class="ep-step-field">
+                        <input type="text" class="ep-input ep-input--lg" id="epNome" placeholder="Nome" autocomplete="given-name" autofocus>
+                    </div>
+                    <div class="ep-step-field">
+                        <input type="text" class="ep-input ep-input--lg" id="epSobrenome" placeholder="Sobrenome" autocomplete="family-name">
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 1: E-mail -->
+            <div class="ep-step" data-step="1">
+                <div class="ep-step-content">
+                    <div class="ep-step-icon">📧</div>
+                    <h2 class="ep-step-question">Seu <strong>e-mail</strong>?</h2>
+                    <p class="ep-step-hint">Para enviar novidades e lembretes</p>
+                    <div class="ep-step-field">
+                        <input type="email" class="ep-input ep-input--lg" id="epEmail" placeholder="exemplo@email.com" autocomplete="email">
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 2: Telefone -->
+            <div class="ep-step" data-step="2">
+                <div class="ep-step-content">
+                    <div class="ep-step-icon">📱</div>
+                    <h2 class="ep-step-question">Seu <strong>telefone</strong>?</h2>
+                    <p class="ep-step-hint">Com DDD, ex: (11) 98765-4321</p>
+                    <div class="ep-step-field">
+                        <input type="tel" class="ep-input ep-input--lg" id="epTelefone" placeholder="(00) 00000-0000" autocomplete="tel" inputmode="tel">
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3: Data de Nascimento -->
+            <div class="ep-step" data-step="3">
+                <div class="ep-step-content">
+                    <div class="ep-step-icon">🎂</div>
+                    <h2 class="ep-step-question">Sua <strong>data de nascimento</strong>?</h2>
+                    <p class="ep-step-hint">Dia, mês e ano</p>
+                    <div class="ep-date-row">
+                        <div class="ep-step-field ep-date-col">
+                            <label class="ep-label">Dia</label>
+                            <select class="ep-select ep-select--lg" id="epDia"></select>
+                        </div>
+                        <div class="ep-step-field ep-date-col">
+                            <label class="ep-label">Mês</label>
+                            <select class="ep-select ep-select--lg" id="epMes"></select>
+                        </div>
+                        <div class="ep-step-field ep-date-col">
+                            <label class="ep-label">Ano</label>
+                            <select class="ep-select ep-select--lg" id="epAno"></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 4: Altura -->
+            <div class="ep-step" data-step="4">
+                <div class="ep-step-content">
+                    <div class="ep-step-icon">📏</div>
+                    <h2 class="ep-step-question">Sua <strong>altura</strong>?</h2>
+                    <p class="ep-step-hint">em centímetros</p>
+                    <div class="ep-stepper-lg">
+                        <button type="button" class="ep-stepper-lg-btn" onclick="epStepper('epAltura', -1)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        </button>
+                        <div class="ep-stepper-lg-value">
+                            <input type="number" class="ep-stepper-lg-input" id="epAltura" placeholder="175" min="100" max="250" step="1">
+                            <span class="ep-stepper-lg-unit">cm</span>
+                        </div>
+                        <button type="button" class="ep-stepper-lg-btn" onclick="epStepper('epAltura', 1)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 5: Peso -->
+            <div class="ep-step" data-step="5">
+                <div class="ep-step-content">
+                    <div class="ep-step-icon">⚖️</div>
+                    <h2 class="ep-step-question">Seu <strong>peso</strong>?</h2>
+                    <p class="ep-step-hint">em quilogramas</p>
+                    <div class="ep-stepper-lg">
+                        <button type="button" class="ep-stepper-lg-btn" onclick="epStepper('epPeso', -0.5)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        </button>
+                        <div class="ep-stepper-lg-value">
+                            <input type="number" class="ep-stepper-lg-input" id="epPeso" placeholder="70" min="30" max="300" step="0.5">
+                            <span class="ep-stepper-lg-unit">kg</span>
+                        </div>
+                        <button type="button" class="ep-stepper-lg-btn" onclick="epStepper('epPeso', 0.5)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 6: Resumo -->
+            <div class="ep-step" data-step="6">
+                <div class="ep-step-content">
+                    <div class="ep-step-icon">✅</div>
+                    <h2 class="ep-step-question">Tudo certo!</h2>
+                    <p class="ep-step-hint">Confira seus dados antes de salvar</p>
+                    <div class="ep-summary" id="epSummary"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Bottom navigation -->
+        <div class="ep-bottom">
+            <button class="ep-btn ep-btn--primary" id="epNextBtn" onclick="epWizardNext()">
+                Próximo
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
         </div>
     </div>
 

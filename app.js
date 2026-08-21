@@ -1,6 +1,38 @@
-﻿// ── Onboarding Wizard ──
+﻿// ── Profile Completion Helper ──
+function getProfileCompletion() {
+  var u = mockData.usuario;
+  if (!u) return { pct: 100, missing: [], complete: true };
+
+  var fields = [
+    { key: 'dataNascimento', label: 'Data de nascimento', icon: '📅' },
+    { key: 'telefone', label: 'Telefone', icon: '📱' },
+    { key: 'cpf', label: 'CPF', icon: '🪪' },
+    { key: 'altura', label: 'Altura', icon: '📏' },
+    { key: 'peso', label: 'Peso', icon: '⚖️' }
+  ];
+
+  var filled = 0;
+  var missing = [];
+  for (var i = 0; i < fields.length; i++) {
+    var val = u[fields[i].key];
+    if (val !== undefined && val !== null && val !== '' && val !== 0) {
+      filled++;
+    } else {
+      missing.push(fields[i]);
+    }
+  }
+
+  var pct = Math.round((filled / fields.length) * 100);
+  return { pct: pct, missing: missing, complete: missing.length === 0 };
+}
+
+function applyProfileCompletionBadge() {
+  // Badge removido — indicador agora é via card no Home e seção no Perfil
+}
+
+// ── Onboarding Wizard ──
 var _onbCurrentStep = 0;
-var _onbTotalSteps = 6;
+var _onbTotalSteps = 3;
 var _onbDirection = 1; // 1 = forward, -1 = backward
 
 function wizardShowStep(step) {
@@ -22,29 +54,34 @@ function wizardShowStep(step) {
 function wizardNext() {
   _onbDirection = 1;
   _onbCurrentStep++;
+
+  // Step 3 = confirmation: populate summary before showing
+  if (_onbCurrentStep === 3) {
+    var nome = (document.getElementById('wizNome') || {}).value || '';
+    var sobrenome = (document.getElementById('wizSobrenome') || {}).value || '';
+    var email = (document.getElementById('wizEmail') || {}).value || '';
+    var nomeCompleto = (nome + ' ' + sobrenome).trim() || '—';
+
+    document.getElementById('wizConfirmNome').textContent = nomeCompleto;
+    document.getElementById('wizConfirmEmail').textContent = email || '—';
+
+    // Avatar: foto do Google ou inicial do nome
+    var fotoEl = document.getElementById('wizConfirmAvatar');
+    var initialsEl = document.getElementById('wizConfirmInitials');
+    if (window._onbGoogleFoto && fotoEl) {
+      fotoEl.src = window._onbGoogleFoto;
+      fotoEl.style.display = '';
+      if (initialsEl) initialsEl.style.display = 'none';
+    } else if (initialsEl) {
+      initialsEl.textContent = nome ? nome.charAt(0).toUpperCase() : '👤';
+      initialsEl.style.display = 'flex';
+      if (fotoEl) fotoEl.style.display = 'none';
+    }
+  }
+
   if (_onbCurrentStep > _onbTotalSteps) {
     finishOnboarding();
     return;
-  }
-  // Pre-fill mock data on Google login
-  if (_onbCurrentStep === 1 && window._onbGoogleLogin) {
-    document.getElementById('wizNome').value = 'Maria';
-  }
-  if (_onbCurrentStep === 2 && window._onbGoogleLogin) {
-    document.getElementById('wizSobrenome').value = 'Oliveira';
-  }
-  if (_onbCurrentStep === 3 && window._onbGoogleLogin) {
-    document.getElementById('wizEmail').value = 'maria.oliveira@gmail.com';
-  }
-  if (_onbCurrentStep === 4 && window._onbGoogleLogin) {
-    document.getElementById('wizPeso').value = '65';
-  }
-  if (_onbCurrentStep === 5 && window._onbGoogleLogin) {
-    document.getElementById('wizAltura').value = '168';
-  }
-  if (_onbCurrentStep === 6 && window._onbGoogleLogin) {
-    document.getElementById('wizNascimento').value = '1992';
-    window._onbGoogleLogin = false;
   }
   wizardShowStep(_onbCurrentStep);
 }
@@ -57,8 +94,22 @@ function wizardBack() {
 }
 
 function loginWithGoogle() {
-  window._onbGoogleLogin = true;
-  _onbCurrentStep = 0;
+  // Simula dados vindos da conta Google
+  var googleNome = 'Maria';
+  var googleSobrenome = 'Oliveira';
+  var googleEmail = 'maria.oliveira@gmail.com';
+  var googleFoto = 'assets/img/Foto_Paciente.jpeg';
+
+  // Preenche os campos do wizard
+  document.getElementById('wizNome').value = googleNome;
+  document.getElementById('wizSobrenome').value = googleSobrenome;
+  document.getElementById('wizEmail').value = googleEmail;
+
+  // Salva a foto do Google para usar no step de confirmação
+  window._onbGoogleFoto = googleFoto;
+
+  // Pula direto para step 3 (confirmação)
+  _onbCurrentStep = 2;
   wizardNext();
 }
 
@@ -67,9 +118,6 @@ function finishOnboarding() {
   var nome = (document.getElementById('wizNome') || {}).value || 'João';
   var sobrenome = (document.getElementById('wizSobrenome') || {}).value || 'Silva';
   var email = (document.getElementById('wizEmail') || {}).value || 'joao.silva@email.com';
-  var peso = (document.getElementById('wizPeso') || {}).value || '78';
-  var altura = (document.getElementById('wizAltura') || {}).value || '175';
-  var nascimento = (document.getElementById('wizNascimento') || {}).value || '1990';
 
   // Setup session with first mock user
   var firstUserKey = Object.keys(_allUsers)[0];
@@ -77,7 +125,7 @@ function finishOnboarding() {
     _session.loggedInUserId = firstUserKey;
     _session.viewingUserId = firstUserKey;
     Object.assign(mockData, _allUsersData[firstUserKey]);
-    // Override name from wizard
+    // Override name and email from wizard
     if (mockData.usuario) {
       mockData.usuario.nome = nome + ' ' + sobrenome;
       mockData.usuario.email = email;
@@ -1614,6 +1662,7 @@ function applyHeaderAvatar() {
   if (typeof url === 'string' && url.length > 0) {
     el.innerHTML = `<img src="${url}" alt="">`;
     el.classList.add('header-avatar--photo');
+    applyProfileCompletionBadge();
     return;
   }
   el.classList.remove('header-avatar--photo');
@@ -1621,9 +1670,11 @@ function applyHeaderAvatar() {
   const initials = getIniciaisNome(u.nome);
   if (initials && initials !== '?' && /^[A-Z]{1,3}$/.test(initials)) {
     el.textContent = initials;
+    applyProfileCompletionBadge();
     return;
   }
   el.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+  applyProfileCompletionBadge();
 }
 
 function updateHeaderUserName() {
@@ -1650,7 +1701,8 @@ const SCREEN_HEADER = {
     actions:
       '<button type="button" class="add-button header-agenda-add" onclick="openAddAgendaModal()" aria-label="Novo agendamento">+</button>'
   },
-  perfilScreen: { actions: '' }
+  perfilScreen: { actions: '' },
+  editarPerfilScreen: { actions: '' }
 };
 
 function updateHeaderForScreen(screenId) {
@@ -1862,22 +1914,59 @@ function renderHome() {
   const dayEntries = getMedicationDayEntries(hoje);
   const atrasadas = dayEntries.filter(e => e.status === 'atrasado');
 
-  const nowHtml = atrasadas.length > 0
-    ? `<div class="home-status-card home-status-card--warning home-status-card--clickable" onclick="switchScreen('medicacoesScreen')">
+  var nowCards = [];
+
+  if (atrasadas.length > 0) {
+    nowCards.push(`<div class="home-status-card home-status-card--warning home-status-card--clickable" onclick="switchScreen('medicacoesScreen')">
         <span class="home-status-icon home-status-icon--warning"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.72 3h16.92a2 2 0 0 0 1.72-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
         <div class="home-status-text">
           <div class="home-status-title">${atrasadas.length} em atraso</div>
           <div class="home-status-sub">Medicacoes atrasadas</div>
         </div>
-      </div>`
-    : `<div class="home-status-card home-status-card--ok home-status-card--clickable" onclick="switchScreen('medicacoesScreen')">
+      </div>`);
+  }
+
+  if (nowCards.length === 0) {
+    nowCards.push(`<div class="home-status-card home-status-card--ok home-status-card--clickable" onclick="switchScreen('medicacoesScreen')">
         <span class="home-status-icon home-status-icon--ok"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
         <div class="home-status-text">
           <div class="home-status-title">Tudo em dia!</div>
           <div class="home-status-sub">Medicacoes em ordem</div>
         </div>
-      </div>`;
-  document.getElementById('homeNow').innerHTML = nowHtml;
+      </div>`);
+  }
+
+  document.getElementById('homeNow').innerHTML = nowCards.join('');
+
+  // Profile completion reminder
+  var compEl = document.getElementById('homeCompletion');
+  if (compEl) {
+    var comp = getProfileCompletion();
+    if (!comp.complete) {
+      var radius = 14;
+      var circumference = 2 * Math.PI * radius;
+      var offset = circumference - (comp.pct / 100) * circumference;
+      compEl.innerHTML = `
+        <div class="home-completion-card" onclick="_epPreviousScreen='homeScreen';openEditPerfilModal()">
+          <div class="home-completion-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M16.5 3.5l4 4M20.5 3.5l-4 4" stroke-width="1.5"/></svg>
+          </div>
+          <div class="home-completion-text">
+            <div class="home-completion-title">Complete seu perfil</div>
+            <div class="home-completion-sub">${comp.missing.length} ${comp.missing.length === 1 ? 'campo pendente' : 'campos pendentes'}</div>
+          </div>
+          <div class="home-completion-progress">
+            <svg width="36" height="36" viewBox="0 0 36 36">
+              <circle cx="18" cy="18" r="${radius}" fill="none" stroke="#dbeafe" stroke-width="3"/>
+              <circle cx="18" cy="18" r="${radius}" fill="none" stroke="#2563eb" stroke-width="3" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
+            </svg>
+            <span class="home-completion-progress-pct">${comp.pct}%</span>
+          </div>
+        </div>`;
+    } else {
+      compEl.innerHTML = '';
+    }
+  }
 
   const vitais = mockData.sinaisVitais
     .filter(v => (mockData.configSinaisVitais[v.tipo] || {}).exibirDashboard)
@@ -2421,7 +2510,7 @@ function showExistingPairingCode(code, expiresAt) {
   var qrContainer = document.getElementById('shareQRContainer');
   if (qrContainer) {
     qrContainer.innerHTML = '';
-    var qrData = JSON.stringify({ code: code, type: 'mensuri_pairing' });
+    var qrData = JSON.stringify({ code: code, type: 'teep_pairing' });
     _pairingQRInstance = new QRCode(qrContainer, {
       text: qrData,
       width: 160,
@@ -2577,7 +2666,7 @@ function scanQRFrame(video) {
       var code = jsQR(imageData.data, imageData.width, imageData.height);
       if (code && code.data) {
         var data = JSON.parse(code.data);
-        if (data.code && data.type === 'mensuri_pairing') {
+        if (data.code && data.type === 'teep_pairing') {
           cancelQRScan();
           validateAndPair(data.code);
         }
@@ -2699,17 +2788,287 @@ function togglePerfilMenuSection() {
   if (chevron) chevron.style.transform = open ? '' : 'rotate(90deg)';
 }
 
+function openEditPerfilModal() {
+  switchScreen('editarPerfilScreen');
+}
+
+var _epPreviousScreen = 'perfilScreen';
+var _epCurrentStep = 0;
+var _epTotalSteps = 6;
+var _epDirection = 1;
+
+var _epStepLabels = ['Nome', 'E-mail', 'Telefone', 'Nascimento', 'Altura', 'Peso'];
+
+function renderEditarPerfilScreen() {
+  _epCurrentStep = 0;
+  var usuario = mockData.usuario;
+  if (!usuario) return;
+
+  // Avatar
+  var avatarEl = document.getElementById('epAvatar');
+  if (avatarEl) {
+    if (usuario.fotoPerfilUrl) {
+      avatarEl.innerHTML = '<img src="' + usuario.fotoPerfilUrl + '" alt="Foto">';
+    } else {
+      var ini = getIniciaisNome(usuario.nome);
+      avatarEl.textContent = ini && ini !== '?' ? ini : '👤';
+    }
+  }
+
+  // Preencher campos
+  var nomeParts = (usuario.nome || '').split(' ');
+  var nome = nomeParts[0] || '';
+  var sobrenome = nomeParts.slice(1).join(' ') || '';
+
+  document.getElementById('epNome').value = nome;
+  document.getElementById('epSobrenome').value = sobrenome;
+  document.getElementById('epEmail').value = usuario.email || '';
+  document.getElementById('epTelefone').value = usuario.telefone || '';
+  document.getElementById('epAltura').value = usuario.altura || '';
+  document.getElementById('epPeso').value = usuario.peso || '';
+
+  // Preencher selectores de data
+  _epPopulateDateSelectors(usuario.dataNascimento);
+
+  // Mostrar primeiro passo
+  _epShowStep(0);
+}
+
+function _epPopulateDateSelectors(dateStr) {
+  var diaEl = document.getElementById('epDia');
+  var mesEl = document.getElementById('epMes');
+  var anoEl = document.getElementById('epAno');
+  if (!diaEl || !mesEl || !anoEl) return;
+
+  var meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  var today = new Date();
+  var currentYear = today.getFullYear();
+
+  // Dias
+  diaEl.innerHTML = '<option value="">Dia</option>';
+  for (var d = 1; d <= 31; d++) {
+    diaEl.innerHTML += '<option value="' + d + '">' + d + '</option>';
+  }
+
+  // Meses
+  mesEl.innerHTML = '<option value="">Mês</option>';
+  for (var m = 0; m < 12; m++) {
+    mesEl.innerHTML += '<option value="' + (m + 1) + '">' + meses[m] + '</option>';
+  }
+
+  // Anos
+  anoEl.innerHTML = '<option value="">Ano</option>';
+  for (var y = currentYear; y >= currentYear - 120; y--) {
+    anoEl.innerHTML += '<option value="' + y + '">' + y + '</option>';
+  }
+
+  // Preencher se tiver data
+  if (dateStr) {
+    var parts = dateStr.split('-');
+    if (parts.length === 3) {
+      anoEl.value = parts[0];
+      mesEl.value = parseInt(parts[1]);
+      diaEl.value = parseInt(parts[2]);
+    }
+  }
+}
+
+function _epShowStep(step) {
+  // Sair do passo atual
+  var prevStepEl = document.querySelector('.ep-step.active');
+  if (prevStepEl) {
+    prevStepEl.classList.add('ep-step--exit');
+    prevStepEl.classList.remove('active');
+    setTimeout(function() { prevStepEl.classList.remove('ep-step--exit'); }, 300);
+  }
+
+  // Mostrar novo passo
+  var steps = document.querySelectorAll('.ep-step');
+  if (steps[step]) {
+    steps[step].classList.add('active');
+  }
+
+  // Atualizar progresso
+  var pct = Math.round(((step + 1) / (_epTotalSteps + 1)) * 100);
+  var fill = document.getElementById('epProgressFill');
+  if (fill) fill.style.width = pct + '%';
+
+  // Atualizar botão
+  var btn = document.getElementById('epNextBtn');
+  var backBtn = document.getElementById('epBackBtn');
+  if (btn) {
+    if (step === _epTotalSteps) {
+      // Último passo = resumo
+      btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Salvar alterações';
+      btn.className = 'ep-btn ep-btn--primary';
+      _epRenderSummary();
+    } else {
+      btn.innerHTML = 'Próximo <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>';
+      btn.className = 'ep-btn ep-btn--primary';
+    }
+  }
+
+  // Voltar: esconde no primeiro passo
+  if (backBtn) {
+    backBtn.style.visibility = step === 0 ? 'hidden' : 'visible';
+  }
+
+  // Auto-focus no input do passo
+  setTimeout(function() {
+    var activeStep = document.querySelector('.ep-step.active');
+    if (activeStep) {
+      var inp = activeStep.querySelector('.ep-input:not(.ep-stepper-lg-input)');
+      if (inp) inp.focus();
+    }
+  }, 400);
+}
+
+function epWizardNext() {
+  var btn = document.getElementById('epNextBtn');
+
+  // Se está no resumo, salvar
+  if (_epCurrentStep === _epTotalSteps) {
+    _epSave();
+    return;
+  }
+
+  // Validar passo atual (opcional — permite avançar sem preencher)
+  _epCurrentStep++;
+  if (_epCurrentStep > _epTotalSteps) _epCurrentStep = _epTotalSteps;
+  _epShowStep(_epCurrentStep);
+}
+
+function epWizardBack() {
+  if (_epCurrentStep <= 0) {
+    navigateBackFromEditPerfil();
+    return;
+  }
+  _epCurrentStep--;
+  _epDirection = -1;
+  _epShowStep(_epCurrentStep);
+  _epDirection = 1;
+}
+
+function epStepper(inputId, delta) {
+  var input = document.getElementById(inputId);
+  if (!input) return;
+  var min = parseFloat(input.min) || 0;
+  var max = parseFloat(input.max) || 999;
+  var step = parseFloat(input.step) || 1;
+  var current = parseFloat(input.value) || 0;
+  var next = Math.round((current + delta) / step) * step;
+  next = Math.max(min, Math.min(max, next));
+  input.value = next;
+}
+
+function handleEpFotoUpload(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var url = ev.target.result;
+    mockData.usuario.fotoPerfilUrl = url;
+    var avatarEl = document.getElementById('epAvatar');
+    if (avatarEl) avatarEl.innerHTML = '<img src="' + url + '" alt="Foto">';
+  };
+  reader.readAsDataURL(file);
+}
+
+function navigateBackFromEditPerfil() {
+  switchScreen(_epPreviousScreen);
+}
+
+function _epRenderSummary() {
+  var u = mockData.usuario;
+  var nome = (document.getElementById('epNome') || {}).value || '';
+  var sobrenome = (document.getElementById('epSobrenome') || {}).value || '';
+  var email = (document.getElementById('epEmail') || {}).value || '';
+  var telefone = (document.getElementById('epTelefone') || {}).value || '';
+  var dia = (document.getElementById('epDia') || {}).value || '';
+  var mes = (document.getElementById('epMes') || {}).value || '';
+  var ano = (document.getElementById('epAno') || {}).value || '';
+  var altura = (document.getElementById('epAltura') || {}).value || '';
+  var peso = (document.getElementById('epPeso') || {}).value || '';
+
+  var meses = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  var nascimento = dia && mes && ano ? dia + ' de ' + meses[parseInt(mes)] + ' de ' + ano : '';
+
+  var rows = [
+    { label: 'Nome', value: (nome + ' ' + sobrenome).trim() },
+    { label: 'E-mail', value: email },
+    { label: 'Telefone', value: telefone },
+    { label: 'Nascimento', value: nascimento },
+    { label: 'Altura', value: altura ? altura + ' cm' : '' },
+    { label: 'Peso', value: peso ? peso + ' kg' : '' }
+  ];
+
+  var html = rows.map(function(r) {
+    var valClass = r.value ? 'ep-summary-value' : 'ep-summary-value ep-summary-value--empty';
+    return '<div class="ep-summary-row"><span class="ep-summary-label">' + r.label + '</span><span class="' + valClass + '">' + (r.value || 'Não informado') + '</span></div>';
+  }).join('');
+
+  var el = document.getElementById('epSummary');
+  if (el) el.innerHTML = html;
+}
+
+function _epSave() {
+  var usuario = mockData.usuario;
+  if (!usuario) return;
+
+  var nome = (document.getElementById('epNome') || {}).value || '';
+  var sobrenome = (document.getElementById('epSobrenome') || {}).value || '';
+  var email = (document.getElementById('epEmail') || {}).value || '';
+  var telefone = (document.getElementById('epTelefone') || {}).value || '';
+  var dia = (document.getElementById('epDia') || {}).value || '';
+  var mes = (document.getElementById('epMes') || {}).value || '';
+  var ano = (document.getElementById('epAno') || {}).value || '';
+  var altura = (document.getElementById('epAltura') || {}).value || '';
+  var peso = (document.getElementById('epPeso') || {}).value || '';
+
+  usuario.nome = (nome + ' ' + sobrenome).trim() || usuario.nome;
+  usuario.email = email || usuario.email;
+  usuario.telefone = telefone || usuario.telefone;
+  if (dia && mes && ano) {
+    usuario.dataNascimento = ano + '-' + String(mes).padStart(2, '0') + '-' + String(dia).padStart(2, '0');
+  }
+  if (altura) usuario.altura = parseFloat(altura);
+  if (peso) usuario.peso = parseFloat(peso);
+
+  _saveSession();
+
+  // Animação de sucesso
+  var btn = document.getElementById('epNextBtn');
+  if (btn) {
+    btn.classList.add('ep-btn--success');
+    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg> Salvo!';
+  }
+
+  setTimeout(function() {
+    switchScreen('perfilScreen');
+    refreshHeaderUser();
+  }, 800);
+}
+
+// Enter key advances wizard
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.getElementById('editarPerfilScreen') &&
+      document.getElementById('editarPerfilScreen').classList.contains('active')) {
+    e.preventDefault();
+    epWizardNext();
+  }
+});
+
 function renderPerfil() {
   const usuario = mockData.usuario;
   const idade = calcularIdade(usuario.dataNascimento);
   ensureBottomNavConfig();
 
-  // Helpers para mascarar dados sensA-veis
+  // Helpers para mascarar dados sensíveis
   function maskCpf(cpf) {
-    return cpf ? cpf.replace(/(\d{3})\.(\d{3})\.(\d{3})-(\d{2})/, '?????????.?????????.$3-$4') : '–';
+    return cpf ? cpf.replace(/(\d{3})\.(\d{3})\.(\d{3})-(\d{2})/, '•••.•••.•••-$3-$4') : '–';
   }
   function maskTel(tel) {
-    return tel ? tel.replace(/(\(\d{2}\))\s(\d{4,5})-(\d{4})/, '$1 ???????????????-$3') : '–';
+    return tel ? tel.replace(/(\(\d{2}\))\s(\d{4,5})-(\d{4})/, '$1 •••••-$3') : '–';
   }
 
   const navControlItems = [
@@ -2779,39 +3138,92 @@ function renderPerfil() {
     ? `<img src="${usuario.fotoPerfilUrl}" class="perfil-hero-avatar" alt="Foto de perfil" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="perfil-hero-avatar perfil-hero-avatar--initials" style="display:none">${iniciais}</div>`
     : `<div class="perfil-hero-avatar perfil-hero-avatar--initials">${iniciais}</div>`;
 
+  const completion = getProfileCompletion();
+
   let html = `
-    <!-- ?"–? HERO ?"–? -->
+    <!-- HERO -->
     <div class="perfil-hero">
       <div class="perfil-hero-avatar-wrap">
         ${avatarHtml}
       </div>
       <div class="perfil-hero-name">${usuario.nome}</div>
-      <div class="perfil-hero-meta">${idade} anos | Paciente</div>
+      <div class="perfil-hero-meta">${idade} anos · Paciente</div>
 
-      <!-- Dados pessoais com máscara -->
-      <div class="perfil-hero-dados">
-        <div class="perfil-dado-row">
-          <span class="perfil-dado-lbl">E-mail</span>
-          <span class="perfil-dado-val">${usuario.email}</span>
+      <!-- Dados pessoais -->
+      <div class="perfil-info-list">
+        <div class="perfil-info-item">
+          <span class="perfil-info-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </span>
+          <div class="perfil-info-text">
+            <span class="perfil-info-label">E-mail</span>
+            <span class="perfil-info-value">${usuario.email || '—'}</span>
+          </div>
         </div>
-        <div class="perfil-dado-row">
-          <span class="perfil-dado-lbl">CPF</span>
-          <span class="perfil-dado-val perfil-dado-masked" data-real="${usuario.cpf}" data-masked="${maskCpf(usuario.cpf)}" id="perfilCpf">${maskCpf(usuario.cpf)}</span>
+        <div class="perfil-info-item">
+          <span class="perfil-info-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          </span>
+          <div class="perfil-info-text">
+            <span class="perfil-info-label">CPF</span>
+            <span class="perfil-info-value perfil-dado-masked" data-real="${usuario.cpf}" data-masked="${maskCpf(usuario.cpf)}" id="perfilCpf">${maskCpf(usuario.cpf)}</span>
+          </div>
           <button type="button" class="perfil-reveal-btn" onclick="togglePerfilMask('perfilCpf')" aria-label="Revelar CPF">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
         </div>
-        <div class="perfil-dado-row">
-          <span class="perfil-dado-lbl">Telefone</span>
-          <span class="perfil-dado-val perfil-dado-masked" data-real="${usuario.telefone}" data-masked="${maskTel(usuario.telefone)}" id="perfilTel">${maskTel(usuario.telefone)}</span>
+        <div class="perfil-info-item">
+          <span class="perfil-info-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </span>
+          <div class="perfil-info-text">
+            <span class="perfil-info-label">Telefone</span>
+            <span class="perfil-info-value perfil-dado-masked" data-real="${usuario.telefone}" data-masked="${maskTel(usuario.telefone)}" id="perfilTel">${maskTel(usuario.telefone)}</span>
+          </div>
           <button type="button" class="perfil-reveal-btn" onclick="togglePerfilMask('perfilTel')" aria-label="Revelar telefone">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
+        </div>
+        <div class="perfil-info-item">
+          <span class="perfil-info-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </span>
+          <div class="perfil-info-text">
+            <span class="perfil-info-label">Nascimento</span>
+            <span class="perfil-info-value">${usuario.dataNascimento || '—'}</span>
+          </div>
         </div>
       </div>
+
+      <button type="button" class="perfil-edit-btn" onclick="_epPreviousScreen='perfilScreen';openEditPerfilModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Editar dados
+      </button>
     </div>
 
-    <!-- ?"–? CONFIGURAÇÕES->
+    <!-- Profile completion banner -->
+    ${!completion.complete ? `
+    <div class="perfil-completion-banner">
+      <div class="perfil-completion-header">
+        <span class="perfil-completion-title">Complete seu perfil</span>
+        <span class="perfil-completion-pct">${completion.pct}%</span>
+      </div>
+      <div class="perfil-completion-bar">
+        <div class="perfil-completion-bar-fill" style="width:${completion.pct}%"></div>
+      </div>
+      <div class="perfil-completion-fields">
+        ${completion.missing.map(f => `
+          <button class="perfil-completion-field" onclick="_epPreviousScreen='perfilScreen';openEditPerfilModal()">
+            <span class="perfil-completion-field-icon">${f.icon}</span>
+            <span class="perfil-completion-field-label">${f.label}</span>
+            <span class="perfil-completion-field-add">+</span>
+          </button>
+        `).join('')}
+      </div>
+    </div>
+    ` : ''}
+
+    <!-- Configuracoes -->
     <div class="perfil-section-title">Configurações</div>
     <div class="config-item" onclick="openMeusIndicadoresModal()" style="cursor:pointer;">
       <div class="config-item-content">
@@ -2821,10 +3233,9 @@ function renderPerfil() {
           <div class="config-subtitle">Gerenciar sinais vitais e composição</div>
         </div>
       </div>
-      <div>???</div>
+      <div>›</div>
     </div>
 
-    <!-- Personalizar menu – colapsável -->
     <div class="config-item config-item--collapsible" onclick="togglePerfilMenuSection()" style="cursor:pointer;" id="perfilMenuToggleRow">
       <div class="config-item-content">
         <div class="config-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div>
@@ -2833,7 +3244,7 @@ function renderPerfil() {
           <div class="config-subtitle">Escolher o que aparece na barra inferior</div>
         </div>
       </div>
-      <span id="perfilMenuChevron" style="font-size:18px;color:#94a3b8;transition:transform 0.2s;">???</span>
+      <span id="perfilMenuChevron" style="font-size:18px;color:#94a3b8;transition:transform 0.2s;">›</span>
     </div>
     <div id="perfilMenuSection" style="display:none;">
       ${navControlsHtml}
@@ -2849,7 +3260,7 @@ function renderPerfil() {
           <div class="config-subtitle">Conectar relógio, balança ou app</div>
         </div>
       </div>
-      <div>???</div>
+      <div>›</div>
     </div>
     <div id="dispositivosContent"></div>
 
@@ -2859,11 +3270,11 @@ function renderPerfil() {
       <div class="config-item-content">
         <div class="config-icon"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
         <div class="config-text">
-          <div class="config-title">Compartilhar com MAcdico</div>
+          <div class="config-title">Compartilhar com Médico</div>
           <div class="config-subtitle">Liberar acesso aos seus dados de saúde</div>
         </div>
       </div>
-      <div>???</div>
+      <div>›</div>
     </div>
     <div id="compartilhamentoContent" style="margin-top:8px;"></div>
 
@@ -2880,7 +3291,7 @@ function renderPerfil() {
           <div class="config-subtitle">Lembretes de medicação e alertas</div>
         </div>
       </div>
-      <div>???</div>
+      <div>›</div>
     </div>
     <div class="config-item" style="cursor:pointer;">
       <div class="config-item-content">
@@ -2890,7 +3301,7 @@ function renderPerfil() {
           <div class="config-subtitle">Gerenciar seus dados pessoais</div>
         </div>
       </div>
-      <div>???</div>
+      <div>›</div>
     </div>
     <div class="config-item config-item--danger" style="cursor:pointer; margin-bottom:32px;">
       <div class="config-item-content">
@@ -2914,7 +3325,7 @@ function renderPerfil() {
           <div class="config-subtitle">Demonstração de alerta de medição</div>
         </div>
       </div>
-      <div style="color:#64748b;font-size:13px;">???</div>
+      <div style="color:#64748b;font-size:13px;">›</div>
     </div>
     <div class="config-item" onclick="simulateAlertPopup()" style="cursor:pointer;margin-bottom:40px;">
       <div class="config-item-content">
@@ -2926,7 +3337,7 @@ function renderPerfil() {
           <div class="config-subtitle">Demonstração de aviso de medição</div>
         </div>
       </div>
-      <div style="color:#64748b;font-size:13px;">???</div>
+      <div style="color:#64748b;font-size:13px;">›</div>
     </div>
   `;
 
@@ -3082,19 +3493,26 @@ function switchScreen(screenId) {
   var nextScreen = document.getElementById(screenId);
   if (!nextScreen || nextScreen === prevScreen) return;
 
-  // Garante que telas sobressalentes não fiquem visA-veis ao trocar de aba.
+  // Garante que telas sobressalentes não fiquem visíveis ao trocar de aba.
   document.querySelectorAll('.screen.active').forEach(function(screen) {
     if (screen !== prevScreen && screen !== nextScreen) {
       screen.classList.remove('active', 'screen--leaving', 'screen--entering');
     }
   });
 
+  // Tela full-screen: esconde a anterior imediatamente
+  var isFullscreen = (screenId === 'editarPerfilScreen');
+
   if (prevScreen) {
-    prevScreen.classList.add('screen--leaving');
-    prevScreen.addEventListener('animationend', function handler() {
-      prevScreen.classList.remove('active', 'screen--leaving');
-      prevScreen.removeEventListener('animationend', handler);
-    }, { once: true });
+    if (isFullscreen) {
+      prevScreen.classList.remove('active', 'screen--leaving', 'screen--entering');
+    } else {
+      prevScreen.classList.add('screen--leaving');
+      prevScreen.addEventListener('animationend', function handler() {
+        prevScreen.classList.remove('active', 'screen--leaving');
+        prevScreen.removeEventListener('animationend', handler);
+      }, { once: true });
+    }
   }
 
   nextScreen.classList.add('active', 'screen--entering');
@@ -3104,8 +3522,18 @@ function switchScreen(screenId) {
   }, { once: true });
 
   currentScreen = screenId;
-  setGlobalHeaderVisible(true);
+  setGlobalHeaderVisible(screenId !== 'editarPerfilScreen');
   updateHeaderForScreen(screenId);
+
+  // Esconder/mostrar tabbar na tela de edição
+  var tabbar = document.getElementById('mainTabbar');
+  if (tabbar) {
+    if (screenId === 'editarPerfilScreen') {
+      tabbar.classList.add('ep-hidden');
+    } else {
+      tabbar.classList.remove('ep-hidden');
+    }
+  }
 
   if (screenId === 'homeScreen') renderHome();
   else if (screenId === 'saudeScreen') renderSaude();
@@ -3113,6 +3541,7 @@ function switchScreen(screenId) {
   else if (screenId === 'medicacoesScreen') renderMedicacoes();
   else if (screenId === 'agendaScreen') renderAgenda();
   else if (screenId === 'perfilScreen') renderPerfil();
+  else if (screenId === 'editarPerfilScreen') renderEditarPerfilScreen();
 }
 
 // ===== MODAL DE MEDICAÇÃO =====
@@ -5532,7 +5961,7 @@ function openEcgDetail(ecgId) {
           <div class="ecg-rhythm-line">${ecg.ritmo}</div>
         </div>
       </div>
-      <div class="ecg-meta"><span class="ecg-date">dY". ${formatDateTimeForUI(ecg.dataHora)}</span></div>
+      <div class="ecg-meta"><span class="ecg-date">📅 ${formatDateTimeForUI(ecg.dataHora)}</span></div>
       <div class="ecg-interpretation">${ecg.interpretacao}</div>
     </div>
   `;
@@ -6052,7 +6481,7 @@ function searchMedicamentos(termo) {
     const items = grouped.get(key).sort((a, b) => a.nome.localeCompare(b.nome));
     html += `<div style="padding: 6px 8px; font-size: 11px; color: #666; font-weight: 700; background: #fafafa; border-bottom: 1px solid #eee;">${labelForForma(key)}</div>`;
     items.forEach(med => {
-      const formasTxt = (med.formas && med.formas.length) ? med.formas.join(' ??? ') : '';
+      const formasTxt = (med.formas && med.formas.length) ? med.formas.join(' · ') : '';
       html += `
         <div class="search-result-item" onclick="selectMedicamento(${med.id})">
           <div class="search-result-name">${med.nome}</div>
@@ -6073,7 +6502,7 @@ function searchMedicamentos(termo) {
   searchResults.style.display = 'block';
 }
 
-/** Um remAcdio por vez: mostra busca ou o nome escolhido + ??oTrocar???. */
+/** Um remédio por vez: mostra busca ou o nome escolhido + botão Trocar. */
 function setAddMedicacaoMedPickPhase(showSearch) {
   const searchRow = document.getElementById('medSearchRow');
   const selectedRow = document.getElementById('medSelectedRow');
@@ -6638,15 +7067,15 @@ function renderAlertasMeds() {
   const html = mockData.medicacoes.filter(m => m.alertas).map(m => {
     const a = m.alertas;
     const tags = [];
-    if (a.lembrete) tags.push(`??? ${a.antecedencia}min antes`);
-    if (a.atrasada) tags.push('?s??,? Dose atrasada');
-    if (a.estoqueBaixo) tags.push('dY"? Estoque baixo');
+    if (a.lembrete) tags.push(`⏰ ${a.antecedencia}min antes`);
+    if (a.atrasada) tags.push('🔴 Dose atrasada');
+    if (a.estoqueBaixo) tags.push('⚠️ Estoque baixo');
     return `
       <div class="vital-config-row">
-        <span class="vital-config-icon">dY'S</span>
+        <span class="vital-config-icon">📋</span>
         <div style="flex:1;">
           <div class="vital-config-name">${m.nome} ${m.dosagem}</div>
-          <div style="font-size:11px;color:#aaa;">${tags.join(' ??? ') || 'Sem alertas'}</div>
+          <div style="font-size:11px;color:#aaa;">${tags.join(' · ') || 'Sem alertas'}</div>
         </div>
         <button class="toggle ${a.lembrete || a.atrasada || a.estoqueBaixo ? 'active' : ''}" onclick="toggleAlertaMed(${m.id}, this)"></button>
       </div>
@@ -6675,10 +7104,10 @@ function renderAlertasAgenda() {
   const antLabel = min => min >= 1440 ? `${min/1440} dia(s) antes` : `${min/60}h antes`;
   document.getElementById('alertasAgendaContent').innerHTML = todas.map(a => `
     <div class="vital-config-row">
-      <span class="vital-config-icon">${a.medico ? 'dY".' : 'dY"?'}</span>
+      <span class="vital-config-icon">${a.medico ? '🩺' : '💊'}</span>
       <div style="flex:1;">
         <div class="vital-config-name">${a.medico || a.nome}</div>
-        <div style="font-size:11px;color:#aaa;">${formatDateForUI(a.data)} ??? ${a.alerta.ativo ? antLabel(a.alerta.antecedencia) : 'Desativado'}</div>
+        <div style="font-size:11px;color:#aaa;">${formatDateForUI(a.data)} · ${a.alerta.ativo ? antLabel(a.alerta.antecedencia) : 'Desativado'}</div>
       </div>
       <button class="toggle ${a.alerta.ativo ? 'active' : ''}" onclick="toggleAlertaAgenda(${a.id}, '${a.medico ? 'consulta' : 'exame'}', this)"></button>
     </div>
@@ -6925,7 +7354,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const nome = document.getElementById('novoIndicadorNome').value.trim();
     const unidade = document.getElementById('novoIndicadorUnidade').value.trim();
     const ideal = document.getElementById('novoIndicadorIdeal').value.trim() || '-';
-    const icon = document.getElementById('novoIndicadorIcon').value.trim() || 'dY"S';
+    const icon = document.getElementById('novoIndicadorIcon').value.trim() || '📊';
     const fonte = document.getElementById('novoIndicadorFonte').value;
     const alertaVital = categoria === 'vitais' ? buildVitalAlertFromForm() : null;
 
@@ -7005,7 +7434,7 @@ function renderDispositivos() {
         <div class="config-icon">${getDispositivoIcon(d.tipo)}</div>
         <div class="config-text">
           <div class="config-title">${d.nome}</div>
-          <div class="config-subtitle">${d.tipo} ??? ${d.sinaisColetados.length} sinais</div>
+          <div class="config-subtitle">${d.tipo} · ${d.sinaisColetados.length} sinais</div>
           <div class="config-subtitle" style="font-size: 10px; margin-top: 2px; color: #bbb;">${d.sinaisColetados.join(', ')}</div>
         </div>
       </div>
@@ -7078,7 +7507,7 @@ document.addEventListener('DOMContentLoaded', () => {
       id: newId,
       nome,
       tipo,
-      icon: catalogo ? catalogo.icon : 'dY"?',
+      icon: catalogo ? catalogo.icon : '📱',
       conectado: true,
       sinaisColetados: sinais
     });
@@ -7350,7 +7779,7 @@ function openExercicioDetalheModal(sessao) {
   const ticks = [0, dur / 4, dur / 2, (3 * dur) / 4, dur];
   axisEl.innerHTML = `${ticks
     .map((t) => `<span>${formatElapsedMMSS(t)}</span>`)
-    .join('')}<span class="exercise-axis-flag" title="Fim">dY??</span>`;
+    .join('')}<span class="exercise-axis-flag" title="Fim">🏁</span>`;
 
   window._lastExercicioSessaoCanvas = sessao;
   document.getElementById('exercicioDetalheModal').classList.add('active');
@@ -7363,7 +7792,7 @@ function closeExercicioDetalheModal() {
   if (m) m.classList.remove('active');
 }
 
-/** Rótulos de contexto (ExercA-cio / Sono / ???) agregados num bucket horário. */
+/** Rótulos de contexto (Exercício / Sono / Alerta) agregados num bucket horário. */
 function batimentoBucketContextBadgeHtml(bucket) {
   if (!bucket || !bucket.readings || bucket.readings.length === 0) return '';
   const set = new Set();
@@ -7447,7 +7876,7 @@ const BATIMENTO_HISTORICO_PREVIEW = 3;
 let batimentoMinutoReadingsCache = [];
 let batimentoMinutoCurrentHour = null;
 
-/** Mesma hierarquia visual da lista ??opor hora??? (medida em cima, horário em baixo, chevron). */
+/** Mesma hierarquia visual da lista por hora (medida em cima, horário em baixo, chevron). */
 function buildBatimentoMinutoHistoricoRowHtml(r) {
   const v = parseBatimentoHistoricoValor(r);
   const dateIso = historicoEntryDayISO(r);
@@ -7778,7 +8207,7 @@ function buildDailyRowsForRange(historico, startISO, endISO) {
   });
 }
 
-/** Cor de fundo: Sono / ExercA-cio / Repouso / outras condições (histórico detalhado por medição). */
+/** Cor de fundo: Sono / Exercício / Repouso / outras condições (histórico detalhado por medição). */
 function batimentoHistoricoRowBgClassForEntry(h) {
   if (!h || !currentVitalDetail || currentVitalDetail.tipo !== 'Batimento Cardíaco') return '';
   if (h.contextoColeta === 'sono' && h.sonoSessao) return 'vital-list-item--bc-sono';
@@ -7799,7 +8228,7 @@ function batimentoHistoricoDailyRowBgClass(readings) {
 }
 
 /**
- * Contexto da hora (lista + gráfico horário): Sono ?+' ExercA-cio ?+' Repouso ?+' demais.
+ * Contexto da hora (lista + gráfico horário): Sono · Exercício · Repouso · demais.
  * Não confundir com Baixo/Normal/Alto do histórico por período.
  */
 function batimentoHourlyBucketContextGroup(bucket) {
@@ -7947,7 +8376,7 @@ function batimentoSelectionEquals(a, b) {
 }
 
 /**
- * Atualiza gráficos do chrome de Batimento (período OU vista dia) + painAcis visA-veis.
+ * Atualiza gráficos do chrome de Batimento (período OU vista dia) + painéis visíveis.
  * Não altera lista – use depois de renderVitalDetailContent ou dentro de updateVitalBatimentoModalView.
  */
 function renderBatimentoChromeCharts(filtrado, start, end) {
@@ -9504,7 +9933,7 @@ function getBatimentoPeriodRange() {
   return { start: dateToLocalISODate(startD), end: endToday };
 }
 
-/** Resumo curto do período (batimento): evita a frase longa ??odia(s) com registro · leitura(s) · ?????. */
+/** Resumo curto do período (batimento): evita a frase longa "dia(s) com registro · leitura(s) · etc". */
 function updateBatimentoPeriodSummary(filtrado, startISO, endISO) {
   const el = document.getElementById('vitalDetailPeriodSummary');
   if (!el) return;
@@ -9618,7 +10047,7 @@ function getBatimentoChartIdealBand() {
 }
 
 /**
- * Eixo Y do gráfico: inclui todos os dados **e** a faixa ideal, para barras não ficarem ??opresas??? em 60–100.
+ * Eixo Y do gráfico: inclui todos os dados **e** a faixa ideal, para barras não ficarem "presas" em 60–100.
  * A faixa ideal (verde + tracejados) continua nos BPM do indicador; o que passar para baixo/cima aparece com as cores Baixo/Normal/Alto.
  */
 function getBatimentoPlotYBoundsFromDataRange(vDataMin, vDataMax) {
@@ -9694,7 +10123,7 @@ function batimentoListaBgClassFromChartLevel(level) {
   }
 }
 
-/** Trechos da barra: Baixo = laranja escuro, Normal = laranja claro, Alto = vermelho (não Ac legenda de ??ofaixa??? texto). */
+/** Trechos da barra: Baixo = laranja escuro, Normal = laranja claro, Alto = vermelho (não usa legenda de faixa no texto). */
 function batimentoGradientForIdealSegment(ctx, x0, x1, yTop, yBot, kind) {
   const g = ctx.createLinearGradient(x0, yTop, x0, yBot);
   if (kind === 'low') {
@@ -13048,7 +13477,7 @@ function renderSparklineChart(historico) {
 
 /**
  * Uma linha da lista do modal de Batimento (hora do dia ou data agregada – sem coluna de status).
- * `hourDetail`: vista dia hora a hora – formato ??o61 a 89 bpm??? em cima, intervalo em baixo (como lista de registos).
+ * `hourDetail`: vista dia hora a hora – formato "61 a 89 bpm" em cima, intervalo em baixo (como lista de registros).
  */
 function htmlVitalBatimentoListRow(opts) {
   const { rowClass, clickAttr = '', primaryLine, badgeHtml = '', valueHtml, hourDetail } = opts;
@@ -14245,14 +14674,14 @@ function renderMoodHistory() {
 
   list.innerHTML = merged.map(item => {
     const dateBR = formatDateForUI(item.date);
-    const timeTxt = item.time ? ` ??? ${item.time}` : '';
+    const timeTxt = item.time ? ` · ${item.time}` : '';
     const pTxt = `PA ${formatPressureValueForUI(item.pressure)}`;
     const hTxt = item.heartRate != null ? `FC ${item.heartRate} bpm` : 'FC --';
     return `
       <div class="mood-history-item">
         <div class="mood-history-left">
           <div class="mood-history-date">${dateBR}${timeTxt}</div>
-          <div class="mood-history-values">${pTxt} ??? ${hTxt}</div>
+          <div class="mood-history-values">${pTxt} · ${hTxt}</div>
         </div>
       </div>
     `;

@@ -1,6 +1,6 @@
 # Body Measurement Icons
 
-Icones SVG customizados para a secao Medidas Corporais do Mensuri.
+Icones SVG customizados para a secao Medidas Corporais do Teep Saúde.
 
 Estilo: Silhueta humana simplificada com indicador de medida (linha + extremidades).
 Formato: SVG inline, 64x64 viewBox, stroke-based.
@@ -30,4 +30,4 @@ Formato: SVG inline, 64x64 viewBox, stroke-based.
 
 ## Licenca
 
-Icones criados para o projeto Mensuri. Uso interno.
+Icones criados para o projeto Teep Saúde. Uso interno.
