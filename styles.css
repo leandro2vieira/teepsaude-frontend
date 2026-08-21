@@ -2817,9 +2817,6 @@ body {
   text-overflow: ellipsis;
   max-width: 200px;
 }
-  font-size: 42px;
-  color: #0f172a;
-}
 
 .vital-card--featured .vital-pressao-num {
   font-size: 38px;
@@ -14948,4 +14945,5 @@ body.corpo-insert-screen-open {
 @keyframes onbNextPulseDone {
   0%, 100% { box-shadow: 0 4px 16px rgba(5, 150, 105, 0.25); }
   50% { box-shadow: 0 4px 30px rgba(5, 150, 105, 0.5); }
+
 }
