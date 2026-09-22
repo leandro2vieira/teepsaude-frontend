@@ -1045,7 +1045,6 @@ function saveGlicemiaEntry(ev, useNow) {
 
   closeAddGlicemiaWizard();
 
-  renderSaude();
   if (currentVitalDetail && currentVitalDetail.tipo === 'Glicemia' && vital) {
     currentVitalDetail = vital;
     applyVitalDefaultPeriodView();
@@ -1552,10 +1551,7 @@ function ensureBottomNavConfig() {
   }
 
   const defaults = {
-    saudeScreen: true,
-    composicaoScreen: true,
-    medicacoesScreen: true,
-    agendaScreen: true
+    composicaoScreen: true
   };
 
   Object.keys(defaults).forEach((screenId) => {
@@ -1569,7 +1565,7 @@ function applyBottomNavVisibility() {
   ensureBottomNavConfig();
 
   const config = mockData.configBottomNav;
-  const controlledScreens = ['saudeScreen', 'composicaoScreen', 'medicacoesScreen', 'agendaScreen'];
+  const controlledScreens = ['composicaoScreen'];
 
   controlledScreens.forEach((screenId) => {
     const navItem = document.querySelector(`.tab-link[data-screen="${screenId}"]`);
@@ -1688,18 +1684,9 @@ function updateHeaderUserName() {
 
 const SCREEN_HEADER = {
   homeScreen: { actions: '' },
-  saudeScreen: { actions: '' },
   composicaoScreen: {
     actions:
       '<button type="button" class="header-corpo-chart-btn" onclick="openCorpoComparacao()" title="Comparar avaliações"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg></button>'
-  },
-  medicacoesScreen: {
-    actions:
-      '<button type="button" class="med-chip-btn med-chip-btn-primary med-header-add-btn" onclick="openAddMedicacaoEntry()" title="Adicionar medicação">+ Adicionar</button>'
-  },
-  agendaScreen: {
-    actions:
-      '<button type="button" class="add-button header-agenda-add" onclick="openAddAgendaModal()" aria-label="Novo agendamento">+</button>'
   },
   perfilScreen: { actions: '' },
   editarPerfilScreen: { actions: '' }
@@ -1917,7 +1904,7 @@ function renderHome() {
   var nowCards = [];
 
   if (atrasadas.length > 0) {
-    nowCards.push(`<div class="home-status-card home-status-card--warning home-status-card--clickable" onclick="switchScreen('medicacoesScreen')">
+    nowCards.push(`<div class="home-status-card home-status-card--warning">
         <span class="home-status-icon home-status-icon--warning"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.72 3h16.92a2 2 0 0 0 1.72-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
         <div class="home-status-text">
           <div class="home-status-title">${atrasadas.length} em atraso</div>
@@ -1927,7 +1914,7 @@ function renderHome() {
   }
 
   if (nowCards.length === 0) {
-    nowCards.push(`<div class="home-status-card home-status-card--ok home-status-card--clickable" onclick="switchScreen('medicacoesScreen')">
+    nowCards.push(`<div class="home-status-card home-status-card--ok">
         <span class="home-status-icon home-status-icon--ok"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
         <div class="home-status-text">
           <div class="home-status-title">Tudo em dia!</div>
@@ -2190,169 +2177,6 @@ function stepHidra(delta) {
 function hidraQuickAdd(ml) {
   addHidratação(ml);
   closeHidraInsertView();
-}
-
-function renderSaude() {
-  const ativos = mockData.sinaisVitais
-    .filter(v => (mockData.configSinaisVitais[v.tipo] || {}).exibirSaude !== false);
-
-  const isOutOfIdeal = (v) => {
-    if (!v || v.valor == null || !v.ideal) return false;
-    const ideal = v.ideal;
-    const getNum = (val) => {
-      if (v.tipo === 'Pressão Arterial') {
-        if (val && typeof val === 'object' && val.sistolica != null) return parseFloat(val.sistolica);
-        if (typeof val === 'string' && val.includes('/')) return parseFloat(val.split('/')[0]);
-      }
-      const n = parseFloat(val);
-      return Number.isNaN(n) ? null : n;
-    };
-    const current = getNum(v.valor);
-    if (current == null) return false;
-
-    if (ideal.type === 'range' && ideal.min != null && ideal.max != null) return current < ideal.min || current > ideal.max;
-    if (ideal.type === 'max' && ideal.max != null) return current > ideal.max;
-    if (ideal.type === 'min' && ideal.min != null) return current < ideal.min;
-    if (ideal.type === 'target' && ideal.target != null) return current !== ideal.target;
-    if (ideal.type === 'pressure' && ideal.systolic != null) return current > ideal.systolic;
-    return false;
-  };
-
-  const foraDoIdeal = ativos.filter(isOutOfIdeal);
-  const principaisTipos = new Set(['Pressão Arterial', 'Batimento Cardíaco', 'Oxigenação', 'Glicemia', 'Sono']);
-  const principais = ativos.filter(v => !foraDoIdeal.includes(v) && principaisTipos.has(v.tipo));
-  const outros = ativos.filter(v => !foraDoIdeal.includes(v) && !principaisTipos.has(v.tipo));
-
-  let html = '';
-
-  let firstRendered = false;
-
-  if (foraDoIdeal.length) {
-    html += `<div class="subsection-title">Fora do ideal</div>`;
-    html += foraDoIdeal.map((v, i) => createVitalCard(v, { featured: !firstRendered && i === 0 })).join('');
-    firstRendered = true;
-  }
-
-  if (principais.length) {
-    html += `<div class="subsection-title">Principais</div>`;
-    html += principais.map((v, i) => createVitalCard(v, { featured: !firstRendered && i === 0 })).join('');
-    firstRendered = true;
-  }
-
-  if (outros.length) {
-    html += `<div class="subsection-title">Outros</div>`;
-    html += outros.map((v, i) => createVitalCard(v, { featured: !firstRendered && i === 0 })).join('');
-  }
-
-  if (mockData.ecgs.length > 0) {
-    html += mockData.ecgs.map(createEcgCard).join('');
-  }
-
-  document.getElementById('saudeContent').innerHTML = html ||
-    '<div class="empty-state"><div class="empty-text">Nenhum sinal ativo</div></div>';
-}
-
-function renderMedicacoes() {
-  const today = getTodayISODate();
-  const nowHHMM = getCurrentHHMM();
-
-  const medsWithOrder = [...mockData.medicacoes].map((med) => {
-    const horariosOrdenados = [...(med.horarios || [])].sort((a, b) => a.localeCompare(b));
-    const slots = horariosOrdenados.map((h) => ({
-      horario: h,
-      status: getMedicationStatusForDate(med, today, h, nowHHMM)
-    }));
-    const nextSlot = slots.find((s) => s.status !== 'tomado') || null;
-    const firstHorario = horariosOrdenados[0] || '99:99';
-    return {
-      med,
-      hasPending: !!nextSlot,
-      nextHorario: nextSlot ? nextSlot.horario : '99:99',
-      firstHorario
-    };
-  });
-
-  const paraTomar = medsWithOrder
-    .filter((x) => x.hasPending)
-    .sort((a, b) => {
-      if (a.nextHorario !== b.nextHorario) return a.nextHorario.localeCompare(b.nextHorario);
-      if (a.firstHorario !== b.firstHorario) return a.firstHorario.localeCompare(b.firstHorario);
-      return a.med.nome.localeCompare(b.med.nome);
-    })
-    .map((x) => x.med);
-
-  const tomadasHoje = medsWithOrder
-    .filter((x) => !x.hasPending)
-    .sort((a, b) => {
-      if (a.firstHorario !== b.firstHorario) return a.firstHorario.localeCompare(b.firstHorario);
-      return a.med.nome.localeCompare(b.med.nome);
-    })
-    .map((x) => x.med);
-
-  let hojeHtml = '';
-  if (paraTomar.length > 0) {
-    hojeHtml += paraTomar.map(createMedicacaoCard).join('');
-  }
-  if (tomadasHoje.length > 0) {
-    hojeHtml += '    <div class="subsection-title">Já tomadas hoje</div>';
-    hojeHtml += tomadasHoje.map(createMedicacaoCard).join('');
-  }
-
-  document.getElementById('medicacoesHoje').innerHTML = hojeHtml ||
-    '<div class="empty-state"><div class="empty-text">Nenhuma medicação cadastrada para hoje.</div></div>';
-
-  renderMedicationOverdueSection();
-  updateMedicationCalendarHeader();
-}
-
-function renderAgenda() {
-  let html = '';
-
-  const consultasOrdenadas = [...mockData.consultas].sort((a, b) => (a.data + ' ' + (a.hora || '00:00')).localeCompare(b.data + ' ' + (b.hora || '00:00')));
-  const examesAgendadosOrdenados = [...mockData.examesAgendados].sort((a, b) => (a.data || '').localeCompare(b.data || ''));
-  const proximos = [...consultasOrdenadas.map(c => ({ tipo: 'consulta', item: c })), ...examesAgendadosOrdenados.map(e => ({ tipo: 'exame', item: e }))]
-    .sort((a, b) => {
-      const aKey = a.tipo === 'consulta' ? `${a.item.data} ${(a.item.hora || '00:00')}` : `${a.item.data} 00:00`;
-      const bKey = b.tipo === 'consulta' ? `${b.item.data} ${(b.item.hora || '00:00')}` : `${b.item.data} 00:00`;
-      return aKey.localeCompare(bKey);
-    });
-
-  if (proximos.length > 0) {
-    const primeiro = proximos[0];
-    html += '<div class="agenda-section">';
-    html += '<div class="subsection-title">Próximo compromisso</div>';
-    html += primeiro.tipo === 'consulta'
-      ? createConsultaCard(primeiro.item, 'home')
-      : createExameCard(primeiro.item, false);
-    html += '</div>';
-  }
-
-  if (consultasOrdenadas.length > 0) {
-    html += '<div class="agenda-section">';
-    html += '<div class="subsection-title">Consultas agendadas</div>';
-    html += consultasOrdenadas.map(c => createConsultaCard(c, 'home')).join('');
-    html += '</div>';
-  }
-
-  if (examesAgendadosOrdenados.length > 0) {
-    html += '<div class="agenda-section">';
-    html += '<div class="subsection-title">Exames agendados</div>';
-    html += examesAgendadosOrdenados.map(e => createExameCard(e, false)).join('');
-    html += '</div>';
-  }
-
-  if (mockData.examesRealizados.length > 0) {
-    html += '<div class="agenda-section">';
-    html += '<div class="subsection-title">Exames realizados</div>';
-    html += mockData.examesRealizados.map(e => createExameCard(e, true)).join('');
-    html += '</div>';
-  }
-
-  if (!html) {
-    html = '<div class="empty-state"><div class="empty-text">Nenhum agendamento</div></div>';
-  }
-
-  document.getElementById('agendaContent').innerHTML = html;
 }
 
 function renderCompartilhamentoInPerfil() {
@@ -3073,32 +2897,11 @@ function renderPerfil() {
 
   const navControlItems = [
     {
-      screenId: 'saudeScreen',
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
-      title: 'Saúde',
-      subtitle: 'Mostrar no menu inferior',
-      personalize: 'vitais'
-    },
-    {
       screenId: 'composicaoScreen',
       icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="14" width="4" height="6" rx="1"/><rect x="9" y="9" width="4" height="11" rx="1"/><rect x="16" y="4" width="4" height="16" rx="1"/></svg>`,
       title: 'Corpo',
       subtitle: 'Mostrar no menu inferior',
       personalize: 'corpo'
-    },
-    {
-      screenId: 'medicacoesScreen',
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H20a2 2 0 0 1 2 2v3"/><circle cx="18" cy="18" r="3"/><path d="m22 22-1.5-1.5"/></svg>`,
-      title: 'Medicações',
-      subtitle: 'Mostrar no menu inferior',
-      personalize: null
-    },
-    {
-      screenId: 'agendaScreen',
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
-      title: 'Agenda',
-      subtitle: 'Mostrar no menu inferior',
-      personalize: null
     }
   ];
 
@@ -3536,10 +3339,7 @@ function switchScreen(screenId) {
   }
 
   if (screenId === 'homeScreen') renderHome();
-  else if (screenId === 'saudeScreen') renderSaude();
   else if (screenId === 'composicaoScreen') renderComposicao();
-  else if (screenId === 'medicacoesScreen') renderMedicacoes();
-  else if (screenId === 'agendaScreen') renderAgenda();
   else if (screenId === 'perfilScreen') renderPerfil();
   else if (screenId === 'editarPerfilScreen') renderEditarPerfilScreen();
 }
@@ -3931,7 +3731,6 @@ function setupMedicacaoModal() {
       showFeedbackModal(`${nome} ${dosagem} adicionado com sucesso.`, 'success');
       addModal.classList.remove('active');
       cleanupAddMedicacaoForm();
-      renderMedicacoes();
     };
 
     if (!semDataFim && duracaoDias && horarios.length > 0) {
@@ -4194,7 +3993,6 @@ function setupEditMedicacaoModal() {
       form.reset();
       setSemDataFimMedicacaoUI('edit', false);
       removerFotoEdit();
-      renderMedicacoes();
     };
 
     if (!semDataFim && duracaoDias && horarios.length > 0) {
@@ -4469,7 +4267,6 @@ function setupAgendaModal() {
     showFeedbackModal(`${nome || 'Agendamento'} adicionado com sucesso.`, 'success');
     addAgendaModal.classList.remove('active');
     addAgendaForm.reset();
-    renderAgenda();
   });
 }
 
@@ -6283,7 +6080,6 @@ function undoMedicationTaken(medId, dateISO, horario) {
   med.historico.splice(idx, 1);
   updateMedicationSummary();
   renderMedicationOverdueSection();
-  renderMedicacoes();
   if (document.getElementById('dailyScheduleModal')?.classList.contains('active')) {
     renderDailySchedule('todos');
   }
@@ -6695,7 +6491,6 @@ function confirmTakeMedication(useCurrentTime) {
   markMedicationByIdAndTime(medId, horario, hoje, false);
   
   document.getElementById('takeMedicationModal').classList.remove('active');
-  renderMedicacoes();
   showSystemToast(`${nome} ${dosagem} tomado as ${horaRegistro}.`, 'success');
 }
 
@@ -7177,7 +6972,7 @@ function renderValoresIdeaisCorpo() {
 
 function salvarValorIdealVital(id, valor) {
   const v = mockData.sinaisVitais.find(v => v.id === id);
-  if (v) { v.ideal = toIdealObjectFromInput(valor); renderSaude(); }
+  if (v) { v.ideal = toIdealObjectFromInput(valor); }
 }
 
 function salvarValorIdealCorpo(id, valor) {
@@ -7242,7 +7037,6 @@ function removeIndicador(categoria, id) {
         mockData.sinaisVitais = mockData.sinaisVitais.filter(x => x.id !== id);
         delete mockData.configSinaisVitais[v.tipo];
         renderMeusIndicadoresVitais();
-        renderSaude();
       },
       'Confirmar remoção'
     );
@@ -7372,7 +7166,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         renderMeusIndicadoresVitais();
         renderValoresIdeaisVitais();
-        renderSaude();
       } else {
         const c = mockData.composicaoCorporal.find(c => c.id === id);
         if (c) { c.unidade = unidade; c.ideal = toIdealObjectFromInput(ideal); c.icon = icon; c.fonte = fonte; }
@@ -7392,7 +7185,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         mockData.configSinaisVitais[nome] = { exibirSaude: true, exibirDashboard: false };
         renderMeusIndicadoresVitais();
-        renderSaude();
       } else {
         if (mockData.composicaoCorporal.find(c => c.tipo.toLowerCase() === nome.toLowerCase())) { showFeedbackModal('Este indicador já existe.', 'warning'); return; }
         const newId = Math.max(...mockData.composicaoCorporal.map(c => c.id), 0) + 1;
@@ -7597,7 +7389,6 @@ function toggleAllVitaisConfig(campo) {
     mockData.configSinaisVitais[v.tipo][campo] = turnOn;
   });
   renderVitaisConfig();
-  renderSaude();
   renderHome();
 }
 
@@ -7607,7 +7398,6 @@ function toggleVitalConfig(tipo, campo, btn) {
   }
   mockData.configSinaisVitais[tipo][campo] = !mockData.configSinaisVitais[tipo][campo];
   renderVitaisConfig();
-  renderSaude();
   renderHome();
 }
 
@@ -14324,7 +14114,6 @@ function executePendingVitalSave() {
   resetPulseiraStepButtons();
   clearVitalCaptureState();
 
-  renderSaude();
   if (currentVitalDetail && currentVitalDetail.tipo === p.tipoVital && vital) {
     // Re-sincroniza referência do detalhe para evitar estado antigo após re-render.
     const refreshed = mockData.sinaisVitais.find((v) => v.id === currentVitalDetail.id);
@@ -14373,7 +14162,6 @@ function executePendingHeartRateSave() {
   closeVitalConfirmModal();
   document.getElementById('heartRateFollowupModal').classList.remove('active');
   document.getElementById('heartRateInput').value = '';
-  renderSaude();
   openMoodCheckinModal();
 }
 
@@ -14475,7 +14263,6 @@ function confirmHeartRateFollowup() {
 function skipHeartRateFollowup() {
   document.getElementById('heartRateFollowupModal').classList.remove('active');
   document.getElementById('heartRateInput').value = '';
-  renderSaude();
   openMoodCheckinModal();
 }
 
